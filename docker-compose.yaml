@@ -1,0 +1,11 @@
+version: "3.6"
+
+services:
+  daledou:
+    image: daledou:v1
+    container_name: daledou
+    restart: always
+    command: pipenv run python3 main.py
+    volumes:
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime
+      - .:/code
