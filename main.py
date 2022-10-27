@@ -19,7 +19,7 @@ def daledou_two():
     pushplus('大乐斗第二轮', message_list)
 
 
-def is_cookie_efficient():
+def daledou_cookies():
     if session() is None:
         logger.error('大乐斗Cookie无效，请更换Cookie，然后重启容器')
     else:
@@ -27,8 +27,8 @@ def is_cookie_efficient():
 
 
 @repeat(every(10).minutes)
-def job_1():
-    is_cookie_efficient()
+def job():
+    daledou_cookies()
 
 
 @repeat(every().day.at('13:01'))
@@ -41,7 +41,7 @@ def job_2():
     daledou_two()
 
 
-is_cookie_efficient()
+daledou_cookies()
 while True:
     run_pending()
     time.sleep(1)
