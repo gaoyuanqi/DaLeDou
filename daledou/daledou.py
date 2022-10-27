@@ -108,10 +108,11 @@ class DaLeDou:
                 if '你占领的领地已经枯竭' in html:
                     # 领取
                     DaLeDou.get('cmd=tbattle&op=drawreleasereward')
+                    self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
                 elif '放弃' in html:
                     # 放弃
                     DaLeDou.get('cmd=tbattle&op=abandon')
-                self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
+                    self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
             # 领地
             # 1东海 2南荒   3西泽   4北寒
             DaLeDou.get(f'cmd=tbattle&op=showregion&region=1')
