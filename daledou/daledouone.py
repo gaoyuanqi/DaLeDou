@@ -635,37 +635,8 @@ class DaLeDouOne(DaLeDou):
 
     @deco
     def 飞升大作战(self):
-        self.msg += DaLeDou.conversion('飞升大作战')
-
-        # 飞升大作战
-        DaLeDouOne.get('cmd=ascendheaven')
-
-        if '赛季结算中' in html:
-            # 境界修为
-            DaLeDouOne.get('cmd=ascendheaven&op=showrealm')
-            self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
-            text_list = DaLeDou.findall(r'season=(\d+)')
-            for s in text_list:
-                # 领取奖励
-                DaLeDouOne.get(f'cmd=ascendheaven&op=getrealmgift&season={s}')
-                self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
-
-        for _ in range(2):
-            # 单排模式
-            DaLeDouOne.get('cmd=ascendheaven&op=signup&type=1')
-            if '时势造英雄' in html:
-                break
-            elif '还没有入场券玄铁令' in html:
-                # 兑换 玄铁令*1
-                DaLeDouOne.get('cmd=ascendheaven&op=exchange&id=2&times=1')
-                if '不足' not in html:
-                    # 本赛季该道具库存不足
-                    # 积分不足，快去参加飞升大作战吧~
-                    continue
-            # 当前为休赛期，报名 匹配模式
-            DaLeDouOne.get('cmd=ascendheaven&op=signup&type=2')
-            break
-        self.msg += DaLeDou.findall(r'【飞升大作战】<br />(.*?)<br />S')
+        from daledou.feisheng import FeiSheng
+        self.msg += FeiSheng().main()
 
     @deco
     def 活动(self):
