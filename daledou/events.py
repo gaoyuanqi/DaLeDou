@@ -200,6 +200,8 @@ class Events(DaLeDou):
         '''
         # 企鹅吉利兑
         Events.get('cmd=geelyexchange')
+        self.msg += DaLeDou.findall(r'】<br /><br />(.*?)<br />')
+
         # 修炼任务 》每日任务
         id_list = DaLeDou.findall(r'id=(\d+)">领取</a>')
         for id in id_list:
