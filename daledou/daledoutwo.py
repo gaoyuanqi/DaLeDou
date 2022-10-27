@@ -64,12 +64,15 @@ class DaLeDouTwo(DaLeDou):
         今日活跃度达到60
         今日活跃度达到90
         '''
+        self.msg += DaLeDou.conversion('乐斗黄历')
+        # 乐斗黄历
+        DaLeDouTwo.get('cmd=calender&op=0')
+        self.msg += DaLeDou.findall(r'今日任务：(.*?)<br />')
         # 领取
         DaLeDouTwo.get('cmd=calender&op=2')
+        self.msg += DaLeDou.findall(r'【乐斗黄历】<br /><br />(.*?)<br />')
         if '任务未完成' in html:
             return
-        self.msg += DaLeDou.conversion('乐斗黄历')
-        self.msg += DaLeDou.findall(r'【乐斗黄历】<br /><br />(.*?)<br />')
         # 占卜
         DaLeDouTwo.get('cmd=calender&op=4')
         self.msg += DaLeDou.findall(r'【运势占卜】<br /><br />(.*?)<br />')
