@@ -230,7 +230,7 @@ class Events(DaLeDou):
                     break
 
         # 当前精魄
-        self.msg += DaLeDou.findall(r'~<br />(.*?)<br /><br />')
+        self.msg += DaLeDou.findall(r'喔~<br />(.*?)<br /><br />')
         # 兑换详情
         msg = DaLeDou.find_tuple(
             r'兑换==<br />(.*?)&nbsp;&nbsp;&nbsp;&nbsp;(.*?)&')
