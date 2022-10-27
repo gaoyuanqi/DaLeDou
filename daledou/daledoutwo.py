@@ -49,6 +49,7 @@ class DaLeDouTwo(DaLeDou):
         if self.week == '4':
             # 大侠回归三重好礼
             DaLeDouTwo.get('cmd=newAct&subtype=173&op=1')
+            self.msg += DaLeDou.findall(r'】<br /><br />(.*?)<br />')
             two_tuple_list = DaLeDou.findall(r'subtype=(\d+).*?taskid=(\d+)')
             if two_tuple_list:
                 self.msg += DaLeDou.conversion('大侠回归三重好礼')
