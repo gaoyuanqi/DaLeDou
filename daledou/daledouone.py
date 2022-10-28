@@ -206,7 +206,7 @@ class DaLeDouOne(DaLeDou):
                 # 挑战
                 DaLeDouOne.get('cmd=facchallenge&subtype=3')
                 self.msg += DaLeDou.findall(r'功勋商店</a><br />(.*?)<br />')
-                if DaLeDou.findall(r'生命：(\d+)') == '0':
+                if '您的挑战次数已用光' in html:
                     break
 
         elif self.week == '6':
