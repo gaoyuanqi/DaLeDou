@@ -240,6 +240,36 @@ class Events(DaLeDou):
         self.msg += DaLeDou.findall_tuple(
             r'精魄兑换</a><br />(.*?)&nbsp;&nbsp;&nbsp;&nbsp;(.*?)&')
 
+    def 乐斗游记(self):
+        # 乐斗游记
+        Events.get('cmd=newAct&subtype=176')
+
+        # 今日游记任务
+        text_list = DaLeDou.findall(r'task_id=(\d+)')
+        for id in text_list:
+            # 领取
+            Events.get(f'cmd=newAct&subtype=176&op=1&task_id={id}')
+            self.msg += DaLeDou.findall(r'积分。<br /><br />(.*?)<br />')
+
+        if self.week == '4':
+            # 一键领取
+            Events.get('cmd=newAct&subtype=176&op=5')
+            self.msg += DaLeDou.findall(r'积分。<br /><br />(.*?)<br />')
+            self.msg += DaLeDou.findall(r'十次</a><br />(.*?)<br />乐斗')
+            # 兑换
+            text_list = DaLeDou.findall(r'溢出积分：(\d+)')
+            if (num := int(text_list[0])) != 0:
+                num10 = int(num / 10)
+                num1 = num - (num10 * 10)
+                for _ in range(num10):
+                    # 兑换十次
+                    Events.get('cmd=newAct&subtype=176&op=2&num=10')
+                    self.msg += DaLeDou.findall(r'积分。<br /><br />(.*?)<br />')
+                for _ in range(num1):
+                    # 兑换一次
+                    Events.get('cmd=newAct&subtype=176&op=2&num=1')
+                    self.msg += DaLeDou.findall(r'积分。<br /><br />(.*?)<br />')
+
     def main(self) -> list[str]:
         self.msg += DaLeDou.conversion('活动')
 
@@ -315,6 +345,9 @@ class Events(DaLeDou):
         if '企鹅吉利兑' in events_missions:
             self.msg += ['---企鹅吉利兑---']
             self.企鹅吉利兑()
+        if '乐斗游记' in events_missions:
+            self.msg += ['---乐斗游记---']
+            self.乐斗游记()
 
         if self.week == '4':
             if '登录商店' in events_missions:
