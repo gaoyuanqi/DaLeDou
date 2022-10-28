@@ -35,6 +35,8 @@ class FeiSheng(DaLeDou):
                     # 本赛季该道具库存不足
                     # 积分不足，快去参加飞升大作战吧~
                     continue
+            elif '不在报名时间' in html:
+                break
             # 当前为休赛期，报名匹配模式
             FeiSheng.get('cmd=ascendheaven&op=signup&type=2')
             break

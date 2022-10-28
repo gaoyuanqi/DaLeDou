@@ -201,11 +201,13 @@ class DaLeDouOne(DaLeDou):
             for t in [2, 2, 2, 2, 2, 4]:
                 # 试炼、高倍转盘
                 DaLeDouOne.get(f'cmd=facchallenge&subtype={t}')
-                self.msg += DaLeDou.findall(r'兑换商店</a><br />(.*?)<br />')
+                self.msg += DaLeDou.findall(r'功勋商店</a><br />(.*?)<br />')
             for _ in range(30):
                 # 挑战
                 DaLeDouOne.get('cmd=facchallenge&subtype=3')
-            self.msg += ['挑战*30']
+                self.msg += DaLeDou.findall(r'功勋商店</a><br />(.*?)<br />')
+                if DaLeDou.findall(r'生命：(\d+)') == '0':
+                    break
 
         elif self.week == '6':
             self.msg += DaLeDou.conversion('踢馆')
