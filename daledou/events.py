@@ -87,7 +87,7 @@ class Events(DaLeDou):
     def 猜单双(self):
         # 猜单双
         Events.get('cmd=oddeven')
-        for _ in range(10):
+        for _ in range(5):
             text_list = DaLeDou.findall(r'value=(\d+)">.*?数')
             if text_list:
                 value = random.choice(text_list)
