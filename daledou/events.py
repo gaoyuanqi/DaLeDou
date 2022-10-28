@@ -270,6 +270,22 @@ class Events(DaLeDou):
                     Events.get('cmd=newAct&subtype=176&op=2&num=1')
                     self.msg += DaLeDou.findall(r'积分。<br /><br />(.*?)<br />')
 
+    def 万圣节(self):
+        # 点亮南瓜灯
+        Events.get('cmd=hallowmas&gb_id=1')
+        for _ in range(20):
+            text_list = DaLeDou.findall(f'cushaw_id=(\d+)')
+            for id in text_list:
+                Events.get(f'cmd=hallowmas&gb_id=4&cushaw_id={id}')
+                self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
+                if '恭喜您' in html:
+                    # 恭喜您获得10体力和南瓜灯一个！
+                    # 恭喜您获得20体力和南瓜灯一个！南瓜灯已刷新
+                    break
+                elif '请领取' in html:
+                    # 请领取今日的活跃度礼包来获得蜡烛吧！
+                    return
+
     def main(self) -> list[str]:
         self.msg += DaLeDou.conversion('活动')
 
@@ -348,6 +364,9 @@ class Events(DaLeDou):
         if '乐斗游记' in events_missions:
             self.msg += ['---乐斗游记---']
             self.乐斗游记()
+        if '万圣节' in events_missions:
+            self.msg += ['---万圣节---']
+            self.万圣节()
 
         if self.week == '4':
             if '登录商店' in events_missions:
