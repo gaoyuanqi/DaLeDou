@@ -29,7 +29,7 @@ class MenPai(DaLeDou):
     def 五花堂(self):
 
         # 五花堂
-        MenPai.et('cmd=sect_task')
+        MenPai.get('cmd=sect_task')
         wuhuatang = html
 
         missions = {
@@ -41,23 +41,23 @@ class MenPai(DaLeDou):
         }
         for name, url in missions.items():
             if name in wuhuatang:
-                MenPai.et(url)
+                MenPai.get(url)
 
         if '进行一次武艺切磋' in wuhuatang:
             for rank in [1, 2, 3]:
                 # 掌门 首座 堂主
-                MenPai.et(
+                MenPai.get(
                     f'cmd=sect&op=trainingwithcouncil&rank={rank}&pos=1')
 
         if '查看一名' in wuhuatang:
             # 查看一名同门成员的资料 or 查看一名其他门派成员的资料
             for page in [2, 3]:
                 # 好友第2、3页
-                MenPai.et(f'cmd=friendlist&page={page}')
+                MenPai.get(f'cmd=friendlist&page={page}')
                 uin_list = DaLeDou.findall(r'\d+：.*?B_UID=(\d+).*?级')
                 for uin in uin_list:
                     # 查看好友
-                    MenPai.et(f'cmd=totalinfo&B_UID={uin}')
+                    MenPai.get(f'cmd=totalinfo&B_UID={uin}')
 
         if '进行一次心法修炼' in wuhuatang:
             '''
@@ -67,7 +67,7 @@ class MenPai(DaLeDou):
             103 达摩心经  106 观音咒  109 养心术   112 笑尘诀  115 金丹秘诀  118 日月凌天
             '''
             for id in range(101, 119):
-                MenPai.et(f'cmd=sect_art&subtype=2&art_id={id}&times=1')
+                MenPai.get(f'cmd=sect_art&subtype=2&art_id={id}&times=1')
                 if '修炼成功' in html:
                     self.msg += DaLeDou.findall(r'【心法修炼】<br />(.*?)<br />')
                     break
@@ -78,11 +78,11 @@ class MenPai(DaLeDou):
                         self.msg += ['所有心法都已经顶级']
 
         # 五花堂
-        MenPai.et('cmd=sect_task')
+        MenPai.get('cmd=sect_task')
         text_list = DaLeDou.findall(r'task_id=(\d+)">完成')
         for id in text_list:
             # 完成
-            MenPai.et(f'cmd=sect_task&subtype=2&task_id={id}')
+            MenPai.get(f'cmd=sect_task&subtype=2&task_id={id}')
             self.msg += DaLeDou.findall(r'【五花堂】<br />(.*?)<br /><br />')
 
     def main(self) -> list[str]:
