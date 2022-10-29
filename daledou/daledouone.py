@@ -127,7 +127,7 @@ class DaLeDouOne(DaLeDou):
         # 武林
         DaLeDouOne.get('cmd=showwulin')
         self.msg += DaLeDou.find_tuple(
-            r'【冠军排行】</a><br />(.*?)<br />(.*?)<br />')
+            r'【冠军排行】</a><br />(.*?)<br />(.*?)<br />武林技能')
 
         if self.week in ['0', '2', '5']:
             # 报名 侠侣争霸
@@ -138,7 +138,7 @@ class DaLeDouOne(DaLeDou):
         if self.week in ['6', '0']:
             # 报名 笑傲群侠
             DaLeDouOne.get('cmd=knightfight&op=signup')
-            self.msg += DaLeDou.findall(r'【冠军排行】</a><br />(.*?)<br />.*?等级')
+            self.msg += DaLeDou.findall(r'【冠军排行】</a><br />(.*?)<br />开赛')
 
     @deco
     def 巅峰之战进行中(self):
