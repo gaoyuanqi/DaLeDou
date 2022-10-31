@@ -273,18 +273,24 @@ class Events(DaLeDou):
     def 万圣节(self):
         # 点亮南瓜灯
         Events.get('cmd=hallowmas&gb_id=1')
-        for _ in range(20):
-            text_list = DaLeDou.findall(f'cushaw_id=(\d+)')
-            for id in text_list:
-                Events.get(f'cmd=hallowmas&gb_id=4&cushaw_id={id}')
+        while True:
+            text_list = DaLeDou.findall(r'cushaw_id=(\d+)')
+            id = random.choice(text_list)
+            # 南瓜
+            Events.get(f'cmd=hallowmas&gb_id=4&cushaw_id={id}')
+            self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
+            # 恭喜您获得10体力和南瓜灯一个！
+            # 恭喜您获得20体力和南瓜灯一个！南瓜灯已刷新
+            # 请领取今日的活跃度礼包来获得蜡烛吧！
+            if '请领取' in html:
+                break
+
+        # 兑换奖励
+        if self.week == '4':
+            for id in [6, 5]:
+                # 礼包B 消耗40个南瓜灯 》礼包A 消耗20个南瓜灯
+                Events.get(f'cmd=hallowmas&gb_id={id}')
                 self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
-                if '恭喜您' in html:
-                    # 恭喜您获得10体力和南瓜灯一个！
-                    # 恭喜您获得20体力和南瓜灯一个！南瓜灯已刷新
-                    break
-                elif '请领取' in html:
-                    # 请领取今日的活跃度礼包来获得蜡烛吧！
-                    return
 
     def main(self) -> list[str]:
         self.msg += DaLeDou.conversion('活动')
