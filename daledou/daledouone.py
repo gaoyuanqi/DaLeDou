@@ -74,8 +74,7 @@ class DaLeDouOne(DaLeDou):
             DaLeDouOne.get(f'cmd=fight&B_UID={B_UID}')
             if '体力值不足' in html:
                 self.msg += ['体力值不足']
-                return
-            self.msg += DaLeDou.findall(r'删</a><br />(.*?)。')
+                break
 
         # 帮友首页 乐斗大侠
         DaLeDouOne.get('cmd=viewmem')
@@ -85,8 +84,7 @@ class DaLeDouOne(DaLeDou):
             DaLeDouOne.get(f'cmd=fight&B_UID={B_UID}')
             if '体力值不足' in html:
                 self.msg += ['体力值不足']
-                return
-            self.msg += DaLeDou.findall(r'侠侣</a><br />(.*?)。')
+                break
 
         # 侠侣 全部乐斗
         DaLeDouOne.get('cmd=viewxialv')
@@ -96,8 +94,7 @@ class DaLeDouOne(DaLeDou):
             DaLeDouOne.get(f'cmd=fight&B_UID={B_UID}')
             if '体力值不足' in html:
                 self.msg += ['体力值不足']
-                return
-            self.msg += DaLeDou.findall(r'删</a><br />(.*?)。')
+                break
 
     @deco
     def 兵法(self):

@@ -78,8 +78,6 @@ class MyGang(DaLeDou):
                     elif '技能经验增加' in html:
                         # 技能经验增加20！
                         n += 1
-                        self.msg += DaLeDou.findall(
-                            r'规则说明</a><br />(.*?)<br />')
                 if n == 4:
                     break
 
