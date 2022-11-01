@@ -58,8 +58,6 @@ class DaLeDouOne(DaLeDou):
         帮友 大侠
         侠侣 全部乐斗
         '''
-        self.msg += DaLeDou.conversion('乐斗')
-
         # 武林 》设置 》乐斗助手
         DaLeDouOne.get('cmd=view&type=6')
         if '开启自动使用体力药水' in html:
