@@ -67,7 +67,7 @@ class DaLeDouOne(DaLeDou):
         for _ in range(3):
             # 使用 贡献药水
             DaLeDouOne.get('cmd=use&id=3038&store_type=1&page=1')
-    
+
         # 好友首页 乐斗大侠
         DaLeDouOne.get('cmd=friendlist&page=1')
         text_list = DaLeDou.findall(r'侠：.*?B_UID=(\d+)')
