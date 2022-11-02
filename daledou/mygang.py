@@ -58,7 +58,7 @@ class MyGang(DaLeDou):
             '查看祭坛': 'cmd=altar',
             '查看踢馆': 'cmd=facchallenge&subtype=0',
             '查看要闻': 'cmd=factionop&subtype=8&pageno=1&type=2',
-            '加速贡献': 'cmd=use&id=3038&store_type=1&page=1',
+            # '加速贡献': 'cmd=use&id=3038&store_type=1&page=1',
             '粮草掠夺': 'cmd=forage_war',
         }
         for name, url in missions.items():
