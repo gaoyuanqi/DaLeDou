@@ -257,8 +257,8 @@ class Events(DaLeDou):
             self.msg += DaLeDou.findall(r'积分。<br /><br />(.*?)<br />')
             self.msg += DaLeDou.findall(r'十次</a><br />(.*?)<br />乐斗')
             # 兑换
-            text_list = DaLeDou.findall(r'溢出积分：(\d+)')
-            if (num := int(text_list[0])) != 0:
+            num_list = DaLeDou.findall(r'溢出积分：(\d+)')
+            if (num := int(num_list[0])) != 0:
                 num10 = int(num / 10)
                 num1 = num - (num10 * 10)
                 for _ in range(num10):
@@ -271,6 +271,7 @@ class Events(DaLeDou):
                     self.msg += DaLeDou.findall(r'积分。<br /><br />(.*?)<br />')
 
     def 万圣节(self):
+
         # 点亮南瓜灯
         Events.get('cmd=hallowmas&gb_id=1')
         while True:
@@ -286,10 +287,19 @@ class Events(DaLeDou):
                 break
 
         # 兑换奖励
-        if self.week == '4':
-            for id in [6, 5]:
-                # 礼包B 消耗40个南瓜灯 》礼包A 消耗20个南瓜灯
-                Events.get(f'cmd=hallowmas&gb_id={id}')
+        Events.get('cmd=hallowmas&gb_id=0')
+        date = DaLeDou.findall(r'~\d+月(\d+)日')[0]
+        if int(self.date) == int(date) - 1:
+            num = DaLeDou.findall(r'南瓜灯：(\d+)个')[0]
+            B = int(num) / 40
+            A = (int(num) - int(B) * 40) / 20
+            for _ in range(int(B)):
+                # 礼包B 消耗40个南瓜灯
+                Events.get('cmd=hallowmas&gb_id=6')
+                self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
+            for _ in range(int(A)):
+                # 礼包A 消耗20个南瓜灯
+                Events.get('cmd=hallowmas&gb_id=5')
                 self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
 
     def main(self) -> list[str]:
