@@ -271,7 +271,6 @@ class Events(DaLeDou):
                     self.msg += DaLeDou.findall(r'积分。<br /><br />(.*?)<br />')
 
     def 万圣节(self):
-
         # 点亮南瓜灯
         Events.get('cmd=hallowmas&gb_id=1')
         while True:

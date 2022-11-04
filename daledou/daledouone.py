@@ -204,7 +204,6 @@ class DaLeDouOne(DaLeDou):
             for _ in range(30):
                 # 挑战
                 DaLeDouOne.get('cmd=facchallenge&subtype=3')
-                self.msg += DaLeDou.findall(r'功勋商店</a><br />(.*?)<br />')
                 if '您的挑战次数已用光' in html:
                     break
 
