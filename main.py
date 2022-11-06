@@ -8,13 +8,13 @@ from daledou.pushplus import pushplus
 
 
 def daledou_one():
-    from daledou.daledouone import DaLeDouOne
+    from missions.daledou.daledouone import DaLeDouOne
     message_list = DaLeDouOne().main()
     pushplus('大乐斗第一轮', message_list)
 
 
 def daledou_two():
-    from daledou.daledoutwo import DaLeDouTwo
+    from missions.daledou.daledoutwo import DaLeDouTwo
     message_list = DaLeDouTwo().main()
     pushplus('大乐斗第二轮', message_list)
 

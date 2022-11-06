@@ -1,16 +1,17 @@
 '''
-大乐斗【活动】
+活动
 '''
 import random
 
-from daledou.daledou import DaLeDou
-from daledou.config import read_yaml
+from missions.daledou.daledou import DaLeDou
+from missions.daledou.config import read_yaml
 
 
 class Events(DaLeDou):
 
     def __init__(self):
         super().__init__()
+        self.msg = []
 
     @staticmethod
     def get(params: str):
@@ -301,7 +302,20 @@ class Events(DaLeDou):
                 Events.get('cmd=hallowmas&gb_id=5')
                 self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
 
-    def main(self) -> list[str]:
+    def main_one(self) -> list[str]:
+        self.msg += DaLeDou.conversion('活动')
+
+        # 首页
+        Events.get('cmd=index')
+        events_missions = html
+
+        if '幸运金蛋' in events_missions:
+            self.msg += ['---幸运金蛋---']
+            self.幸运金蛋()
+
+        return self.msg
+
+    def main_two(self) -> list[str]:
         self.msg += DaLeDou.conversion('活动')
 
         # 首页
@@ -394,5 +408,4 @@ class Events(DaLeDou):
                 self.msg += ['---十二周年生日祝福---']
                 self.十二周年生日祝福()
 
-        # [2:] 表示切掉多余的 ['【开始时间】', '2022-10-22 21:26:34']
-        return self.msg[2:]
+        return self.msg

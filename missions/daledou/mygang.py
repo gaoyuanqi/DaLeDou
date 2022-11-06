@@ -1,13 +1,14 @@
 '''
 我的帮派
 '''
-from daledou.daledou import DaLeDou
+from missions.daledou.daledou import DaLeDou
 
 
 class MyGang(DaLeDou):
 
     def __init__(self):
         super().__init__()
+        self.msg = []
 
     @staticmethod
     def get(params: str):
@@ -96,5 +97,4 @@ class MyGang(DaLeDou):
         self.帮战()
         self.帮派任务()
 
-        # [2:] 表示切掉多余的 ['【开始时间】', '2022-10-22 21:26:34']
-        return self.msg[2:]
+        return self.msg

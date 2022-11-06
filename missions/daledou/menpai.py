@@ -1,13 +1,14 @@
 '''
 门派
 '''
-from daledou.daledou import DaLeDou
+from missions.daledou.daledou import DaLeDou
 
 
 class MenPai(DaLeDou):
 
     def __init__(self):
         super().__init__()
+        self.msg = []
 
     @staticmethod
     def get(params: str):
@@ -92,5 +93,4 @@ class MenPai(DaLeDou):
         self.八叶堂()
         self.五花堂()
 
-        # [2:] 表示切掉多余的 ['【开始时间】', '2022-10-22 21:26:34']
-        return self.msg[2:]
+        return self.msg

@@ -1,15 +1,16 @@
 '''
-大乐斗【任务】
+任务
 '''
 import random
 
-from daledou.daledou import DaLeDou
+from missions.daledou.daledou import DaLeDou
 
 
-class Missions(DaLeDou):
+class RenWu(DaLeDou):
 
     def __init__(self):
         super().__init__()
+        self.msg = []
 
     @staticmethod
     def get(params: str):
@@ -18,10 +19,10 @@ class Missions(DaLeDou):
 
     def 查看好友资料(self):
         # 查看好友第2页
-        Missions.get(f'cmd=friendlist&page=2')
+        RenWu.get(f'cmd=friendlist&page=2')
         text_list = DaLeDou.findall(r'\d+：.*?B_UID=(\d+).*?级')
         for UID in text_list[:3]:
-            Missions.get(
+            RenWu.get(
                 f'cmd=totalinfo&B_UID={UID}&page=2&type=1&from_pf_list=1')
 
     def 徽章进阶(self):
@@ -61,7 +62,7 @@ class Missions(DaLeDou):
         十二周年徽章  33
         '''
         for id in range(1, 34):
-            Missions.get(
+            RenWu.get(
                 f'cmd=achievement&op=upgradelevel&achievement_id={id}&times=1')
             if '进阶失败' in html:
                 break
@@ -79,17 +80,17 @@ class Missions(DaLeDou):
         不屈意志  武穆遗书  21032    降低受到暴击几率
         '''
         for id in [21001, 2570, 21032, 2544]:
-            Missions.get(f'cmd=brofight&subtype=12&op=practice&baseid={id}')
+            RenWu.get(f'cmd=brofight&subtype=12&op=practice&baseid={id}')
             if '研习成功' in html:
                 break
 
     def 挑战陌生人(self):
         # 斗友
-        Missions.get('cmd=friendlist&type=1')
+        RenWu.get('cmd=friendlist&type=1')
         text_list = DaLeDou.findall(r'：.*?级.*?B_UID=(\d+).*?乐斗</a>')
         for B_UID in text_list[:4]:
             # 乐斗
-            Missions.get(f'cmd=fight&B_UID={B_UID}&page=1&type=9')
+            RenWu.get(f'cmd=fight&B_UID={B_UID}&page=1&type=9')
 
     def 强化神装(self):
         '''
@@ -102,7 +103,7 @@ class Missions(DaLeDou):
         '''
         for id in range(6):
             # 进阶
-            Missions.get(f'cmd=outfit&op=1&magic_outfit_id={id}')
+            RenWu.get(f'cmd=outfit&op=1&magic_outfit_id={id}')
             if '进阶所需材料不足' in html:
                 continue
             elif '已经满阶' in html:
@@ -128,7 +129,7 @@ class Missions(DaLeDou):
         '''
         # 武器专精
         for tid in range(4):
-            Missions.get(f'cmd=weapon_specialize&op=2&type_id={tid}')
+            RenWu.get(f'cmd=weapon_specialize&op=2&type_id={tid}')
             if '升星所需材料不足' in html:
                 continue
             elif '已经满阶' in html:
@@ -141,7 +142,7 @@ class Missions(DaLeDou):
 
         # 武器栏
         for sid in range(1000, 1012):
-            Missions.get(f'cmd=weapon_specialize&op=5&storage_id={sid}')
+            RenWu.get(f'cmd=weapon_specialize&op=5&storage_id={sid}')
             if '升星所需材料不足' in html:
                 continue
             elif '已经满阶' in html:
@@ -170,7 +171,7 @@ class Missions(DaLeDou):
         idx = random.randint(0, 3)
         id = random.randint(0, 4)
         for id in range(11):
-            Missions.get(
+            RenWu.get(
                 f'cmd=inscription&subtype=5&type_id={id}&weapon_idx={idx}&attr_id={id}')
             if '升级所需材料不足' in html:
                 continue
@@ -179,18 +180,18 @@ class Missions(DaLeDou):
 
     def 增强经脉(self):
         # 经脉
-        Missions.get('cmd=intfmerid&sub=1')
+        RenWu.get('cmd=intfmerid&sub=1')
         for _ in range(7):
             text_list = DaLeDou.findall(r'.*?master_id=(\d+)">传功</a>')
             for id in text_list:
                 # 传功
-                Missions.get(f'cmd=intfmerid&sub=2&master_id={id}')
+                RenWu.get(f'cmd=intfmerid&sub=2&master_id={id}')
                 if '位置已满' in html:
                     # 位置已满，请先将收入丹田！
                     # 一键合成
-                    Missions.get('cmd=intfmerid&sub=10&op=4')
+                    RenWu.get('cmd=intfmerid&sub=10&op=4')
                     # 一键拾取
-                    Missions.get('cmd=intfmerid&sub=5')
+                    RenWu.get('cmd=intfmerid&sub=5')
 
     def 助阵(self):
         '''
@@ -219,7 +220,7 @@ class Missions(DaLeDou):
         n = 0
         for id, dex_list in tianshu.items():
             for dex in dex_list:
-                Missions.get(
+                RenWu.get(
                     f'cmd=formation&type=4&formationid={id}&attrindex={dex}&times=1')
                 if n == 2:
                     return
@@ -239,7 +240,7 @@ class Missions(DaLeDou):
         self.msg += DaLeDou.conversion('任务')
 
         # 日常任务
-        Missions.get('cmd=task&sub=1')
+        RenWu.get('cmd=task&sub=1')
         daily_missions = html
 
         if '查看好友资料' in daily_missions:
@@ -261,8 +262,7 @@ class Missions(DaLeDou):
         self.助阵()
 
         # 一键完成任务
-        Missions.get('cmd=task&sub=7')
+        RenWu.get('cmd=task&sub=7')
         self.msg += DaLeDou.findall_tuple(r'id=\d+">(.*?)</a>.*?>(.*?)</a>')
 
-        # [2:] 表示切掉多余的 ['【开始时间】', '2022-10-22 21:26:34']
-        return self.msg[2:]
+        return self.msg

@@ -4,7 +4,7 @@ import traceback
 from loguru import logger
 from decorator import decorator
 
-from daledou.pushplus import pushplus
+from missions.pushplus import pushplus
 
 
 @decorator

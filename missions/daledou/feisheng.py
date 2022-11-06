@@ -1,13 +1,14 @@
 '''
 飞升大作战
 '''
-from daledou.daledou import DaLeDou
+from missions.daledou.daledou import DaLeDou
 
 
 class FeiSheng(DaLeDou):
 
     def __init__(self):
         super().__init__()
+        self.msg = []
 
     @staticmethod
     def get(params: str):
@@ -40,7 +41,7 @@ class FeiSheng(DaLeDou):
             # 当前为休赛期，报名匹配模式
             FeiSheng.get('cmd=ascendheaven&op=signup&type=2')
             break
-        self.msg += DaLeDou.findall(r'【飞升大作战】<br />(.*?)<br />S')
+        self.msg += DaLeDou.findall(r'】<br />(.*?)<br />S')
 
     def 领取奖励(self):
         '''
@@ -64,5 +65,4 @@ class FeiSheng(DaLeDou):
         self.报名()
         self.领取奖励()
 
-        # [2:] 表示切掉多余的 ['【开始时间】', '2022-10-22 21:26:34']
-        return self.msg[2:]
+        return self.msg

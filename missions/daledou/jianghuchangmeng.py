@@ -1,13 +1,14 @@
 '''
 江湖长梦
 '''
-from daledou.daledou import DaLeDou
+from missions.daledou.daledou import DaLeDou
 
 
 class JiangHu(DaLeDou):
 
     def __init__(self):
         super().__init__()
+        self.msg = []
 
     @staticmethod
     def get(params: str):
@@ -16,7 +17,6 @@ class JiangHu(DaLeDou):
 
     def 玄铁令(self):
         # 【江湖长梦】兑换 玄铁令*10
-
         if self.week == '4':
             for _ in range(7):
                 # 兑换 玄铁令*1
@@ -78,5 +78,4 @@ class JiangHu(DaLeDou):
         self.玄铁令()
         self.柒承的忙碌日常()
 
-        # [2:] 表示切掉多余的 ['【开始时间】', '2022-10-22 21:26:34']
-        return self.msg[2:]
+        return self.msg
