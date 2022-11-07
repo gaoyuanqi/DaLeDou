@@ -25,7 +25,7 @@ class WenDing(DaLeDou):
         if self.week not in ['6', '0']:
             self.msg += DaLeDou.conversion('问鼎天下')
             # 问鼎天下
-            DaLeDou.get('cmd=tbattle')
+            WenDing.get('cmd=tbattle')
             if '你占领的领地已经枯竭' in html:
                 # 领取
                 WenDing.get('cmd=tbattle&op=drawreleasereward')
