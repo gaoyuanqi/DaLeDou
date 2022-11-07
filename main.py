@@ -3,8 +3,8 @@ import time
 from loguru import logger
 from schedule import every, repeat, run_pending
 
-from daledou.session import session
-from daledou.pushplus import pushplus
+from missions.daledou.session import session
+from missions.pushplus import pushplus
 
 
 def daledou_one():
