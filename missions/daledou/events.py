@@ -303,17 +303,16 @@ class Events(DaLeDou):
                 self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
 
     def main_one(self) -> list[str]:
-        self.msg += DaLeDou.conversion('活动')
-
         # 首页
         Events.get('cmd=index')
         events_missions = html
 
         if '幸运金蛋' in events_missions:
+            self.msg += DaLeDou.conversion('活动')
             self.msg += ['---幸运金蛋---']
             self.幸运金蛋()
 
-        return self.msg
+            return self.msg
 
     def main_two(self) -> list[str]:
         self.msg += DaLeDou.conversion('活动')

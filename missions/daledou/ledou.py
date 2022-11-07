@@ -72,8 +72,6 @@ class LeDou(DaLeDou):
             LeDou.get(f'cmd=fight&B_UID={B_UID}')
 
     def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('乐斗')
-
         self.乐斗助手()
         self.贡献药水()
         self.好友大侠()

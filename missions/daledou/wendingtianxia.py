@@ -13,7 +13,7 @@ class WenDing(DaLeDou):
     @staticmethod
     def get(params: str):
         global html
-        html = WenDing.get(params)
+        html = DaLeDou.get(params)
 
     def 领取奖励(self):
         if self.week == '1':

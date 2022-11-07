@@ -168,8 +168,8 @@ class DaLeDouOne(DaLeDou):
 
     @deco
     def 任务(self):
-        from missions.daledou.renwu import Missions
-        self.msg += Missions().main()
+        from missions.daledou.renwu import RenWu
+        self.msg += RenWu().main()
 
     @deco
     def 我的帮派(self):
