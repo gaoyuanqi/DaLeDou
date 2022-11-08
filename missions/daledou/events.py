@@ -312,7 +312,7 @@ class Events(DaLeDou):
             self.msg += ['---幸运金蛋---']
             self.幸运金蛋()
 
-            return self.msg
+        return self.msg
 
     def main_two(self) -> list[str]:
         self.msg += DaLeDou.conversion('活动')
