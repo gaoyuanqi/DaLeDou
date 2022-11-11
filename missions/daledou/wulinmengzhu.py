@@ -15,30 +15,10 @@ class WuLin(DaLeDou):
         global html
         html = DaLeDou.get(params)
 
-    def 报名(self):
-        if self.week in ['1', '3', '5']:
-            self.msg += DaLeDou.conversion('武林盟主')
-            # 黄金赛场  1
-            # 白银赛场  2
-            # 青铜赛场  3
-            WuLin.get(f'cmd=wlmz&op=signup&ground_id=1')
-            self.msg += DaLeDou.findall(r'赛场】<br />(.*?)<br />')
-
-    def 竞猜(self):
-        if self.week in ['2', '4', '6']:
-            self.msg += DaLeDou.conversion('武林盟主')
-            for index in range(8):
-                # 选择
-                WuLin.get(f'cmd=wlmz&op=guess_up&index={index}')
-            # 确定竞猜选择
-            WuLin.get('cmd=wlmz&op=comfirm')
-            self.msg += DaLeDou.findall(r'战报</a><br />(.*?)<br /><br />')
-
     def 领取奖励(self):
         # 武林盟主
         WuLin.get('cmd=wlmz&op=view_index')
         if '领取奖励' in html:
-            self.msg += DaLeDou.conversion('武林盟主')
             two_tuple_list = DaLeDou.findall(
                 r'section_id=(\d+)&amp;round_id=(\d+)">')
             for s, r in two_tuple_list:
@@ -48,9 +28,30 @@ class WuLin(DaLeDou):
             # 武林盟主
             WuLin.get('cmd=wlmz&op=view_index')
 
+    def 报名(self):
+        '''
+        黄金赛场  1
+        白银赛场  2
+        青铜赛场  3
+        '''
+        if self.week in ['1', '3', '5']:
+            WuLin.get(f'cmd=wlmz&op=signup&ground_id=1')
+            self.msg += DaLeDou.findall(r'赛场】<br />(.*?)<br />')
+
+    def 竞猜(self):
+        if self.week in ['2', '4', '6']:
+            for index in range(8):
+                # 选择
+                WuLin.get(f'cmd=wlmz&op=guess_up&index={index}')
+            # 确定竞猜选择
+            WuLin.get('cmd=wlmz&op=comfirm')
+            self.msg += DaLeDou.findall(r'战报</a><br />(.*?)<br /><br />')
+
     def main(self) -> list[str]:
+        self.msg += DaLeDou.conversion('武林盟主')
+
+        self.领取奖励()
         self.报名()
         self.竞猜()
-        self.领取奖励()
 
         return self.msg
