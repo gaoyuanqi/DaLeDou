@@ -95,13 +95,13 @@ docker logs daledou
 
 如果大乐斗Cookies有效，应该看到以下信息：
 ```
-2022-10-26 20:39:13.983 | INFO     | __main__:is_cookie_efficient:26 - 大乐斗Cookie有效，脚本开始定时运行...
+2022-10-26 20:39:13.983 | INFO     | __main__:daledou_cookies:29 - 大乐斗Cookie有效，脚本将在指定时间运行...
 ```
 
 
 ## 重启脚本
 
-如果修改了一些文件（包括更换cookie），需要重启脚本以使配置生效：
+如果修改了一些文件（更换cookie可以不重启脚本），需要重启脚本以使配置生效：
 ```bash
 docker restart daledou
 ```

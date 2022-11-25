@@ -3,14 +3,17 @@
 '''
 import re
 import time
+from importlib import reload
 
 from loguru import logger
 
+import settings
 from missions.times import times_list
 from missions.daledou.session import session
 
 
-SESSIONS = session()
+reload(settings)
+SESSIONS = session(settings.DALEDOU_COOKIE)
 
 
 class DaLeDou:

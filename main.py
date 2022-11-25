@@ -1,10 +1,12 @@
 import time
+from importlib import reload
 
 from loguru import logger
 from schedule import every, repeat, run_pending
 
-from missions.daledou.session import session
+import settings
 from missions.pushplus import pushplus
+from missions.daledou.session import session
 
 
 def daledou_one():
@@ -20,10 +22,11 @@ def daledou_two():
 
 
 def daledou_cookies():
-    if session() is None:
-        logger.error('大乐斗Cookie无效，请更换Cookie，然后重启容器')
+    reload(settings)
+    if session(settings.DALEDOU_COOKIE) is None:
+        logger.error('大乐斗Cookie无效，请更换Cookie')
     else:
-        logger.info('大乐斗Cookie有效，脚本开始定时运行...')
+        logger.info('大乐斗Cookie有效，脚本将在指定时间运行...')
 
 
 @repeat(every(10).minutes)
