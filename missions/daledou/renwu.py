@@ -186,8 +186,9 @@ class RenWu(DaLeDou):
             for id in text_list:
                 # 传功
                 RenWu.get(f'cmd=intfmerid&sub=2&master_id={id}')
-                if '位置已满' in html:
+                if '请先' in html:
                     # 位置已满，请先将收入丹田！
+                    # 丹田内力已经满了，请先合并！
                     # 一键合成
                     RenWu.get('cmd=intfmerid&sub=10&op=4')
                     # 一键拾取
