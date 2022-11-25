@@ -67,9 +67,11 @@ class MengXiang(DaLeDou):
         if self.week == '4':
             # 梦想之旅
             MengXiang.get('cmd=dreamtrip')
-            if text_list := DaLeDou.findall(r'sub=4&amp;bmapid=(\d+)'):
-                # 礼包
-                MengXiang.get(f'cmd=dreamtrip&sub=4&bmapid={text_list[0]}')
+            text_list = DaLeDou.findall(r'sub=4&amp;bmapid=(\d+)')
+            for id in text_list:
+                # 礼包     1 or 2 or 3 or 4
+                # 超级礼包 0
+                MengXiang.get(f'cmd=dreamtrip&sub=4&bmapid={id}')
                 self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
 
     def main(self) -> list[str]:
