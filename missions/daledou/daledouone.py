@@ -8,7 +8,7 @@ from missions.daledou.daledou import DaLeDou
 
 class DaLeDouOne(DaLeDou):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @deco

@@ -6,9 +6,8 @@ from missions.daledou.daledou import DaLeDou
 
 class HuiWu(DaLeDou):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.msg = []
 
     @staticmethod
     def get(params: str):

@@ -11,22 +11,51 @@ from missions.daledou.session import session
 
 def daledou_one():
     from missions.daledou.daledouone import DaLeDouOne
-    message_list = DaLeDouOne().main()
-    pushplus('大乐斗第一轮', message_list)
+
+    reload(settings)
+    for i, cookie in enumerate(settings.DALEDOU_COOKIE):
+        # 2022-05-08 09:51:13
+        start = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        msg = ['【开始时间】', start]
+        sessions = session(cookie)
+        if sessions is None:
+            logger.error(f'第 {i + 1} 个大乐斗Cookie无效，跳过')
+            msg_list = msg + ['\n【登陆】', f'第 {i + 1} 个大乐斗Cookie无效，跳过该账号']
+            pushplus(f'第 {i + 1} 个大乐斗Cookie无效', msg_list)
+            continue
+
+        logger.info(f'开始执行大乐斗第一轮第 {i + 1} 个账号')
+        message_list = msg + DaLeDouOne().main(sessions)
+        pushplus(f'大乐斗第一轮第 {i + 1} 个账号', message_list)
 
 
 def daledou_two():
     from missions.daledou.daledoutwo import DaLeDouTwo
-    message_list = DaLeDouTwo().main()
-    pushplus('大乐斗第二轮', message_list)
+
+    reload(settings)
+    for i, cookie in enumerate(settings.DALEDOU_COOKIE):
+        # 2022-05-08 09:51:13
+        start = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        msg = ['【开始时间】', start]
+        sessions = session(cookie)
+        if sessions is None:
+            logger.error(f'第 {i + 1} 个大乐斗Cookie无效，跳过')
+            msg_list = msg + ['\n【登陆】', f'第 {i + 1} 个大乐斗Cookie无效，跳过该账号']
+            pushplus(f'第 {i + 1} 个大乐斗Cookie无效', msg_list)
+            continue
+
+        logger.info(f'开始执行大乐斗第一轮第 {i + 1} 个账号')
+        message_list = msg + DaLeDouTwo().main(sessions)
+        pushplus(f'大乐斗第一轮第 {i + 1} 个账号', message_list)
 
 
 def daledou_cookies():
     reload(settings)
-    if session(settings.DALEDOU_COOKIE) is None:
-        logger.error('大乐斗Cookie无效，请更换Cookie')
-    else:
-        logger.info('大乐斗Cookie有效，脚本将在指定时间运行...')
+    for i, cookie in enumerate(settings.DALEDOU_COOKIE):
+        if session(cookie) is None:
+            logger.error(f'第 {i + 1} 个大乐斗Cookie无效，请更换Cookie')
+        else:
+            logger.info(f'第 {i + 1} 个大乐斗Cookie有效，脚本将在指定时间运行...')
 
 
 @repeat(every(10).minutes)

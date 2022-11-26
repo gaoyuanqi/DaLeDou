@@ -3,11 +3,11 @@
 '''
 from missions.daledou.daledou import DaLeDou
 
+
 class HuaJuan(DaLeDou):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.msg = []
 
     @staticmethod
     def get(params: str):

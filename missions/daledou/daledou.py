@@ -3,24 +3,15 @@
 '''
 import re
 import time
-from importlib import reload
 
 from loguru import logger
-
-import settings
-from missions.times import times_list
-from missions.daledou.session import session
-
-
-reload(settings)
-SESSIONS = session(settings.DALEDOU_COOKIE)
 
 
 class DaLeDou:
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.start = time.time()
-        self.msg = ['【开始时间】'] + times_list()
+        self.msg = []
         self.date = time.strftime('%d', time.localtime())
         self.times = time.strftime('%H%M')
         self.week = time.strftime('%w')
@@ -84,18 +75,17 @@ class DaLeDou:
     def run(self):
         ...
 
-    def main(self) -> list[str]:
-        if SESSIONS is None:
-            self.msg += ['\n【登陆】', '大乐斗Cookies失效，脚本结束']
-            logger.error(f'\n{self.msg}')
-            return self.msg
+    def main(self, sessions: object) -> list[str]:
+        global SESSIONS
+
+        SESSIONS = sessions
 
         self.run()
-
         end = time.time()
         self.msg += [
             '\n【运行时长】',
             f'时长：{int(end - self.start)} s'
         ]
         logger.info(f'\n{self.msg}')
+
         return self.msg
