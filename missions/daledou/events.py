@@ -22,8 +22,13 @@ class Events(DaLeDou):
         self.msg += DaLeDou.findall(r'浩劫宝箱<br />(.*?)<br />')
 
     def 幸运金蛋(self):
-        Events.get('cmd=newAct&subtype=110&op=1&index=1')
-        self.msg += DaLeDou.findall(r'【幸运金蛋】<br /><br />(.*?)<br />')
+        # 幸运金蛋
+        Events.get('cmd=newAct&subtype=110&op=0')
+        text_list = DaLeDou.findall(r'index=(\d+)')
+        for i in text_list:
+            # 砸金蛋
+            Events.get(f'cmd=newAct&subtype=110&op=1&index={i}')
+            self.msg += DaLeDou.findall(r'【幸运金蛋】<br /><br />(.*?)<br />')
 
     def 幸运转盘(self):
         Events.get('cmd=newAct&subtype=57&op=roll')
