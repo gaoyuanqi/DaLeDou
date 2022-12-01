@@ -28,7 +28,7 @@ class DaLeDou:
         global html
         url = 'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?' + params
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36 Edg/96.0.1054.29",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
         }
         res = SESSIONS.get(url, headers=headers)
         res.encoding = 'utf-8'
