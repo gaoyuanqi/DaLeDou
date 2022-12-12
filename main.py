@@ -53,12 +53,14 @@ def daledou_cookies():
     reload(settings)
     for i, cookie in enumerate(settings.DALEDOU_COOKIE):
         if session(cookie) is None:
-            logger.error(f'第 {i + 1} 个大乐斗Cookie无效，请更换Cookie')
+            msg = f'第 {i + 1} 个大乐斗Cookie无效，请更换Cookie'
+            logger.error(msg)
+            pushplus(msg, [msg])
         else:
             logger.info(f'第 {i + 1} 个大乐斗Cookie有效，脚本将在指定时间运行...')
 
 
-@repeat(every(10).minutes)
+@repeat(every(30).minutes)
 def job():
     daledou_cookies()
 

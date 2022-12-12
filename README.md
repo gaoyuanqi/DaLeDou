@@ -2,7 +2,7 @@
 
 **Requests** 是核心技术，它将大乐斗Cookie添加到 **Session**，然后使用 **Session** 完成后续请求
 
-**Sessions** 还会每隔10分钟（定时由 **Schedule** 库实现）请求一次来保持大乐斗Cookie活跃性，从而使Cookie有效期最长可以超过48小时
+**Sessions** 还会每隔30分钟（定时由 **Schedule** 库实现）请求一次来保持大乐斗Cookie活跃性，从而使Cookie有效期最长可以超过48小时
 
 当天更换Cookie，第二天依然有效，但会在第三天早上8点02~09分左右失效（一般在这之后更换Cookie）
 
