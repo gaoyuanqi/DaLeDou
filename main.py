@@ -14,18 +14,16 @@ def daledou_one():
 
     reload(settings)
     for i, cookie in enumerate(settings.DALEDOU_COOKIE):
-        # 2022-05-08 09:51:13
         start = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        msg = ['【开始时间】', start]
         sessions = session(cookie)
+
         if sessions is None:
             logger.error(f'第 {i + 1} 个大乐斗Cookie无效，跳过')
-            msg_list = msg + ['\n【登陆】', f'第 {i + 1} 个大乐斗Cookie无效，跳过该账号']
-            pushplus(f'第 {i + 1} 个大乐斗Cookie无效', msg_list)
+            pushplus(f'第 {i + 1} 个大乐斗Cookie无效', [start])
             continue
 
         logger.info(f'开始执行大乐斗第一轮第 {i + 1} 个账号')
-        message_list = msg + DaLeDouOne().main(sessions)
+        message_list = DaLeDouOne().main(sessions)
         pushplus(f'大乐斗第一轮第 {i + 1} 个账号', message_list)
 
 
@@ -34,19 +32,17 @@ def daledou_two():
 
     reload(settings)
     for i, cookie in enumerate(settings.DALEDOU_COOKIE):
-        # 2022-05-08 09:51:13
         start = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        msg = ['【开始时间】', start]
         sessions = session(cookie)
+
         if sessions is None:
             logger.error(f'第 {i + 1} 个大乐斗Cookie无效，跳过')
-            msg_list = msg + ['\n【登陆】', f'第 {i + 1} 个大乐斗Cookie无效，跳过该账号']
-            pushplus(f'第 {i + 1} 个大乐斗Cookie无效', msg_list)
+            pushplus(f'第 {i + 1} 个大乐斗Cookie无效', [start])
             continue
 
-        logger.info(f'开始执行大乐斗第一轮第 {i + 1} 个账号')
-        message_list = msg + DaLeDouTwo().main(sessions)
-        pushplus(f'大乐斗第一轮第 {i + 1} 个账号', message_list)
+        logger.info(f'开始执行大乐斗第二轮第 {i + 1} 个账号')
+        message_list = DaLeDouTwo().main(sessions)
+        pushplus(f'大乐斗第二轮第 {i + 1} 个账号', message_list)
 
 
 def daledou_cookies():
