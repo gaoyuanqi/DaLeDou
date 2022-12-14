@@ -25,9 +25,11 @@ class HuanJing(DaLeDou):
         # 返回飘渺幻境
         HuanJing.get('cmd=misty&op=return')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('幻境')
+    def main(self) -> list:
+        if DaLeDou.rank() >= 40:
+            # 40级开启
+            self.msg += DaLeDou.conversion('幻境')
+            self.幻境()
+            return self.msg
 
-        self.幻境()
-
-        return self.msg
+        return []

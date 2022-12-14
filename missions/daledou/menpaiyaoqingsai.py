@@ -43,9 +43,18 @@ class MenPai(DaLeDou):
                     f'cmd=exchange&subtype=2&type={type}&times={times}&costtype=11')
                 self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
 
-    def main(self) -> list[str]:
-        self.报名()
-        self.开始挑战()
-        self.兑换()
+    def main(self) -> list:
+        if DaLeDou.rank() > 40:
+            # 40级以上且加入门派开启
+            # 门派
+            MenPai.get('cmd=sect')
+            if '出师' in html:
+                self.报名()
+                self.开始挑战()
+                self.兑换()
+                return self.msg
 
-        return self.msg
+            self.msg += DaLeDou.conversion('门派邀请赛')
+            self.msg += ['您需手动加入门派']
+            return self.msg
+        return []

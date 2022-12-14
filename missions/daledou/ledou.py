@@ -70,12 +70,14 @@ class LeDou(DaLeDou):
             # 乐斗 包括心魔
             LeDou.get(f'cmd=fight&B_UID={B_UID}')
 
-    def main(self) -> list[str]:
-        self.乐斗助手()
-        self.贡献药水()
-        self.好友大侠()
-        self.帮友大侠()
-        self.侠侣()
-        self.好友()
-
-        return self.msg
+    def main(self) -> list:
+        if DaLeDou.rank() >= 20:
+            self.乐斗助手()
+            self.贡献药水()
+            self.好友大侠()
+            self.帮友大侠()
+            self.侠侣()
+            self.好友()
+            return self.msg
+        
+        return []

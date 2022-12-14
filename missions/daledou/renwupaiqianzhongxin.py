@@ -82,10 +82,12 @@ class RenWu(DaLeDou):
 
         self.msg += DaLeDou.findall(r'<br />(.*?)<a.*?查看')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('任务派遣中心')
+    def main(self) -> list:
+        if DaLeDou.rank() >= 40:
+            # 40级开启
+            self.msg += DaLeDou.conversion('任务派遣中心')
+            self.领取奖励()
+            self.派遣()
+            return self.msg
 
-        self.领取奖励()
-        self.派遣()
-
-        return self.msg
+        return []

@@ -72,6 +72,21 @@ class DaLeDou:
             data.append(f'{k} {v}')
         return data
 
+    @staticmethod
+    def rank() -> int:
+        '''
+        查询账号等级
+        '''
+        # 大乐斗首页
+        DaLeDou.get('cmd=index')
+        print(1111)
+        text_list = DaLeDou.findall(r'等级:(\d+)')
+        if text_list:
+            return int(text_list[0])
+
+        # 如果网页繁忙返回100默认通过
+        return 100
+
     def run(self):
         ...
 

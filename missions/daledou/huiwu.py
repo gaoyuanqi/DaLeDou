@@ -52,10 +52,19 @@ class HuiWu(DaLeDou):
                 'cmd=exchange&subtype=2&type=1263&times=10&costtype=13')
             self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
 
-    def main(self) -> list[str]:
-        self.挑战()
-        self.助威()
-        self.领奖()
-        self.兑换()
+    def main(self) -> list:
+        if DaLeDou.rank() >= 40:
+            # 40级且加入门派开启
+            # 门派
+            HuiWu.get('cmd=sect')
+            if '出师' in html:
+                self.挑战()
+                self.助威()
+                self.领奖()
+                self.兑换()
+                return self.msg
 
-        return self.msg
+            self.msg += DaLeDou.conversion('会武')
+            self.msg += ['您需手动加入门派']
+            return self.msg
+        return []

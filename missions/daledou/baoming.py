@@ -41,11 +41,13 @@ class BaoMing(DaLeDou):
             BaoMing.get('cmd=knightfight&op=signup')
             self.msg += DaLeDou.findall(r'【冠军排行】</a><br />(.*?)<br />开赛')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('我要报名')
-
-        self.武林大会()
-        self.侠侣争霸()
-        self.笑傲群侠()
-
-        return self.msg
+    def main(self) -> list:
+        if DaLeDou.rank() >= 40:
+            # 40级开启
+            self.msg += DaLeDou.conversion('我要报名')
+            self.武林大会()
+            self.侠侣争霸()
+            self.笑傲群侠()
+            return self.msg
+        
+        return []

@@ -57,11 +57,13 @@ class FeiSheng(DaLeDou):
                 FeiSheng.get(f'cmd=ascendheaven&op=getrealmgift&season={s}')
                 self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('飞升大作战')
+    def main(self) -> list:
+        if DaLeDou.rank() >= 40:
+            # 40级开启
+            self.msg += DaLeDou.conversion('飞升大作战')
+            self.境界修为()
+            self.报名()
+            self.领取奖励()
+            return self.msg
 
-        self.境界修为()
-        self.报名()
-        self.领取奖励()
-
-        return self.msg
+        return []

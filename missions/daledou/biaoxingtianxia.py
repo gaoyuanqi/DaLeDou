@@ -34,10 +34,12 @@ class BiaoXing(DaLeDou):
             BiaoXing.get(f'cmd=cargo&op={op}')
             self.msg += DaLeDou.findall(r'商店</a><br />(.*?)<br />')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('镖行天下')
+    def main(self) -> list:
+        if DaLeDou.rank() >= 30:
+            # 30级开启
+            self.msg += DaLeDou.conversion('镖行天下')
+            self.拦截()
+            self.护送()
+            return self.msg
 
-        self.拦截()
-        self.护送()
-
-        return self.msg
+        return []

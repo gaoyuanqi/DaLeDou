@@ -46,11 +46,13 @@ class WuLin(DaLeDou):
             WuLin.get('cmd=wlmz&op=comfirm')
             self.msg += DaLeDou.findall(r'战报</a><br />(.*?)<br /><br />')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('武林盟主')
+    def main(self) -> list:
+        if DaLeDou.rank() >= 40:
+            # 40级开启
+            self.msg += DaLeDou.conversion('武林盟主')
+            self.领取奖励()
+            self.报名()
+            self.竞猜()
+            return self.msg
 
-        self.领取奖励()
-        self.报名()
-        self.竞猜()
-
-        return self.msg
+        return []

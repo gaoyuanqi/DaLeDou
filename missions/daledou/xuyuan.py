@@ -23,9 +23,12 @@ class XuYuan(DaLeDou):
             if sub != 4:
                 self.msg += DaLeDou.findall(r'【每日许愿】<br />(.*?)<br />')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('许愿')
+    def main(self) -> list:
+        # 大乐斗首页
+        XuYuan.get('cmd=index')
+        if '许愿' in html:
+            self.msg += DaLeDou.conversion('许愿')
+            self.许愿()
+            return self.msg
 
-        self.许愿()
-
-        return self.msg
+        return []

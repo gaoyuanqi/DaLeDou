@@ -89,11 +89,16 @@ class MyGang(DaLeDou):
             MyGang.get(f'cmd=factiontask&sub=3&id={id}')
         self.msg += DaLeDou.findall_tuple(r'id=\d+">(.*?)</a>(.*?)<br />')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('我的帮派')
+    def main(self) -> list:
+        if DaLeDou.rank() >= 20:
+            # 作者限定20级开启
+            # 我的帮派
+            MyGang.get('cmd=factionop&subtype=3&facid=0')
+            if '你的职位' in html:
+                self.msg += DaLeDou.conversion('我的帮派')
+                self.供奉()
+                self.帮战()
+                self.帮派任务()
+                return self.msg
 
-        self.供奉()
-        self.帮战()
-        self.帮派任务()
-
-        return self.msg
+        return []

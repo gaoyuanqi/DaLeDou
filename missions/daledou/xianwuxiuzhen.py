@@ -30,10 +30,11 @@ class XianWu(DaLeDou):
             XianWu.get('cmd=immortals&op=fightimmortals')
             self.msg += DaLeDou.findall(r'帮助</a><br />(.*?)<a')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('仙武修真')
+    def main(self) -> list:
+        if DaLeDou.rank() >= 35:
+            self.msg += DaLeDou.conversion('仙武修真')
+            self.领取()
+            self.挑战()
+            return self.msg
 
-        self.领取()
-        self.挑战()
-
-        return self.msg
+        return []

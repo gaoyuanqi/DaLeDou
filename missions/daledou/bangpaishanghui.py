@@ -41,11 +41,14 @@ class BangPai(DaLeDou):
                 BangPai.get(f'cmd=fac_corp&op=5&type_id={type_id}')
                 self.msg += DaLeDou.findall(r'【帮派商会】</p>(.*?)<br />')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('帮派商会')
+    def main(self) -> list:
+        # 大乐斗首页
+        BangPai.get('cmd=index')
+        if '帮派商会' in html:
+            self.msg += DaLeDou.conversion('帮派商会')
+            self.帮派宝库()
+            self.交易会所()
+            self.兑换商店()
+            return self.msg
 
-        self.帮派宝库()
-        self.交易会所()
-        self.兑换商店()
-
-        return self.msg
+        return []

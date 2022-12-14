@@ -56,9 +56,11 @@ class ShangDian(DaLeDou):
         ShangDian.get('cmd=fac_corp&op=2')
         self.msg += DaLeDou.findall(r'剩余刷新时间.*?秒&nbsp;(.*?)<br />')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('商店积分')
+    def main(self) -> list:
+        if DaLeDou.rank() >= 41:
+            # 41级开启
+            self.msg += DaLeDou.conversion('商店积分')
+            self.商店积分()
+            return self.msg
 
-        self.商店积分()
-
-        return self.msg
+        return []

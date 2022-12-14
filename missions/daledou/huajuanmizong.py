@@ -24,9 +24,12 @@ class HuaJuan(DaLeDou):
             elif '征战书不足' in html:
                 break
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('画卷迷踪')
+    def main(self) -> list:
+        # 大乐斗首页
+        HuaJuan.get('cmd=index')
+        if '画卷迷踪' in html:
+            self.msg += DaLeDou.conversion('画卷迷踪')
+            self.画卷迷踪()
+            return self.msg
 
-        self.画卷迷踪()
-
-        return self.msg
+        return []

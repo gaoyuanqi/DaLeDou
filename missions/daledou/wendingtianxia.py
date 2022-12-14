@@ -56,15 +56,23 @@ class WenDing(DaLeDou):
             WenDing.get(f'cmd=tbattle&op=cheerchampionbattle&id=10215')
             self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
 
-    def main_one(self) -> list[str]:
-        self.领取奖励()
-        self.攻占()
-        self.淘汰赛()
-        self.排名赛()
+    def main_one(self) -> list:
+        # 大乐斗首页
+        WenDing.get('cmd=index')
+        if '问鼎天下' in html:
+            self.领取奖励()
+            self.攻占()
+            self.淘汰赛()
+            self.排名赛()
+            return self.msg
 
-        return self.msg
+        return []
 
-    def main_two(self) -> list[str]:
-        self.攻占()
+    def main_two(self) -> list:
+        # 大乐斗首页
+        WenDing.get('cmd=index')
+        if '问鼎天下' in html:
+            self.攻占()
+            return self.msg
 
-        return self.msg
+        return []

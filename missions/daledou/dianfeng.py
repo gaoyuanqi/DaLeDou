@@ -60,9 +60,12 @@ class DianFeng(DaLeDou):
                         self.msg += [f'战功：{text_list[0]}', '只有大于200000才会探宝']
                         break
 
-    def main(self) -> list[str]:
-        self.报名()
-        self.征战()
-        self.夺宝奇兵()
+    def main(self) -> list:
+        if DaLeDou.rank() >= 40:
+            # 40级开启
+            self.报名()
+            self.征战()
+            self.夺宝奇兵()
+            return self.msg
 
-        return self.msg
+        return []

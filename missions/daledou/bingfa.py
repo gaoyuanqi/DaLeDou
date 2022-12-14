@@ -35,8 +35,12 @@ class BingFa(DaLeDou):
             BingFa.get('cmd=brofight&subtype=13&op=draw')
             self.msg += DaLeDou.findall(r'领奖</a><br />(.*?)<br /><br />')
 
-    def main(self) -> list[str]:
-        self.助威()
-        self.领奖()
+    def main(self) -> list:
+        # 大乐斗首页
+        BingFa.get('cmd=index')
+        if '兵法' in html:
+            self.助威()
+            self.领奖()
+            return self.msg
 
-        return self.msg
+        return []

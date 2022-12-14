@@ -41,8 +41,12 @@ class JingJiChang(DaLeDou):
                 JingJiChang.get(f'cmd=arena&op=exchange&id={id}&times={times}')
                 self.msg += DaLeDou.findall(r'竞技场</a><br />(.*?)<br />')
 
-    def main(self) -> list[str]:
-        self.挑战()
-        self.兑换()
+    def main(self) -> list:
+        # 大乐斗首页
+        JingJiChang.get('cmd=index')
+        if '竞技场' in html:
+            self.挑战()
+            self.兑换()
+            return self.msg
 
-        return self.msg
+        return []

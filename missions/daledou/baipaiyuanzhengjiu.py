@@ -55,10 +55,13 @@ class BangPai(DaLeDou):
                     f'cmd=factionarmy&op=getIslandAward&island_id={id}')
                 self.msg += DaLeDou.findall(r'【帮派远征军-领取奖励】<br />(.*?)<br />')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('帮派远征军')
+    def main(self) -> list:
+        # 大乐斗首页
+        BangPai.get('cmd=index')
+        if '帮派远征军' in html:
+            self.msg += DaLeDou.conversion('帮派远征军')
+            self.参战()
+            self.领取奖励()
+            return self.msg
 
-        self.参战()
-        self.领取奖励()
-
-        return self.msg
+        return []

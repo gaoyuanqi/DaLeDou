@@ -46,10 +46,12 @@ class XiaShi(DaLeDou):
                         f'cmd=warriorinn&op=exceptadventure&pos={pos}')
                     self.msg += DaLeDou.findall(r'侠士客栈<br />(.*?)，<a')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('侠士客栈')
+    def main(self) -> list:
+        if DaLeDou.rank() >= 40:
+            # 40级开启
+            self.msg += DaLeDou.conversion('侠士客栈')
+            self.领取奖励()
+            self.客栈奇遇()
+            return self.msg
 
-        self.领取奖励()
-        self.客栈奇遇()
-
-        return self.msg
+        return []

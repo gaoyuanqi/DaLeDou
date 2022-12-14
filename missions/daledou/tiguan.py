@@ -38,8 +38,12 @@ class TiGuan(DaLeDou):
                 TiGuan.get('cmd=facchallenge&subtype=1')
                 self.msg += DaLeDou.findall(r'功勋商店</a><br />(.*?)<br />')
 
-    def main(self) -> list[str]:
-        self.挑战()
-        self.领奖()
+    def main(self) -> list:
+        # 大乐斗首页
+        TiGuan.get('cmd=index')
+        if '踢馆' in html:
+            self.挑战()
+            self.领奖()
+            return self.msg
 
-        return self.msg
+        return []

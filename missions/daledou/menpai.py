@@ -85,11 +85,18 @@ class MenPai(DaLeDou):
             MenPai.get(f'cmd=sect_task&subtype=2&task_id={id}')
             self.msg += DaLeDou.findall(r'【五花堂】<br />(.*?)<br /><br />')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('门派')
+    def main(self) -> list:
+        if DaLeDou.rank() > 20:
+            # 20级以上开启
+            self.msg += DaLeDou.conversion('门派')
+            # 门派
+            MenPai.get('cmd=sect')
+            if '出师' in html:
+                self.万年寺()
+                self.八叶堂()
+                self.五花堂()
+                return self.msg
 
-        self.万年寺()
-        self.八叶堂()
-        self.五花堂()
-
-        return self.msg
+            self.msg += ['您需手动加入门派']
+            return self.msg
+        return []

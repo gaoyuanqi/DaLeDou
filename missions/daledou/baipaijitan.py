@@ -42,9 +42,11 @@ class BangPai(DaLeDou):
                 # 领取奖励
                 BangPai.get('cmd=altar&op=drawreward')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('帮派祭坛')
+    def main(self) -> list:
+        if DaLeDou.rank() >= 40:
+            # 40级开启
+            self.msg += DaLeDou.conversion('帮派祭坛')
+            self.帮派祭坛()
+            return self.msg
 
-        self.帮派祭坛()
-
-        return self.msg
+        return []

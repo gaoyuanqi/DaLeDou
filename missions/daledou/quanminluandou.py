@@ -33,7 +33,10 @@ class QuanMin(DaLeDou):
             self.msg += DaLeDou.conversion('全民乱斗')
             self.msg += msg
 
-    def main(self) -> list[str]:
-        self.全民乱斗()
+    def main(self) -> list:
+        if DaLeDou.rank() >= 40:
+            # 40级开启
+            self.全民乱斗()
+            return self.msg
 
-        return self.msg
+        return []

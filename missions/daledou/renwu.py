@@ -17,6 +17,11 @@ class RenWu(DaLeDou):
         html = DaLeDou.get(params)
 
     def 查看好友资料(self):
+        # 武林 》设置 》乐斗助手
+        RenWu.get('cmd=view&type=6')
+        if '开启查看好友信息和收徒' in html:
+            #  开启查看好友信息和收徒
+            RenWu.get('cmd=set&type=1')
         # 查看好友第2页
         RenWu.get(f'cmd=friendlist&page=2')
         text_list = DaLeDou.findall(r'\d+：.*?B_UID=(\d+).*?级')
@@ -178,6 +183,7 @@ class RenWu(DaLeDou):
                 break
 
     def 增强经脉(self):
+        # 20级开启
         # 经脉
         RenWu.get('cmd=intfmerid&sub=1')
         for _ in range(7):
@@ -236,33 +242,37 @@ class RenWu(DaLeDou):
                     # 要么 没有该属性
                     break
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('任务')
+    def main(self) -> list:
+        if DaLeDou.rank() >= 40:
+            # 20级开启
+            self.msg += DaLeDou.conversion('任务')
 
-        # 日常任务
-        RenWu.get('cmd=task&sub=1')
-        daily_missions = html
+            # 日常任务
+            RenWu.get('cmd=task&sub=1')
+            daily_missions = html
+            if '查看好友资料' in daily_missions:
+                self.查看好友资料()
+            if '徽章进阶' in daily_missions:
+                self.徽章进阶()
+            if '兵法研习' in daily_missions:
+                self.兵法研习()
+            if '挑战陌生人' in daily_missions:
+                self.挑战陌生人()
+            if '强化神装' in daily_missions:
+                self.强化神装()
+            if '武器专精' in daily_missions:
+                self.武器专精()
+            if '强化铭刻' in daily_missions:
+                self.强化铭刻()
+            if '增强经脉' in daily_missions:
+                self.增强经脉()
+            self.助阵()
 
-        if '查看好友资料' in daily_missions:
-            self.查看好友资料()
-        if '徽章进阶' in daily_missions:
-            self.徽章进阶()
-        if '兵法研习' in daily_missions:
-            self.兵法研习()
-        if '挑战陌生人' in daily_missions:
-            self.挑战陌生人()
-        if '强化神装' in daily_missions:
-            self.强化神装()
-        if '武器专精' in daily_missions:
-            self.武器专精()
-        if '强化铭刻' in daily_missions:
-            self.强化铭刻()
-        if '增强经脉' in daily_missions:
-            self.增强经脉()
-        self.助阵()
+            # 一键完成任务
+            RenWu.get('cmd=task&sub=7')
+            self.msg += DaLeDou.findall_tuple(
+                r'id=\d+">(.*?)</a>.*?>(.*?)</a>')
 
-        # 一键完成任务
-        RenWu.get('cmd=task&sub=7')
-        self.msg += DaLeDou.findall_tuple(r'id=\d+">(.*?)</a>.*?>(.*?)</a>')
+            return self.msg
 
-        return self.msg
+        return []

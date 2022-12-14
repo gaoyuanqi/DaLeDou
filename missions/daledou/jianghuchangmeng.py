@@ -71,10 +71,12 @@ class JiangHu(DaLeDou):
             JiangHu.get('cmd=jianghudream&op=endInstance')
             self.msg += DaLeDou.findall(r'【江湖长梦】<br />(.*?)<br /><a')
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('江湖长梦')
+    def main(self) -> list:
+        if DaLeDou.rank() >= 40:
+            # 40级开启
+            self.msg += DaLeDou.conversion('江湖长梦')
+            self.玄铁令()
+            self.柒承的忙碌日常()
+            return self.msg
 
-        self.玄铁令()
-        self.柒承的忙碌日常()
-
-        return self.msg
+        return []

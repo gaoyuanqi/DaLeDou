@@ -46,9 +46,12 @@ class BangPai(DaLeDou):
                         self.msg += ['您已阵亡']
                         return
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('帮派黄金联赛')
+    def main(self) -> list:
+        # 大乐斗首页
+        BangPai.get('cmd=index')
+        if '帮派黄金联赛' in html:
+            self.msg += DaLeDou.conversion('帮派黄金联赛')
+            self.帮派黄金联赛()
+            return self.msg
 
-        self.帮派黄金联赛()
-
-        return self.msg
+        return []

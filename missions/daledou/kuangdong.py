@@ -36,9 +36,12 @@ class KuangDong(DaLeDou):
             else:
                 break
 
-    def main(self) -> list[str]:
-        self.msg += DaLeDou.conversion('矿洞')
+    def main(self) -> list:
+        # 大乐斗首页
+        KuangDong.get('cmd=index')
+        if '矿洞' in html:
+            self.msg += DaLeDou.conversion('矿洞')
+            self.矿洞()
+            return self.msg
 
-        self.矿洞()
-
-        return self.msg
+        return []

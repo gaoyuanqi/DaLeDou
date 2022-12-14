@@ -35,7 +35,11 @@ class ShiErGong(DaLeDou):
         ShiErGong.get('cmd=zodiacdungeon&op=showexchange&type=2')
         self.msg += DaLeDou.findall(r'<p>兑换奖励<br />(.*?)<br /><br />')
 
-    def main(self) -> list[str]:
-        self.扫荡()
+    def main(self) -> list:
+        # 大乐斗首页
+        ShiErGong.get('cmd=index')
+        if '十二宫' in html:
+            self.扫荡()
+            return self.msg
 
-        return self.msg
+        return []
