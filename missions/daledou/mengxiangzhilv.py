@@ -19,17 +19,17 @@ class MengXiang(DaLeDou):
         查看下一个区域是否存在 已去过
         '''
         bmapid = {
-            '空桑山': 1,
-            '鹊山': 2,
-            '鹿蜀': 3,
-            '昆仑之丘': 4
+            '空桑山': 2,
+            '鹊山': 3,
+            '鹿蜀': 4,
+            '昆仑之丘': 1
         }
         # 梦想之旅
         MengXiang.get('cmd=dreamtrip')
         for k, v in bmapid.items():
             if k in html:
                 # 下一个区域
-                MengXiang.get(f'cmd=dreamtrip&sub=0&bmapid={v + 1}')
+                MengXiang.get(f'cmd=dreamtrip&sub=0&bmapid={v}')
                 if '已去过' in html:
                     return True
 
@@ -61,6 +61,8 @@ class MengXiang(DaLeDou):
                 # 去这里
                 MengXiang.get(f'cmd=dreamtrip&sub=2&smapid={id}')
                 self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
+                if '当前没有梦幻机票' in html:
+                    break
 
     def 领取(self):
         if self.week == '4':
