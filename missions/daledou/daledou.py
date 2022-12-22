@@ -79,7 +79,6 @@ class DaLeDou:
         '''
         # 大乐斗首页
         DaLeDou.get('cmd=index')
-        print(1111)
         text_list = DaLeDou.findall(r'等级:(\d+)')
         if text_list:
             return int(text_list[0])
