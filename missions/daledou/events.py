@@ -306,6 +306,19 @@ class Events(DaLeDou):
                 Events.get('cmd=hallowmas&gb_id=5')
                 self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
 
+    def 双节签到(self):
+        # 双节签到
+        Events.get('cmd=newAct&subtype=144')
+        date = DaLeDou.findall(r'至\d+月(\d+)日')[0]
+        if 'op=1' in html:
+            # 领取
+            Events.get('cmd=newAct&subtype=144&op=1')
+            self.msg += DaLeDou.findall(r'【双节签到】<br />(.*?)<br />')
+        if int(self.date) == int(date) - 1:
+            # 奖励金
+            Events.get('cmd=newAct&subtype=144&op=3')
+            self.msg += DaLeDou.findall(r'【双节签到】<br />(.*?)<br />')
+
     def main_one(self) -> list[str]:
         # 首页
         Events.get('cmd=index')
@@ -328,7 +341,6 @@ class Events(DaLeDou):
         missions = {
             '神魔转盘': 'cmd=newAct&subtype=88&op=1',
             '乐斗驿站': 'cmd=newAct&subtype=167&op=2',
-            '双节签到': 'cmd=newAct&subtype=144',
             '圣诞有礼': 'cmd=newAct&subtype=145',
             '开心娃娃机': 'cmd=newAct&subtype=124&op=1',
             '好礼步步升': 'cmd=newAct&subtype=43&op=get',
@@ -399,6 +411,9 @@ class Events(DaLeDou):
         if '万圣节' in events_missions:
             self.msg += ['---万圣节---']
             self.万圣节()
+        if '双节签到' in events_missions:
+            self.msg += ['---双节签到---']
+            self.双节签到()
 
         if self.week == '4':
             if '登录商店' in events_missions:
