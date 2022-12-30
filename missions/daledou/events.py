@@ -333,6 +333,12 @@ class Events(DaLeDou):
             Events.get(f'cmd=newAct&subtype=145&op=2&index={index}')
             self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
 
+    def 乐斗回忆录(self):
+        for id in [1, 3, 5, 7, 9]:
+            # 回忆礼包
+            Events.get(f'cmd=newAct&subtype=171&op=3&id={id}')
+            self.msg += DaLeDou.findall(r'6点<br />(.*?)<>br /')
+
     def main_one(self) -> list[str]:
         # 首页
         Events.get('cmd=index')
@@ -427,9 +433,6 @@ class Events(DaLeDou):
         if '双节签到' in events_missions:
             self.msg += ['---双节签到---']
             self.双节签到()
-        if '圣诞有礼' in events_missions:
-            self.msg += ['---圣诞有礼---']
-            self.圣诞有礼()
 
         if self.week == '4':
             if '登录商店' in events_missions:
@@ -441,5 +444,11 @@ class Events(DaLeDou):
             if '十二周年生日祝福' in events_missions:
                 self.msg += ['---十二周年生日祝福---']
                 self.十二周年生日祝福()
+            if '圣诞有礼' in events_missions:
+                self.msg += ['---圣诞有礼---']
+                self.圣诞有礼()
+            if '乐斗回忆录' in events_missions:
+                self.msg += ['---乐斗回忆录---']
+                self.乐斗回忆录()
 
         return self.msg
