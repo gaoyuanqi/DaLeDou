@@ -349,6 +349,11 @@ class Events(DaLeDou):
                 Events.get(f'cmd=xinChunGift&subtype=2&giftid={id}')
                 self.msg += DaLeDou.findall(r'【迎新大礼包】<br />(.*?)<br />')
 
+    def 乐斗大笨钟(self):
+        # 领取
+        Events.get('cmd=newAct&subtype=18')
+        self.msg += DaLeDou.findall(r'<br /><br /><br />(.*?)<br />')
+
     def main_one(self) -> list[str]:
         # 首页
         Events.get('cmd=index')
@@ -358,6 +363,10 @@ class Events(DaLeDou):
             self.msg += DaLeDou.conversion('活动')
             self.msg += ['---幸运金蛋---']
             self.幸运金蛋()
+        if '乐斗大笨钟' in events_missions:
+            self.msg += DaLeDou.conversion('活动')
+            self.msg += ['---乐斗大笨钟---']
+            self.乐斗大笨钟()
 
         return self.msg
 
@@ -443,6 +452,9 @@ class Events(DaLeDou):
         if '双节签到' in events_missions:
             self.msg += ['---双节签到---']
             self.双节签到()
+        if '乐斗大笨钟' in events_missions:
+            self.msg += ['---乐斗大笨钟---']
+            self.乐斗大笨钟()
 
         if self.week == '4':
             if '登录商店' in events_missions:
