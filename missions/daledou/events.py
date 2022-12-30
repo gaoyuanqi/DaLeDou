@@ -339,6 +339,16 @@ class Events(DaLeDou):
             Events.get(f'cmd=newAct&subtype=171&op=3&id={id}')
             self.msg += DaLeDou.findall(r'6点<br />(.*?)<>br /')
 
+    def 新春礼包(self):
+        # 新春礼包
+        Events.get('cmd=xinChunGift&subtype=1')
+        date_list = DaLeDou.findall(r'~\d+月(\d+)日')
+        id_list = DaLeDou.findall(r'giftid=(\d+)')
+        for date, id in zip(date_list, id_list):
+            if self.date == int(date) - 1:
+                Events.get(f'cmd=xinChunGift&subtype=2&giftid={id}')
+                self.msg += DaLeDou.findall(r'【迎新大礼包】<br />(.*?)<br />')
+
     def main_one(self) -> list[str]:
         # 首页
         Events.get('cmd=index')
@@ -450,5 +460,8 @@ class Events(DaLeDou):
             if '乐斗回忆录' in events_missions:
                 self.msg += ['---乐斗回忆录---']
                 self.乐斗回忆录()
+            if '新春礼包' in events_missions:
+                self.msg += ['---新春礼包---']
+                self.新春礼包()
 
         return self.msg
