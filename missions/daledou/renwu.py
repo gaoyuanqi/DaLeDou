@@ -25,9 +25,8 @@ class RenWu(DaLeDou):
         # 查看好友第2页
         RenWu.get(f'cmd=friendlist&page=2')
         text_list = DaLeDou.findall(r'\d+：.*?B_UID=(\d+).*?级')
-        for UID in text_list[:3]:
-            RenWu.get(
-                f'cmd=totalinfo&B_UID={UID}&page=2&type=1&from_pf_list=1')
+        for UID in text_list:
+            RenWu.get(f'cmd=totalinfo&B_UID={UID}')
 
     def 徽章进阶(self):
         '''
