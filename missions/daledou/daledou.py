@@ -4,6 +4,7 @@
 import re
 import time
 
+import requests
 from loguru import logger
 
 
@@ -28,9 +29,10 @@ class DaLeDou:
         global html
         url = 'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?' + params
         headers = {
+            'Cookie': COOKIES,
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
         }
-        res = SESSIONS.get(url, headers=headers)
+        res = requests.get(url, headers=headers)
         res.encoding = 'utf-8'
         html = res.text
         time.sleep(0.2)
@@ -89,10 +91,10 @@ class DaLeDou:
     def run(self):
         ...
 
-    def main(self, sessions: object) -> list[str]:
-        global SESSIONS
+    def main(self, cookies: str) -> list[str]:
+        global COOKIES
 
-        SESSIONS = sessions
+        COOKIES = cookies
 
         self.run()
         end = time.time()

@@ -1,9 +1,8 @@
-import time
 from importlib import reload
 
 import requests
 from loguru import logger
-from schedule import every, repeat, run_pending
+from schedule import every, repeat, run_all
 
 import settings
 from missions.pushplus import pushplus
@@ -27,14 +26,12 @@ def daledou_one():
 
     reload(settings)
     for i, cookies in enumerate(settings.DALEDOU_COOKIE):
-        start = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         if login(cookies):
             logger.info(f'开始执行大乐斗第一轮第 {i + 1} 个账号')
             message_list = DaLeDouOne().main(cookies)
             pushplus(f'大乐斗第一轮第 {i + 1} 个账号', message_list)
         else:
             logger.error(f'第 {i + 1} 个大乐斗Cookie无效，跳过')
-            pushplus(f'第 {i + 1} 个大乐斗Cookie无效', [start])
 
 
 def daledou_two():
@@ -42,43 +39,21 @@ def daledou_two():
 
     reload(settings)
     for i, cookies in enumerate(settings.DALEDOU_COOKIE):
-        start = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         if login(cookies):
             logger.info(f'开始执行大乐斗第一轮第 {i + 1} 个账号')
             message_list = DaLeDouTwo().main(cookies)
             pushplus(f'大乐斗第一轮第 {i + 1} 个账号', message_list)
         else:
             logger.error(f'第 {i + 1} 个大乐斗Cookie无效，跳过')
-            pushplus(f'第 {i + 1} 个大乐斗Cookie无效', [start])
-
-
-def daledou_cookies():
-    reload(settings)
-    for i, cookies in enumerate(settings.DALEDOU_COOKIE):
-        if login(cookies):
-            logger.info(f'第 {i + 1} 个大乐斗Cookie有效，脚本将在指定时间运行...')
-        else:
-            msg = f'第 {i + 1} 个大乐斗Cookie无效，请更换Cookie'
-            logger.error(msg)
-            pushplus(msg, [msg])
 
 
 @repeat(every(30).minutes)
 def job():
-    daledou_cookies()
-
-
-@repeat(every().day.at('13:01'))
-def job_1():
+    # 第一轮
     daledou_one()
 
-
-@repeat(every().day.at('20:01'))
-def job_2():
-    daledou_two()
+    # 第二轮
+    # daledou_two()
 
 
-daledou_cookies()
-while True:
-    run_pending()
-    time.sleep(1)
+run_all()

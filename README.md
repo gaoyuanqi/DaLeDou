@@ -1,36 +1,46 @@
-## 概述
-
-**Requests** 是核心技术，它将大乐斗Cookie添加到 **Session**，然后使用 **Session** 完成后续请求
-
-**Sessions** 还会每隔30分钟（定时由 **Schedule** 库实现）请求一次来保持大乐斗Cookie活跃性，从而使Cookie有效期最长可以超过48小时
-
-当天更换Cookie，第二天依然有效，但会在第三天早上8点02~09分左右失效（一般在这之后更换Cookie）
-
-停止脚本超过一个多小时，Cookie也会失效
-
-
 ## 说明
 
 因为等级或者战力差异，脚本不一定适合所有人，作者目前等级 **133**
+
+
+## 脚本运行时间
 
 脚本定时工作时间：
 - 第一轮 **13:01** 运行 **daledouone.py** 模块，耗时 **300~400** 多秒
 - 第二轮 **20:01** 运行 **daledoutwo.py** 模块，耗时 **50~100** 多秒
 
-脚本运行前需在大乐斗最下面 `武林` -> `设置` -> `乐斗助手` 开启：
-- 开启自动使用体力药水（脚本自动开启）
-- 开启背包里的提前按钮（脚本自动开启）
-- 开启查看好友信息和收徒（脚本自动开启）
-- 其他自行选择
+可能会遇到某些情况，比如Cookie没来得及更新或者其他原因错过脚本运行时间，那么你可以在本地立即运行脚本
 
-脚本执行的详细信息可以从这里查询：
-```
-https://www.gaoyuanqi.cn/python-daledou
+首先安装依赖：
+```bash
+pip3 install -r requirements.txt
 ```
 
-**./missions/config** 目录下有很多 **yaml** 后缀名的文件，根据你自己的实际情况（等级或战力）修改相关配置
+如果你熟悉 **pipenv** ，也可以通过以下命令安装：
+```bash
+pipenv install
+```
 
-比如你可以修改 **十二宫.yaml** 文件来决定扫荡某个关卡
+然后找到项目目录下的 **local.py** 模块选择执行的轮次：
+
+```python
+@repeat(every(30).minutes)
+def job():
+    # 第一轮
+    daledou_one()
+    
+    # 第二轮
+    # daledou_two()
+```
+
+
+## 大乐斗Cookie有效期
+
+脚本每隔30分钟（定时由 **Schedule** 库实现）请求一次来保持大乐斗Cookie活跃性，从而使Cookie有效期最长可以超过48小时
+
+当天更换Cookie，第二天依然有效，但会在第三天早上8点整左右失效
+
+停止脚本超过一个多小时，Cookie也会失效
 
 
 ## 环境
@@ -49,36 +59,15 @@ Python 3.10
 https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index&channel=0
 ```
 
-假设在开发者工具中获取的大乐斗Cookie：
-```
-RK=aa; ptcz=bb; uin=o123456; skey=@cc
-```
-
-另外一个大乐斗Cookie：
-```
-RK=AA; ptcz=BB; uin=o2222; skey=@CC
-```
-
-从上面提取出 RK、ptcz、uin、skey键值并依次填入 DALEDOU_COOKIE：
+将复制的大乐斗Cookie直接填入：
 ```python
-# 大乐斗Cookie，不要改动键值顺序
-# 支持多账号，一个字典对应一个号
+# 大乐斗Cookie
+# 支持多账号，每行对应一个账号
 DALEDOU_COOKIE = [
-    {
-        'RK': 'aa',
-        'ptcz': 'bb',
-        'uin': 'o123456',
-        'skey': '@cc'
-    },
-    {
-        'RK': 'AA',
-        'ptcz': 'BB',
-        'uin': 'o2222',
-        'skey': '@CC',
-    }
+    'RX=xxx',
+    'RK=xxx',
 ]
 ```
-
 
 ### 添加pushplus微信通知（可选）
 
@@ -90,7 +79,14 @@ PUSHPLUS_TOKEN = 'token'
 ```
 
 
-## 部署运行（Docker）
+## 自定义任务
+
+**./missions/config** 目录下有很多 **yaml** 后缀名的文件，根据你自己的实际情况（等级或战力）修改相关配置
+
+比如你可以修改 **十二宫.yaml** 文件来决定扫荡某个关卡
+
+
+## 部署运行（Docker-Compose）
 
 拉取镜像：
 ```bash
@@ -121,7 +117,7 @@ docker ps
 docker logs daledou
 ```
 
-如果大乐斗Cookies有效，应该看到以下信息：
+如果大乐斗Cookie有效，应该看到以下信息：
 ```
 2022-11-26 15:13:38.023 | INFO     | __main__:daledou_cookies:58 - 第 1 个大乐斗Cookie有效，脚本将在指定时间运行...
 2022-11-26 15:13:38.823 | INFO     | __main__:daledou_cookies:58 - 第 2 个大乐斗Cookie有效，脚本将在指定时间运行...
