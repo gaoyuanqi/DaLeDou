@@ -43,6 +43,13 @@ def job():
 停止脚本超过一个多小时，Cookie也会失效
 
 
+## 脚本执行文档
+
+```bash
+https://www.gaoyuanqi.cn/python-daledou/#more
+```
+
+
 ## 环境
 
 ```
