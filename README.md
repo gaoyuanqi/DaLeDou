@@ -71,8 +71,8 @@ https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index&channel=0
 # 大乐斗Cookie
 # 支持多账号，每行对应一个账号
 DALEDOU_COOKIE = [
-    'RX=xxx',
-    'RK=xxx',
+    '第一个Cookie',
+    '第二个Cookie',
 ]
 ```
 
@@ -81,7 +81,7 @@ DALEDOU_COOKIE = [
 微信公众号 **pushplus** > **pushplus** > **pushplus官网** > **一对一推送** > **一键复制**
 
 将token添加到：
-```bash
+```python
 PUSHPLUS_TOKEN = 'token'
 ```
 
@@ -95,12 +95,24 @@ PUSHPLUS_TOKEN = 'token'
 
 ## 部署运行（Docker-Compose）
 
+**Docker** 安装教程：
+```bash
+https://www.gaoyuanqi.cn/docker-install/
+```
+
 拉取镜像：
 ```bash
 docker pull python:3.10
 ```
 
-构建镜像（在有 **Dockerfile** 文件的目录下）：
+拉取仓库：
+```bash
+git clone https://github.moeyy.xyz/https://github.com/gaoyuanqi/DaLeDou.git
+cd DaLeDou
+ls
+```
+
+构建镜像（在有 **Dockerfile** 文件的目录下，注意 `.` 不要省略）：
 ```bash
 docker build -t daledou:v1 .
 ```
