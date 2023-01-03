@@ -71,8 +71,8 @@ https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index&channel=0
 # 大乐斗Cookie
 # 支持多账号，每行对应一个账号
 DALEDOU_COOKIE = [
-    '第一个Cookie',
-    '第二个Cookie',
+    'Cookie1',
+    'Cookie2',
 ]
 ```
 
@@ -138,8 +138,8 @@ docker logs daledou
 
 如果大乐斗Cookie有效，应该看到以下信息：
 ```
-2022-11-26 15:13:38.023 | INFO     | __main__:daledou_cookies:58 - 第 1 个大乐斗Cookie有效，脚本将在指定时间运行...
-2022-11-26 15:13:38.823 | INFO     | __main__:daledou_cookies:58 - 第 2 个大乐斗Cookie有效，脚本将在指定时间运行...
+2022-11-26 15:13:38.023 | INFO     | __main__:daledou_cookies:58 - 第 1 个大乐斗Cookie有效，脚本将在 13:01 和 20:01 运行...
+2022-11-26 15:13:38.823 | INFO     | __main__:daledou_cookies:58 - 第 2 个大乐斗Cookie有效，脚本将在 13:01 和 20:01 运行...
 ...
 ```
 

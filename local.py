@@ -5,6 +5,7 @@ from loguru import logger
 from schedule import every, repeat, run_all
 
 import settings
+from missions.deco import deco
 from missions.pushplus import pushplus
 
 
@@ -14,13 +15,13 @@ def login(cookies: str) -> bool:
         'Cookie': cookies,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
     }
-    for _ in range(5):
+    for _ in range(3):
         res = requests.get(url, headers=headers)
         res.encoding = 'utf-8'
         if '商店' in res.text:
             return True
 
-
+@deco
 def daledou_one():
     from missions.daledou.daledouone import DaLeDouOne
 
@@ -34,6 +35,7 @@ def daledou_one():
             logger.error(f'第 {i + 1} 个大乐斗Cookie无效，跳过')
 
 
+@deco
 def daledou_two():
     from missions.daledou.daledoutwo import DaLeDouTwo
 
@@ -47,6 +49,7 @@ def daledou_two():
             logger.error(f'第 {i + 1} 个大乐斗Cookie无效，跳过')
 
 
+@deco
 @repeat(every(30).minutes)
 def job():
     # 第一轮

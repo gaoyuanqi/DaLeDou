@@ -9,7 +9,7 @@ from missions.pushplus import pushplus
 
 @decorator
 def deco(func, *args, **kwargs):
-    time.sleep(0.5)
+    time.sleep(0.2)
     func_name = func.__name__
     try:
         start = time.time()
@@ -20,4 +20,4 @@ def deco(func, *args, **kwargs):
         error = traceback.format_exc()
         logger.error(f'【{func_name}】error：\n{error}')
         pushplus(f'【{func_name}】异常', [error])
-    time.sleep(0.5)
+    time.sleep(0.2)

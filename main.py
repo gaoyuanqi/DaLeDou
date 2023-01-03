@@ -6,6 +6,7 @@ from loguru import logger
 from schedule import every, repeat, run_pending
 
 import settings
+from missions.deco import deco
 from missions.pushplus import pushplus
 
 
@@ -15,13 +16,14 @@ def login(cookies: str) -> bool:
         'Cookie': cookies,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
     }
-    for _ in range(5):
+    for _ in range(3):
         res = requests.get(url, headers=headers)
         res.encoding = 'utf-8'
         if '商店' in res.text:
             return True
 
 
+@deco
 def daledou_one():
     from missions.daledou.daledouone import DaLeDouOne
 
@@ -37,6 +39,7 @@ def daledou_one():
             pushplus(f'第 {i + 1} 个大乐斗Cookie无效', [start])
 
 
+@deco
 def daledou_two():
     from missions.daledou.daledoutwo import DaLeDouTwo
 
@@ -52,13 +55,14 @@ def daledou_two():
             pushplus(f'第 {i + 1} 个大乐斗Cookie无效', [start])
 
 
+@deco
 def daledou_cookies():
     reload(settings)
     for i, cookies in enumerate(settings.DALEDOU_COOKIE):
         if login(cookies):
-            logger.info(f'第 {i + 1} 个大乐斗Cookie有效，脚本将在指定时间运行...')
+            logger.info(f'第 {i + 1} 个大乐斗Cookie有效，脚本将在 13:01 和 20:01 运行...')
         else:
-            msg = f'第 {i + 1} 个大乐斗Cookie无效，请更换Cookie'
+            msg = f'第 {i + 1} 个大乐斗Cookie无效，跳过'
             logger.error(msg)
             pushplus(msg, [msg])
 
