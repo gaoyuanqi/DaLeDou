@@ -150,3 +150,8 @@ docker logs daledou
 ```bash
 docker restart daledou
 ```
+
+
+## QQ交流群（783035662）
+
+![QQ交流群](QQ.jpg)
