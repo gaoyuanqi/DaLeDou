@@ -337,7 +337,7 @@ class Events(DaLeDou):
         for id in [1, 3, 5, 7, 9]:
             # 回忆礼包
             Events.get(f'cmd=newAct&subtype=171&op=3&id={id}')
-            self.msg += DaLeDou.findall(r'6点<br />(.*?)<>br /')
+            self.msg += DaLeDou.findall(r'6点<br />(.*?)<br />')
 
     def 新春礼包(self):
         # 新春礼包
@@ -345,7 +345,7 @@ class Events(DaLeDou):
         date_list = DaLeDou.findall(r'~\d+月(\d+)日')
         id_list = DaLeDou.findall(r'giftid=(\d+)')
         for date, id in zip(date_list, id_list):
-            if self.date == int(date) - 1:
+            if int(self.date) == int(date) - 1:
                 Events.get(f'cmd=xinChunGift&subtype=2&giftid={id}')
                 self.msg += DaLeDou.findall(r'【迎新大礼包】<br />(.*?)<br />')
 
