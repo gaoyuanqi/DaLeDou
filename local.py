@@ -2,7 +2,6 @@ from importlib import reload
 
 import requests
 from loguru import logger
-from schedule import every, repeat, run_all
 
 import settings
 from missions.deco import deco
@@ -20,6 +19,7 @@ def login(cookies: str) -> bool:
         res.encoding = 'utf-8'
         if '商店' in res.text:
             return True
+
 
 @deco
 def daledou_one():
@@ -49,14 +49,12 @@ def daledou_two():
             logger.error(f'第 {i + 1} 个大乐斗Cookie无效，跳过')
 
 
-@deco
-@repeat(every(30).minutes)
-def job():
-    # 第一轮
-    daledou_one()
-
-    # 第二轮
-    # daledou_two()
+def main():
+    lunci = input('输入1或2选择执行轮次：')
+    if lunci == '1':
+        daledou_one()
+    elif lunci == '2':
+        daledou_two()
 
 
-run_all()
+main()
