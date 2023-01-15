@@ -86,14 +86,9 @@ docker logs daledou
 docker exec -it daledou /bin/bash
 ```
 
-激活虚拟环境：
-```sh
-$ pipenv shell
-```
-
 运行脚本：
 ```sh
-$ python local.py
+$ pipenv run python local.py
 ```
 
 然后按提示输入，`1` 表示第一轮，`2` 表示第二轮

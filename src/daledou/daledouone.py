@@ -224,13 +224,13 @@ class DaLeDouOne(DaLeDou):
         if '邪神秘宝' in mission:
             self.邪神秘宝()
 
-        # if '华山论剑' in mission:
-        #     self.华山论剑()
+        if ('华山论剑' in mission) and (int(self.date) <= 25):
+            self.华山论剑()
 
         self.分享()
         self.乐斗()
 
-        if '兵法' in mission:
+        if ('兵法' in mission) and (self.week in ['4', '6']):
             self.兵法()
 
         if '我要报名' in mission:
@@ -242,13 +242,13 @@ class DaLeDouOne(DaLeDou):
         if '矿洞' in mission:
             self.矿洞()
 
-        if '掠夺' in mission:
+        if ('掠夺' in mission) and (self.week == 3):
             self.掠夺()
 
-        if '踢馆' in mission:
+        if ('踢馆' in mission) and (self.week in ['5', '6']):
             self.踢馆()
 
-        if '竞技场' in mission:
+        if ('竞技场' in mission) and (int(self.date) <= 25):
             self.竞技场()
 
         if '十二宫' in mission:
@@ -269,7 +269,7 @@ class DaLeDouOne(DaLeDou):
         if '幻境' in mission:
             self.幻境()
 
-        if '群雄逐鹿' in mission:
+        if ('群雄逐鹿' in mission) and (self.week == 6):
             self.群雄逐鹿()
 
         if '画卷迷踪' in mission:
@@ -278,10 +278,10 @@ class DaLeDouOne(DaLeDou):
         if '门派' in mission:
             self.门派()
 
-        if '门派邀请赛' in mission:
+        if ('门派邀请赛' in mission) and (self.week != '2'):
             self.门派邀请赛()
 
-        if '会武' in mission:
+        if ('会武' in mission) and (self.week not in ['5', '0']):
             self.会武()
 
         if '梦想之旅' in mission:

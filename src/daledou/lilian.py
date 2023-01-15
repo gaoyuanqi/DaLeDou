@@ -2,7 +2,6 @@
 历练
 '''
 from src.daledou.daledou import DaLeDou
-from src.daledou._set import _readyaml, _getenvqq
 
 
 class LiLian(DaLeDou):
@@ -16,7 +15,7 @@ class LiLian(DaLeDou):
         html = DaLeDou.get(params)
 
     def 历练(self):
-        data: dict = _readyaml('历练', _getenvqq())
+        data: dict = DaLeDou.readyaml('历练')
         for id in data['id']:
             for _ in range(3):
                 LiLian.get(

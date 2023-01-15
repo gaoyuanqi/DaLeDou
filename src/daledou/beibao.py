@@ -2,7 +2,6 @@
 背包
 '''
 from src.daledou.daledou import DaLeDou
-from src.daledou._set import _readyaml, _getenvqq
 
 
 class BeiBao(DaLeDou):
@@ -48,7 +47,7 @@ class BeiBao(DaLeDou):
 
     def 使用(self):
         # 指定物品使用一次
-        data: dict = _readyaml('背包', _getenvqq())
+        data: dict = DaLeDou.readyaml('背包')
         shiyong: dict = data['使用']
         for id in shiyong:
             # 使用
@@ -57,7 +56,7 @@ class BeiBao(DaLeDou):
     def 提前(self):
         # 指定物品提前一次
         if self.week == '4':
-            data: dict = _readyaml('背包', _getenvqq())
+            data: dict = DaLeDou.readyaml('背包')
             tiqian: dict = data['提前']
             for key in tiqian:
                 # 提前

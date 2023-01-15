@@ -18,7 +18,6 @@ class BingFa(DaLeDou):
 
     def 助威(self):
         if self.week == '4':
-            self.msg += DaLeDou.conversion('兵法')
             # 助威
             BingFa.get('cmd=brofight&subtype=13')
             teamid: list = DaLeDou.findall(r'.*?teamid=(\d+).*?助威</a>')
@@ -31,11 +30,12 @@ class BingFa(DaLeDou):
     def 领奖(self):
         if self.week == '6':
             # 兵法 -> 助威 -> 领奖
-            self.msg += DaLeDou.conversion('兵法')
             BingFa.get('cmd=brofight&subtype=13&op=draw')
             self.msg += DaLeDou.findall(r'领奖</a><br />(.*?)<br /><br />')
 
     def main(self) -> list:
+        self.msg += DaLeDou.conversion('兵法')
+
         self.助威()
         self.领奖()
 

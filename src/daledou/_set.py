@@ -1,28 +1,12 @@
 import re
 from shutil import copy
-from importlib import reload
 from os import environ, path, getenv
 
 import yaml
 import requests
-from loguru import logger
-
-import settings
-from src.pushplus import pushplus
-from src.daledou.daledouone import DaLeDouOne
-from src.daledou.daledoutwo import DaLeDouTwo
 
 
 _YAML_PATH = './config'
-
-
-def _error(cookie: str):
-    if 'uin' in cookie:
-        msg = _search(r'uin=o(\d+)', cookie)
-    else:
-        msg = cookie
-    logger.error(f'无效cookie：{msg}')
-    pushplus(f'无效cookie {msg}', [f'{msg}无效'])
 
 
 def _search(mode: str, html: str) -> str | None:
@@ -91,46 +75,11 @@ def _defaults(cookie: str) -> str | None:
     return qq
 
 
-def _daledouone():
-    reload(settings)
-    for cookie in settings.DALEDOU_COOKIE:
-        if qq := _defaults(cookie):
-            logger.info(f'开始运行第一轮账号：{qq}')
-            msg: list = DaLeDouOne().main(cookie)
-            pushplus(f'第一轮 {qq}', msg)
-        else:
-            _error(cookie)
-
-
-def _daledoutwo():
-    reload(settings)
-    for cookie in settings.DALEDOU_COOKIE:
-        if qq := _defaults(cookie):
-            logger.info(f'开始运行第二轮账号：{qq}')
-            msg: list = DaLeDouTwo().main(cookie)
-            pushplus(f'第二轮 {qq}', msg)
-        else:
-            _error(cookie)
-
-
-def _daledoucookie():
-    reload(settings)
-    for cookie in settings.DALEDOU_COOKIE:
-        if qq := _defaults(cookie):
-            logger.info(f'账号：{qq} 将在 13:01 和 20:01 运行...')
-        else:
-            _error(cookie)
-
-
-def _getenvqq() -> str | None:
-    return getenv('QQ')
-
-
-def _readyaml(key: str, filename: str) -> dict:
+def _readyaml(key: str) -> dict:
     '''
     读取 config 目录下的 yaml 配置文件
     '''
-    with open(f'{_YAML_PATH}/{filename}.yaml', 'r', encoding='utf-8') as fp:
+    with open(f'{_YAML_PATH}/{getenv("QQ")}.yaml', 'r', encoding='utf-8') as fp:
         users: dict = yaml.safe_load(fp)
         data: dict = users[key]
     return data

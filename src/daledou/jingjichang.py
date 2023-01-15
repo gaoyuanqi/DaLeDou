@@ -2,7 +2,6 @@
 竞技场
 '''
 from src.daledou.daledou import DaLeDou
-from src.daledou._set import _readyaml,_getenvqq
 
 
 class JingJiChang(DaLeDou):
@@ -30,7 +29,7 @@ class JingJiChang(DaLeDou):
                 break
 
     def 兑换(self):
-        data: dict = _readyaml('竞技场', _getenvqq())
+        data: dict = DaLeDou.readyaml('竞技场')
         id: int = data['id']
         times: int = data['times']
         if id:
@@ -39,10 +38,9 @@ class JingJiChang(DaLeDou):
             self.msg += DaLeDou.findall(r'竞技场</a><br />(.*?)<br />')
 
     def main(self) -> list:
-        if int(self.date) <= 25:
-            self.msg += DaLeDou.conversion('竞技场')
-            self.挑战()
-            self.兑换()
-            return self.msg
+        self.msg += DaLeDou.conversion('竞技场')
 
-        return []
+        self.挑战()
+        self.兑换()
+
+        return self.msg

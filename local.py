@@ -1,4 +1,4 @@
-from src.daledou._set import _daledouone, _daledoutwo
+from src.daledou._run import _daledouone, _daledoutwo
 
 
 def main():

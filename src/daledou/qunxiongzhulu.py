@@ -15,16 +15,14 @@ class QunXiong(DaLeDou):
         html = DaLeDou.get(params)
 
     def 群雄逐鹿(self):
-        if self.week == '6':
-            self.msg += DaLeDou.conversion('群雄逐鹿')
-            # 报名
-            QunXiong.get('cmd=thronesbattle&op=signup')
-            self.msg += DaLeDou.findall(r'届群雄逐鹿<br />(.*?)<br />')
-            # 领奖
-            QunXiong.get('cmd=thronesbattle&op=drawreward')
+        for op in ['signup', 'drawreward']:
+            QunXiong.get(f'cmd=thronesbattle&op={op}')
+            # 报名 》领奖
             self.msg += DaLeDou.findall(r'届群雄逐鹿<br />(.*?)<br />')
 
     def main(self) -> list:
+        self.msg += DaLeDou.conversion('群雄逐鹿')
+
         self.群雄逐鹿()
 
         return self.msg

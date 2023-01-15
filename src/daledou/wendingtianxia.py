@@ -22,7 +22,6 @@ class WenDing(DaLeDou):
 
     def 攻占(self):
         if self.week not in ['6', '0']:
-            self.msg += DaLeDou.conversion('问鼎天下')
             # 问鼎天下
             WenDing.get('cmd=tbattle')
             if '你占领的领地已经枯竭' in html:
@@ -44,19 +43,19 @@ class WenDing(DaLeDou):
 
     def 淘汰赛(self):
         if self.week == '6':
-            self.msg += DaLeDou.conversion('问鼎天下')
             # 助威 神ㄨ阁丶
             WenDing.get(f'cmd=tbattle&op=cheerregionbattle&id=10215')
             self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
 
     def 排名赛(self):
         if self.week == '0':
-            self.msg += DaLeDou.conversion('问鼎天下')
             # 助威 神ㄨ阁丶
             WenDing.get(f'cmd=tbattle&op=cheerchampionbattle&id=10215')
             self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
 
     def main_one(self) -> list:
+        self.msg += DaLeDou.conversion('问鼎天下')
+
         self.领取奖励()
         self.攻占()
         self.淘汰赛()
@@ -65,6 +64,8 @@ class WenDing(DaLeDou):
         return self.msg
 
     def main_two(self) -> list:
+        self.msg += DaLeDou.conversion('问鼎天下')
+
         self.攻占()
 
         return self.msg

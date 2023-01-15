@@ -90,13 +90,15 @@ class MyGang(DaLeDou):
         self.msg += DaLeDou.findall_tuple(r'id=\d+">(.*?)</a>(.*?)<br />')
 
     def main(self) -> list:
+        self.msg += DaLeDou.conversion('我的帮派')
+
         # 我的帮派
         MyGang.get('cmd=factionop&subtype=3&facid=0')
         if '你的职位' in html:
-            self.msg += DaLeDou.conversion('我的帮派')
             self.供奉()
             self.帮战()
             self.帮派任务()
             return self.msg
 
-        return ['您需手动加入帮派']
+        self.msg += ['您还没有加入帮派']
+        return self.msg

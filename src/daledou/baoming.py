@@ -26,9 +26,12 @@ class BaoMing(DaLeDou):
         '''
         周二、周五、周日报名
         '''
-        if self.week in ['0', '2', '5']:
+        if self.week in ['2', '5', '0']:
             # 报名 侠侣争霸
             BaoMing.get('cmd=cfight&subtype=9')
+            if '要有夫妻关系' in html:
+                self.msg += ['要有夫妻关系才能报名夫妻争霸赛哦，快去找你心爱的对象吧~']
+                return
             self.msg += DaLeDou.find_tuple(
                 r'【侠侣争霸】<br />(.*?)<a.*?</a><br />(.*?)。.*查看')
 
@@ -44,8 +47,8 @@ class BaoMing(DaLeDou):
     def main(self) -> list:
         self.msg += DaLeDou.conversion('我要报名')
 
-        self.武林大会()
+        # self.武林大会()
         self.侠侣争霸()
-        self.笑傲群侠()
+        # self.笑傲群侠()
 
         return self.msg

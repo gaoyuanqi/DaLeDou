@@ -85,10 +85,10 @@ class DaLeDouTwo(DaLeDou):
         if '邪神秘宝' in mission:
             self.邪神秘宝()
 
-        if '每日宝箱' in mission:
+        if ('每日宝箱' in mission) and (self.date == '20'):
             self.每日宝箱()
 
-        if '问鼎天下' in mission:
+        if ('问鼎天下' in mission) and (self.week not in ['6', '0']):
             self.问鼎天下()
 
         if '任务派遣中心' in mission:
@@ -100,7 +100,7 @@ class DaLeDouTwo(DaLeDou):
         if '仙武修真' in mission:
             self.仙武修真()
 
-        if '大侠回归三重好礼' in mission:
+        if ('大侠回归三重好礼' in mission) and (self.week == '4'):
             self.大侠回归三重好礼()
 
         if '乐斗黄历' in mission:

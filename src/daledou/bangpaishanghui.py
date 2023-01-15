@@ -2,7 +2,6 @@
 帮派商会
 '''
 from src.daledou.daledou import DaLeDou
-from src.daledou._set import _readyaml, _getenvqq
 
 
 class BangPai(DaLeDou):
@@ -25,7 +24,7 @@ class BangPai(DaLeDou):
 
     def 交易会所(self):
         # 交易会所
-        data: dict = _readyaml('帮派商会', _getenvqq())
+        data: dict = DaLeDou.readyaml('帮派商会')
         jiaoyi: dict = data['交易']
         BangPai.get('cmd=fac_corp&op=1')
         for jiaoyi_name, params in jiaoyi.items():
@@ -35,7 +34,7 @@ class BangPai(DaLeDou):
 
     def 兑换商店(self):
         # 兑换商店
-        data: dict = _readyaml('帮派商会', _getenvqq())
+        data: dict = DaLeDou.readyaml('帮派商会')
         duihuan: dict = data['兑换']
         for duihuan_name, type_id in duihuan.items():
             if duihuan_name in html:

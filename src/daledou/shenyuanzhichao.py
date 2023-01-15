@@ -2,7 +2,6 @@
 深渊之潮
 '''
 from src.daledou.daledou import DaLeDou
-from src.daledou._set import _readyaml, _getenvqq
 
 
 class ShenYuan(DaLeDou):
@@ -23,14 +22,14 @@ class ShenYuan(DaLeDou):
             self.msg += ['帮派巡礼需要加入帮派才能领取']
 
     def 开始挑战(self):
-        data: dict = _readyaml('深渊之潮', _getenvqq())
+        data: dict = DaLeDou.readyaml('深渊之潮')
         id: int = data['id']
         for _ in range(3):
             ShenYuan.get(f'cmd=abysstide&op=enterabyss&id={id}')
             if '暂无可用挑战次数' in html:
                 break
             elif '该副本需要顺序通关解锁' in html:
-                self.msg += [f'该副本需要顺序通关解锁！，您需在{_getenvqq()}.yaml 改变策略']
+                self.msg += [f'该副本需要顺序通关解锁！']
                 break
             for _ in range(5):
                 # 开始挑战

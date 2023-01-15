@@ -16,7 +16,6 @@ class HuiWu(DaLeDou):
 
     def 挑战(self):
         if self.week in ['1', '2', '3']:
-            self.msg += DaLeDou.conversion('会武')
             for _ in range(21):
                 # 挑战
                 HuiWu.get('cmd=sectmelee&op=dotraining')
@@ -31,7 +30,6 @@ class HuiWu(DaLeDou):
 
     def 助威(self):
         if self.week == '4':
-            self.msg += DaLeDou.conversion('会武')
             # 冠军助威 丐帮
             HuiWu.get('cmd=sectmelee&op=cheer&sect=1003')
             # 冠军助威
@@ -40,7 +38,6 @@ class HuiWu(DaLeDou):
 
     def 领奖(self):
         if self.week == '6':
-            self.msg += DaLeDou.conversion('会武')
             # 领奖
             HuiWu.get('cmd=sectmelee&op=drawreward')
             self.msg += DaLeDou.findall(r'【领奖】<br />(.*?)<br />.*?领取')
@@ -53,6 +50,8 @@ class HuiWu(DaLeDou):
             self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
 
     def main(self) -> list:
+        self.msg += DaLeDou.conversion('会武')
+
         # 门派
         HuiWu.get('cmd=sect')
         if '出师' in html:
@@ -62,5 +61,5 @@ class HuiWu(DaLeDou):
             self.兑换()
             return self.msg
 
-        self.msg += DaLeDou.conversion('会武')
-        return ['您需手动加入门派']
+        self.msg += ['您需手动加入门派']
+        return self.msg

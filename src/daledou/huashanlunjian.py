@@ -1,9 +1,7 @@
 '''
 华山论剑
-乐斗等级需 >= 40
 '''
 from src.daledou.daledou import DaLeDou
-from src.daledou._set import _readyaml
 
 
 class HuaShan(DaLeDou):
@@ -18,24 +16,46 @@ class HuaShan(DaLeDou):
 
     def 战阵调整(self):
         '''
-        选择出战侠士
+        选择/更改侠士
         '''
-        id_list = _readyaml('id', '华山论剑.yaml')
-        # 战阵调整
+        # 战阵调整页面
+        HuaShan.get('cmd=knightarena&op=viewsetknightlist&pos=0')
+        knightid: list = DaLeDou.findall(r'knightid=(\d+)')
+
+        # 出战侠士页面
         HuaShan.get('cmd=knightarena&op=viewteam')
-        for id, p in zip(id_list, range(3)):
-            # 第一、二、三战侠士
-            HuaShan.get(f'cmd=knightarena&op=setknight&id={id}&pos={p}&type=1')
-            if '您没有该侠士' in html:
-                self.msg += [f'您没有该侠士：{id}']
+        xuanze_pos: list = DaLeDou.findall(r'pos=(\d+)">选择侠士')
+        genggai: list = DaLeDou.findall(
+            r'耐久：(\d+)/.*?pos=(\d+)">更改侠士.*?id=(\d+)')
+
+        genggai_pos: list = []
+        for n, p, id in genggai:
+            # 移除不可出战的侠士id
+            knightid.remove(id)
+            if n == '0':
+                # 筛选耐久为 0 的侠士出战次序
+                genggai_pos.append(p)
+
+        # 选择/更改侠士
+        for p in (xuanze_pos + genggai_pos):
+            if not knightid:
+                break
+            id: str = knightid.pop()
+            # 出战
+            HuaShan.get(
+                f'cmd=knightarena&op=setknight&id={id}&pos={p}&type=1')
 
     def 开始挑战(self):
         '''
         开始挑战 8 次
+        战阵调整至多2次
         '''
-        for _ in range(8):
+        for _ in range(10):
             # 开始挑战
             HuaShan.get('cmd=knightarena&op=challenge')
+            if '耐久不足' in html:
+                self.战阵调整()
+                continue
             self.msg += DaLeDou.findall(r'荣誉兑换</a><br />(.*?)<br />')
 
     def main(self) -> list:

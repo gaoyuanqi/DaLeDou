@@ -2,7 +2,6 @@
 十二宫
 '''
 from src.daledou.daledou import DaLeDou
-from src.daledou._set import _readyaml, _getenvqq
 
 
 class ShiErGong(DaLeDou):
@@ -19,7 +18,7 @@ class ShiErGong(DaLeDou):
         '''
         扫荡 》请猴王扫荡
         '''
-        data: dict = _readyaml('十二宫', _getenvqq())
+        data: dict = DaLeDou.readyaml('十二宫')
         id: int = data['id']
         # 请猴王扫荡
         ShiErGong.get(

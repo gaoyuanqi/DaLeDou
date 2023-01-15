@@ -87,6 +87,7 @@ class MenPai(DaLeDou):
 
     def main(self) -> list:
         self.msg += DaLeDou.conversion('门派')
+
         # 门派
         MenPai.get('cmd=sect')
         if '出师' in html:
@@ -95,4 +96,5 @@ class MenPai(DaLeDou):
             self.五花堂()
             return self.msg
 
-        return ['您需手动加入门派']
+        self.msg += ['您还没有加入门派']
+        return self.msg

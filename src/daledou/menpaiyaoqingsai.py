@@ -2,7 +2,6 @@
 门派邀请赛
 '''
 from src.daledou.daledou import DaLeDou
-from src.daledou._set import _readyaml, _getenvqq
 
 
 class MenPai(DaLeDou):
@@ -17,7 +16,6 @@ class MenPai(DaLeDou):
 
     def 报名(self):
         if self.week == '1':
-            self.msg += DaLeDou.conversion('门派邀请赛')
             # 组队报名
             MenPai.get('cmd=secttournament&op=signup')
             self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br /><br />')
@@ -27,7 +25,6 @@ class MenPai(DaLeDou):
 
     def 开始挑战(self):
         if self.week not in ['1', '2']:
-            self.msg += DaLeDou.conversion('门派邀请赛')
             for _ in range(6):
                 # 开始挑战
                 MenPai.get('cmd=secttournament&op=fight')
@@ -35,7 +32,7 @@ class MenPai(DaLeDou):
 
     def 兑换(self):
         if self.week not in ['1', '2']:
-            data: dict = _readyaml('门派邀请赛', _getenvqq())
+            data: dict = DaLeDou.readyaml('门派邀请赛')
             id: int = data['id']
             times: int = data['times']
             if id:
@@ -45,6 +42,8 @@ class MenPai(DaLeDou):
                 self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
 
     def main(self) -> list:
+        self.msg += DaLeDou.conversion('门派邀请赛')
+
         # 门派
         MenPai.get('cmd=sect')
         if '出师' in html:
@@ -53,5 +52,5 @@ class MenPai(DaLeDou):
             self.兑换()
             return self.msg
 
-        self.msg += DaLeDou.conversion('门派邀请赛')
-        return ['您需手动加入门派']
+        self.msg += ['您还没有加入门派']
+        return self.msg

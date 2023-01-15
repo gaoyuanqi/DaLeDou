@@ -2,7 +2,7 @@ import time
 
 from schedule import every, repeat, run_pending
 
-from src.daledou._set import _daledouone, _daledoutwo, _daledoucookie
+from src.daledou._run import _daledouone, _daledoutwo, _daledoucookie
 
 
 @repeat(every(30).minutes)

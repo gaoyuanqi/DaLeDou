@@ -4,7 +4,6 @@
 import random
 
 from src.daledou.daledou import DaLeDou
-from src.daledou._set import _readyaml, _getenvqq
 
 
 class Events(DaLeDou):
@@ -233,7 +232,7 @@ class Events(DaLeDou):
         # 限时兑换
         date: str = DaLeDou.findall(r'至\d+月(\d+)日')[0]
         if int(self.date) == int(date) - 1:
-            data: dict = _readyaml('活动', _getenvqq())
+            data: dict = DaLeDou.readyaml('活动')
             duihuan_name: list = data['企鹅吉利兑']
             for name in duihuan_name:
                 id = DaLeDou.findall(
@@ -405,7 +404,7 @@ class Events(DaLeDou):
         self.msg += DaLeDou.findall(r'【喜从天降】<br />(.*?)<br />')
 
     def 春联大赛(self):
-        data: dict = _readyaml('活动', _getenvqq())
+        data: dict = DaLeDou.readyaml('活动')
         chunlian: dict = data['春联大赛']
         # 开始答题
         Events.get('cmd=newAct&subtype=146&op=1')

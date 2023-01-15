@@ -6,6 +6,8 @@ import time
 
 import requests
 
+from src.daledou._set import _readyaml
+
 
 class DaLeDou:
 
@@ -43,7 +45,7 @@ class DaLeDou:
         return:
             空列表 []
             列表 ['str1', 'str2', ...]
-            二元组列表 [('str1','str2')]
+            元组列表 [('str1','str2')]
         '''
         result: list = re.findall(mode, html, re.S)
         return result
@@ -56,7 +58,9 @@ class DaLeDou:
             只有一个二元组 [('str1', 'str2')] -> ['str1', 'str2']
         '''
         result: list = re.findall(mode, html, re.S)
-        return list(result[0])
+        if result:
+            return list(result[0])
+        return []
 
     @staticmethod
     def findall_tuple(mode: str) -> list:
@@ -70,6 +74,13 @@ class DaLeDou:
         for k, v in result:
             data.append(f'{k} {v}')
         return data
+
+    @staticmethod
+    def readyaml(key: str) -> dict:
+        '''
+        读取当前账号的yaml
+        '''
+        return _readyaml(key)
 
     def run(self):
         ...
