@@ -13,7 +13,7 @@ def _search(mode: str, html: str) -> str | None:
     '''
     返回第一个成功匹配的字符串，失败返回None
     '''
-    result = re.search(mode, html, re.S)
+    result: str = re.search(mode, html, re.S)
     if result:
         return result.group(1)
 
@@ -22,8 +22,8 @@ def _copy(qq: str) -> None:
     '''
     从 _daledou.yaml 文件复制一份 qq.yaml 文件
     '''
-    srcpath = f'{_YAML_PATH}/_daledou.yaml'
-    yamlpath = f'{_YAML_PATH}/{qq}.yaml'
+    srcpath: str = f'{_YAML_PATH}/_daledou.yaml'
+    yamlpath: str = f'{_YAML_PATH}/{qq}.yaml'
     if not path.isfile(yamlpath):
         copy(srcpath, yamlpath)
 
@@ -41,7 +41,7 @@ def _login(cookie: str) -> str | None:
         for _ in range(3):
             res = requests.get(url, headers=headers)
             res.encoding = 'utf-8'
-            html = res.text
+            html: str = res.text
             if '商店' in html:
                 return html
     except Exception:
@@ -67,7 +67,7 @@ def _defaults(cookie: str) -> str | None:
     # 添加环境变量
     environ['QQ'] = qq
     environ['RANK'] = rank
-    environ['combat_power'] = combat_power
+    environ['COMBAT_POWER'] = combat_power
 
     # 创建 qq 命名的 yaml 文件
     _copy(qq)

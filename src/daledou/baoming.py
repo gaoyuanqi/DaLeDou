@@ -19,8 +19,7 @@ class BaoMing(DaLeDou):
         BaoMing.get('cmd=fastSignWulin&ifFirstSign=1')
         # 武林
         BaoMing.get('cmd=showwulin')
-        self.msg += DaLeDou.find_tuple(
-            r'【冠军排行】</a><br />(.*?)<br />(.*?)<br />武林技能')
+        self.msg += DaLeDou.findall(r'【冠军排行】</a><br />(.*?)<br />武林技能')
 
     def 侠侣争霸(self):
         '''
@@ -29,11 +28,8 @@ class BaoMing(DaLeDou):
         if self.week in ['2', '5', '0']:
             # 报名 侠侣争霸
             BaoMing.get('cmd=cfight&subtype=9')
-            if '要有夫妻关系' in html:
-                self.msg += ['要有夫妻关系才能报名夫妻争霸赛哦，快去找你心爱的对象吧~']
-                return
-            self.msg += DaLeDou.find_tuple(
-                r'【侠侣争霸】<br />(.*?)<a.*?</a><br />(.*?)。.*查看')
+            self.msg += DaLeDou.findall(r'【侠侣争霸】<br />(.*?)<a.')
+            self.msg += DaLeDou.findall(r'设置</a><br />(.*?)<br /></p>')
 
     def 笑傲群侠(self):
         '''
@@ -47,8 +43,8 @@ class BaoMing(DaLeDou):
     def main(self) -> list:
         self.msg += DaLeDou.conversion('我要报名')
 
-        # self.武林大会()
+        self.武林大会()
         self.侠侣争霸()
-        # self.笑傲群侠()
+        self.笑傲群侠()
 
         return self.msg

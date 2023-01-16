@@ -17,7 +17,11 @@ class JinRi(DaLeDou):
     def 领取奖励(self):
         # 今日活跃度
         JinRi.get('cmd=liveness')
-        self.msg += DaLeDou.find_tuple(r'【(.*?)】.*?礼包</a><br />(.*?)<a')
+        self.msg += DaLeDou.findall(r'【(.*?)】')
+        if 'factionop' in html:
+            self.msg += DaLeDou.findall(r'礼包</a><br />(.*?)<a')
+        else:
+            self.msg += DaLeDou.findall(r'礼包</a><br />(.*?)<br />')
         # 领取今日活跃度礼包
         for id in range(1, 5):
             JinRi.get(f'cmd=liveness_getgiftbag&giftbagid={id}&action=1')

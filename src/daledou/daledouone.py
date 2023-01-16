@@ -233,8 +233,7 @@ class DaLeDouOne(DaLeDou):
         if ('兵法' in mission) and (self.week in ['4', '6']):
             self.兵法()
 
-        if '我要报名' in mission:
-            self.我要报名()
+        self.我要报名()
 
         if '巅峰之战进行中' in mission:
             self.巅峰之战进行中()

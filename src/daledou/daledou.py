@@ -45,35 +45,10 @@ class DaLeDou:
         return:
             空列表 []
             列表 ['str1', 'str2', ...]
-            元组列表 [('str1','str2')]
+            元组列表 [('str1', 'str2'), ('str3', 'str4'), ...]
         '''
         result: list = re.findall(mode, html, re.S)
         return result
-
-    @staticmethod
-    def find_tuple(mode: str) -> list:
-        '''
-        因为微信推送不能传入元素是元组的列表，列表元素只能是字符串
-        result:
-            只有一个二元组 [('str1', 'str2')] -> ['str1', 'str2']
-        '''
-        result: list = re.findall(mode, html, re.S)
-        if result:
-            return list(result[0])
-        return []
-
-    @staticmethod
-    def findall_tuple(mode: str) -> list:
-        '''
-        因为微信推送不能传入元素是元组的列表，列表元素只能是字符串
-        result:
-            多元组 [('s1', 's2'), ('s3', 's4'), ...] -> ['s1 s2', 's3 s4', ...]
-        '''
-        data = []
-        result: list = re.findall(mode, html, re.S)
-        for k, v in result:
-            data.append(f'{k} {v}')
-        return data
 
     @staticmethod
     def readyaml(key: str) -> dict:

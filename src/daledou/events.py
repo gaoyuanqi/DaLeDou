@@ -254,12 +254,15 @@ class Events(DaLeDou):
 
         # 当前精魄
         self.msg += DaLeDou.findall(r'喔~<br />(.*?)<br /><br />')
-        # 兑换详情
-        msg = DaLeDou.find_tuple(
-            r'兑换==<br />(.*?)&nbsp;&nbsp;&nbsp;&nbsp;(.*?)&')
-        self.msg += [f'{msg[0]} {msg[1]}']
-        self.msg += DaLeDou.findall_tuple(
-            r'精魄兑换</a><br />(.*?)&nbsp;&nbsp;&nbsp;&nbsp;(.*?)&')
+        mode = [
+            r'兑换==<br />(.*?)&nbsp;&nbsp;&nbsp;&nbsp;(.*?)&',
+            r'精魄兑换</a><br />(.*?)&nbsp;&nbsp;&nbsp;&nbsp;(.*?)&',
+        ]
+        for m in mode:
+            # 兑换详情
+            data: list[tuple] = DaLeDou.findall(m)
+            for k, v in data:
+                self.msg.append(f'{k} {v}')
 
     def 乐斗游记(self):
         # 乐斗游记
@@ -296,7 +299,7 @@ class Events(DaLeDou):
         Events.get('cmd=hallowmas&gb_id=1')
         while True:
             cushaw_id: list = DaLeDou.findall(r'cushaw_id=(\d+)')
-            id = random.choice(cushaw_id)
+            id: str = random.choice(cushaw_id)
             # 南瓜
             Events.get(f'cmd=hallowmas&gb_id=4&cushaw_id={id}')
             self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
@@ -325,7 +328,7 @@ class Events(DaLeDou):
     def 双节签到(self):
         # 双节签到
         Events.get('cmd=newAct&subtype=144')
-        date = DaLeDou.findall(r'至\d+月(\d+)日')[0]
+        date: str = DaLeDou.findall(r'至\d+月(\d+)日')[0]
         if 'op=1' in html:
             # 领取
             Events.get('cmd=newAct&subtype=144&op=1')

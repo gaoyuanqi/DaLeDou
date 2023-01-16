@@ -22,6 +22,8 @@ class MyGang(DaLeDou):
             # 供奉守护神
             MyGang.get('cmd=viewolbation')
             id: list = DaLeDou.findall(r'数量：.*?id=(\d+).*?供奉</a>')
+            if not id:
+                break
             # 供奉
             MyGang.get(f'cmd=oblation&id={id[0]}&page=1')
             self.msg += DaLeDou.findall(r'【供奉守护神】<br />(.*?)<br />')
@@ -87,7 +89,7 @@ class MyGang(DaLeDou):
         for id in ids:
             # 领取奖励
             MyGang.get(f'cmd=factiontask&sub=3&id={id}')
-        self.msg += DaLeDou.findall_tuple(r'id=\d+">(.*?)</a>(.*?)<br />')
+        self.msg += DaLeDou.findall(r'id=\d+">(.*?)<br />')
 
     def main(self) -> list:
         self.msg += DaLeDou.conversion('我的帮派')

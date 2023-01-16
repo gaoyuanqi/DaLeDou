@@ -277,6 +277,8 @@ class RenWu(DaLeDou):
 
         # 一键完成任务
         RenWu.get('cmd=task&sub=7')
-        self.msg += DaLeDou.findall_tuple(r'id=\d+">(.*?)</a>.*?>(.*?)</a>')
+        renwu: list[tuple] = DaLeDou.findall(r'id=\d+">(.*?)</a>.*?>(.*?)</a>')
+        for k, v in renwu:
+            self.msg.append(f'{k} {v}')
 
         return self.msg
