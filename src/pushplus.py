@@ -3,7 +3,7 @@ import requests
 from settings import PUSHPLUS_TOKEN
 
 
-def pushplus(title, message_list):
+def pushplus(title: str, message: list) -> dict | None:
     '''
     '\n'.join(['aa', 'bb', 'cc'])
     >>>
@@ -11,8 +11,10 @@ def pushplus(title, message_list):
     bb
     cc
     '''
+    if PUSHPLUS_TOKEN == 'token':
+        return
     url = 'http://www.pushplus.plus/send/'
-    content = '\n'.join(message_list)
+    content = '\n'.join(message)
     data = {
         'token': PUSHPLUS_TOKEN,
         'title': title,

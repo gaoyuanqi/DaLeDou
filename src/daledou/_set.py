@@ -18,6 +18,22 @@ def _search(mode: str, html: str) -> str | None:
         return result.group(1)
 
 
+def _match_cookie(cookie: str) -> str | None:
+    '''
+    从cookie匹配 RK ptcz uin skey
+    '''
+    if 'Cookie' in cookie:
+        return
+
+    # 有些cookie末尾没有 ; 导致skey匹配不到
+    cookies = f'{cookie};'
+    RK: str = _search(r'RK=(.*?);', cookies)
+    ptcz: str = _search(r'ptcz=(.*?);', cookies)
+    uin: str = _search(r'uin=(.*?);', cookies)
+    skey: str = _search(r'skey=(.*?);', cookies)
+    return f'RK={RK}; ptcz={ptcz}; uin={uin}; skey={skey}'
+
+
 def _copy(qq: str) -> None:
     '''
     从 _daledou.yaml 文件复制一份 qq.yaml 文件
@@ -48,31 +64,28 @@ def _login(cookie: str) -> str | None:
         ...
 
 
-def _defaults(cookie: str) -> str | None:
+def _defaults(cookie: str) -> tuple[str] | None:
     '''
     验证cookie
     添加环境变量
     创建文件
     '''
-    html: str = _login(cookie)
-    if html is None:
-        # cookie无效
-        return
+    if cookies := _match_cookie(cookie):
+        if html := _login(cookies):
+            # 匹配
+            qq: str = _search(r'uin=o(\d+);', cookies)
+            rank: str = _search(r'等级:(\d+)', html)
+            combat_power: str = _search(r'战斗力</a>:(\d+)', html)
 
-    # 匹配
-    qq: str = _search(r'uin=o(\d+);', cookie)
-    rank: str = _search(r'等级:(\d+)', html)
-    combat_power: str = _search(r'战斗力</a>:(\d+)', html)
+            # 添加环境变量
+            environ['QQ'] = qq
+            environ['RANK'] = rank
+            environ['COMBAT_POWER'] = combat_power
 
-    # 添加环境变量
-    environ['QQ'] = qq
-    environ['RANK'] = rank
-    environ['COMBAT_POWER'] = combat_power
+            # 创建 qq 命名的 yaml 文件
+            _copy(qq)
 
-    # 创建 qq 命名的 yaml 文件
-    _copy(qq)
-
-    return qq
+            return qq, cookies
 
 
 def _readyaml(key: str) -> dict:

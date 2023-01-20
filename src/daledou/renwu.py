@@ -97,26 +97,51 @@ class RenWu(DaLeDou):
             RenWu.get(f'cmd=fight&B_UID={uin}&page=1&type=9')
 
     def 强化神装(self):
-        '''
-        神兵  0
-        神铠  1
-        神羽  2
-        神兽  3
-        神饰  4
-        神履  5
-        '''
+        # 任务
+        RenWu.get('cmd=task&sub=1')
+        renwu: str = html
+
         for id in range(6):
+            # 神兵  0
+            # 神铠  1
+            # 神羽  2
+            # 神兽  3
+            # 神饰  4
+            # 神履  5
             # 进阶
             RenWu.get(f'cmd=outfit&op=1&magic_outfit_id={id}')
-            if '进阶所需材料不足' in html:
-                continue
-            elif '已经满阶' in html:
-                continue
-            elif '很遗憾' in html:
+            if '失败' in html:
                 break
-            else:
-                # 升级成功
+            elif '成功' in html:
                 break
+
+        if 'id=117' in renwu:
+            magic_skill_id = [
+                2643,  # 神武之力
+                2665,  # 断筋
+                2675,  # 召唤神兵
+                2653,  # 圣盾术
+                2686,  # 荆刺护甲
+                2697,  # 无懈可击
+                2782,  # 惩击
+                2794,  # 圣洁之躯
+                2804,  # 愈合祷言
+                2831,  # 龟甲术
+                2854,  # 重伤之爪
+                2842,  # 蛮力猛击
+                2888,  # 钻石锋刃
+                2877,  # 至高皇权
+                2865,  # 吸血咒
+                2905,  # 动如脱兔
+                2915,  # 足下生根
+                2926,  # 迷踪步
+            ]
+            for id in magic_skill_id:
+                RenWu.get(f'cmd=outfit&op=3&magic_skill_id={id}')
+                if '失败' in html:
+                    break
+                elif '成功' in html:
+                    break
 
     def 武器专精(self):
         '''

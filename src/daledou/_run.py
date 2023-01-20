@@ -12,9 +12,10 @@ from src.daledou._set import _defaults, _search
 def _daledouone():
     reload(settings)
     for cookie in settings.DALEDOU_COOKIE:
-        if qq := _defaults(cookie):
+        if data := _defaults(cookie):
+            qq, cookies = data
             logger.info(f'开始运行第一轮账号：{qq}')
-            msg: list = DaLeDouOne().main(cookie)
+            msg: list = DaLeDouOne().main(cookies)
             pushplus(f'第一轮 {qq}', msg)
         else:
             _error(cookie)
@@ -23,9 +24,10 @@ def _daledouone():
 def _daledoutwo():
     reload(settings)
     for cookie in settings.DALEDOU_COOKIE:
-        if qq := _defaults(cookie):
+        if data := _defaults(cookie):
+            qq, cookies = data
             logger.info(f'开始运行第二轮账号：{qq}')
-            msg: list = DaLeDouTwo().main(cookie)
+            msg: list = DaLeDouTwo().main(cookies)
             pushplus(f'第二轮 {qq}', msg)
         else:
             _error(cookie)
@@ -34,7 +36,8 @@ def _daledoutwo():
 def _daledoucookie():
     reload(settings)
     for cookie in settings.DALEDOU_COOKIE:
-        if qq := _defaults(cookie):
+        if data := _defaults(cookie):
+            qq, _ = data
             logger.info(f'账号：{qq} 将在 13:01 和 20:01 运行...')
         else:
             _error(cookie)

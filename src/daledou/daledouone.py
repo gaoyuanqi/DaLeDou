@@ -241,7 +241,7 @@ class DaLeDouOne(DaLeDou):
         if '矿洞' in mission:
             self.矿洞()
 
-        if ('掠夺' in mission) and (self.week == 3):
+        if ('掠夺' in mission) and (self.week == '3'):
             self.掠夺()
 
         if ('踢馆' in mission) and (self.week in ['5', '6']):
@@ -268,7 +268,7 @@ class DaLeDouOne(DaLeDou):
         if '幻境' in mission:
             self.幻境()
 
-        if ('群雄逐鹿' in mission) and (self.week == 6):
+        if ('群雄逐鹿' in mission) and (self.week == '6'):
             self.群雄逐鹿()
 
         if '画卷迷踪' in mission:

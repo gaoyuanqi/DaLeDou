@@ -442,6 +442,37 @@ class Events(DaLeDou):
             Events.get(f'cmd=newAct&subtype=146&op=4&id={id}')
             self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
 
+    def 年兽大作战(self):
+        # 年兽大作战
+        Events.get('cmd=newAct&subtype=170&op=0')
+        if '等级不够' in html:
+            self.msg += ['等级不够，还未开启年兽大作战哦！']
+            return
+        n: list = DaLeDou.findall(r'剩余免费随机次数：(\d+)')
+        for _ in n:
+            # 随机武技库 免费一次
+            Events.get('cmd=newAct&subtype=170&op=6')
+            self.msg += DaLeDou.findall(r'帮助</a><br />(.*?)<br />')
+
+        # 自选武技库
+        # 从大、中、小、投、技各随机选择一个
+        if '暂未选择' in html:
+            for t in range(5):
+                Events.get(f'cmd=newAct&subtype=170&op=4&type={t}')
+                if '取消选择' in html:
+                    continue
+                ids: list = DaLeDou.findall(r'id=(\d+)">选择')
+                id: str = random.choice(ids)
+                # 选择
+                Events.get(f'cmd=newAct&subtype=170&op=7&id={id}')
+                if '自选武技列表已满' in html:
+                    break
+
+        # 挑战
+        for _ in range(3):
+            Events.get('cmd=newAct&subtype=170&op=8')
+            self.msg += DaLeDou.findall(r'帮助</a><br />(.*?)。')
+
     def main_one(self) -> list:
         # 首页
         Events.get('cmd=index')
@@ -585,6 +616,10 @@ class Events(DaLeDou):
         if '春联大赛' in events_missions:
             self.msg += ['---春联大赛---']
             self.春联大赛()
+
+        if '年兽大作战' in events_missions:
+            self.msg += ['---年兽大作战---']
+            self.年兽大作战()
 
         if self.week == '4':
             if '登录商店' in events_missions:
