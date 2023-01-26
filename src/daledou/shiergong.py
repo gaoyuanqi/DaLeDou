@@ -18,11 +18,10 @@ class ShiErGong(DaLeDou):
         '''
         扫荡 》请猴王扫荡
         '''
-        data: dict = DaLeDou.readyaml('十二宫')
-        id: int = data['id']
+        data: int = DaLeDou.readyaml('十二宫')
         # 请猴王扫荡
         ShiErGong.get(
-            f'cmd=zodiacdungeon&op=autofight&scene_id={id}&pay_recover_times=0')
+            f'cmd=zodiacdungeon&op=autofight&scene_id={data}&pay_recover_times=0')
         if msg := DaLeDou.findall(r'<br />(.*?)<br /><br /></p>'):
             # 要么 扫荡
             self.msg += [msg[0].split('<br />')[-1]]

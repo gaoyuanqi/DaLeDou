@@ -15,9 +15,8 @@ class HuanJing(DaLeDou):
         html = DaLeDou.get(params)
 
     def 幻境(self):
-        data: dict = DaLeDou.readyaml('幻境')
-        id: int = data['id']
-        HuanJing.get(f'cmd=misty&op=start&stage_id={id}')
+        data: int = DaLeDou.readyaml('幻境')
+        HuanJing.get(f'cmd=misty&op=start&stage_id={data}')
         for _ in range(5):
             # 乐斗
             HuanJing.get(f'cmd=misty&op=fight')

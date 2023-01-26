@@ -15,18 +15,23 @@ class MyGang(DaLeDou):
         html = DaLeDou.get(params)
 
     def 供奉(self):
-        '''
-        【背包】部分靠前物品会被供奉
-        '''
-        for _ in range(5):
-            # 供奉守护神
-            MyGang.get('cmd=viewolbation')
-            id: list = DaLeDou.findall(r'数量：.*?id=(\d+).*?供奉</a>')
-            if not id:
-                break
-            # 供奉
-            MyGang.get(f'cmd=oblation&id={id[0]}&page=1')
-            self.msg += DaLeDou.findall(r'【供奉守护神】<br />(.*?)<br />')
+        gfid = [
+            3043,  # 被动经验药水
+            3014,  # 经验药水
+            3001,  # 小体力
+            3003,  # 大体力
+            3028,  # 神来拳套
+            3089,  # 还魂丹
+        ]
+        for id in gfid:
+            for _ in range(5):
+                # 供奉
+                MyGang.get(f'cmd=oblation&id={id}&page=1')
+                if '每天最多供奉5次' in html:
+                    return
+                elif '很抱歉' in html:
+                    break
+                self.msg += DaLeDou.findall(r'【供奉守护神】<br />(.*?)<br />')
 
     def 帮战(self):
         '''

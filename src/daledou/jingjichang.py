@@ -29,12 +29,10 @@ class JingJiChang(DaLeDou):
                 break
 
     def 兑换(self):
-        data: dict = DaLeDou.readyaml('竞技场')
-        id: int = data['id']
-        times: int = data['times']
-        if id:
-            # 兑换 or 兑换10个
-            JingJiChang.get(f'cmd=arena&op=exchange&id={id}&times={times}')
+        data: str = DaLeDou.readyaml('竞技场')
+        if data:
+            # 兑换10个
+            JingJiChang.get(f'cmd=arena&op=exchange&id={data}&times=10')
             self.msg += DaLeDou.findall(r'竞技场</a><br />(.*?)<br />')
 
     def main(self) -> list:

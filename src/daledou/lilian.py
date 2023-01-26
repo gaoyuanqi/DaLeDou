@@ -15,8 +15,8 @@ class LiLian(DaLeDou):
         html = DaLeDou.get(params)
 
     def 历练(self):
-        data: dict = DaLeDou.readyaml('历练')
-        for id in data['id']:
+        data: list = DaLeDou.readyaml('历练')
+        for id in data:
             for _ in range(3):
                 LiLian.get(
                     f'cmd=mappush&subtype=3&mapid=6&npcid={id}&pageid=2')

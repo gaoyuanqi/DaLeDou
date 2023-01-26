@@ -22,10 +22,9 @@ class ShenYuan(DaLeDou):
             self.msg += ['帮派巡礼需要加入帮派才能领取']
 
     def 开始挑战(self):
-        data: dict = DaLeDou.readyaml('深渊之潮')
-        id: int = data['id']
+        data: int = DaLeDou.readyaml('深渊之潮')
         for _ in range(3):
-            ShenYuan.get(f'cmd=abysstide&op=enterabyss&id={id}')
+            ShenYuan.get(f'cmd=abysstide&op=enterabyss&id={data}')
             if '暂无可用挑战次数' in html:
                 break
             elif '该副本需要顺序通关解锁' in html:

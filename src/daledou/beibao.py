@@ -46,27 +46,25 @@ class BeiBao(DaLeDou):
                 BeiBao.get(f'cmd=use&id={id}&store_type=2&page=1')
 
     def 使用(self):
-        # 指定物品使用一次
-        data: dict = DaLeDou.readyaml('背包')
-        shiyong: dict = data['使用']
-        for id in shiyong:
-            # 使用
-            BeiBao.get(f'cmd=use&id={shiyong[id]}&store_type=0')
+        data = []
+        # 背包
+        BeiBao.get('cmd=store')
+        page: list = DaLeDou.findall(r'第1/(\d+)')
+        for p in range(1, int(page[0])+1):
+            # 下页
+            BeiBao.get(f'cmd=store&store_type=0&page={p}')
+            data += DaLeDou.findall(r'宝箱</a>数量：(\d+).*?id=(\d+).*?使用')
 
-    def 提前(self):
-        # 指定物品提前一次
-        if self.week == '4':
-            data: dict = DaLeDou.readyaml('背包')
-            tiqian: dict = data['提前']
-            for key in tiqian:
-                # 提前
-                BeiBao.get(f'cmd=topgoods&id={tiqian[key]}')
+        # 使用
+        for k, v in data:
+            for _ in range(int(k)):
+                BeiBao.get(f'cmd=use&id={v}&store_type=0')
 
     def main(self) -> list:
         self.乐斗助手()
         self.锦囊()
         self.属性()
-        self.使用()
-        self.提前()
+        if self.week == '4':
+            self.使用()
 
         return self.msg

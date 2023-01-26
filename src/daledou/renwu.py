@@ -156,31 +156,27 @@ class RenWu(DaLeDou):
         专精·吸血   1001         1004         1007         1010
         专精·凝神   1002         1005         1008         1011
         '''
-        # 武器专精
-        for tid in range(4):
-            RenWu.get(f'cmd=weapon_specialize&op=2&type_id={tid}')
-            if '升星所需材料不足' in html:
-                continue
-            elif '已经满阶' in html:
-                continue
-            elif '很遗憾' in html:
-                break
-            else:
-                # 升级成功
-                continue
+        # 任务
+        RenWu.get('cmd=task&sub=1')
+        renwu: str = html
 
-        # 武器栏
-        for sid in range(1000, 1012):
-            RenWu.get(f'cmd=weapon_specialize&op=5&storage_id={sid}')
-            if '升星所需材料不足' in html:
-                continue
-            elif '已经满阶' in html:
-                continue
-            elif '很遗憾' in html:
-                break
-            else:
-                # 升级成功
-                continue
+        if 'id=114' in renwu:
+            # 武器专精
+            for tid in range(4):
+                RenWu.get(f'cmd=weapon_specialize&op=2&type_id={tid}')
+                if '失败' in html:
+                    break
+                elif '成功' in html:
+                    break
+
+        if 'id=115' in renwu:
+            # 武器栏
+            for sid in range(1000, 1012):
+                RenWu.get(f'cmd=weapon_specialize&op=5&storage_id={sid}')
+                if '失败' in html:
+                    break
+                elif '成功' in html:
+                    break
 
     def 强化铭刻(self):
         '''

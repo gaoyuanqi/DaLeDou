@@ -17,6 +17,7 @@ class BangPai(DaLeDou):
     def 帮派黄金联赛(self):
         # 帮派黄金联赛
         BangPai.get('cmd=factionleague&op=0')
+        data: bool = DaLeDou.readyaml('帮派黄金联赛')
         if '休赛期' in html:
             self.msg += ['当前处于休赛期，没有可执行的操作']
             return
@@ -28,10 +29,11 @@ class BangPai(DaLeDou):
             # 领取帮派赛季奖励
             BangPai.get('cmd=factionleague&op=7')
             self.msg += DaLeDou.findall(r'<p>(.*?)<br /><br />')
-            # 参与防守
-            BangPai.get('cmd=factionleague&op=1')
-            self.msg += DaLeDou.findall(r'<p>(.*?)<br /><br />')
-        if '参战</a>' in html:
+            if data:
+                # 参与防守
+                BangPai.get('cmd=factionleague&op=1')
+                self.msg += DaLeDou.findall(r'<p>(.*?)<br /><br />')
+        if ('参战</a>' in html) and data:
             while True:
                 # 参战
                 BangPai.get('cmd=factionleague&op=2')

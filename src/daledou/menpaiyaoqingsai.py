@@ -32,13 +32,11 @@ class MenPai(DaLeDou):
 
     def 兑换(self):
         if self.week not in ['1', '2']:
-            data: dict = DaLeDou.readyaml('门派邀请赛')
-            id: int = data['id']
-            times: int = data['times']
-            if id:
-                # 兑换 or 兑换10个
+            data: int = DaLeDou.readyaml('门派邀请赛')
+            if data:
+                # 兑换10个
                 MenPai.get(
-                    f'cmd=exchange&subtype=2&type={id}&times={times}&costtype=11')
+                    f'cmd=exchange&subtype=2&type={data}&times=10&costtype=11')
                 self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
 
     def main(self) -> list:

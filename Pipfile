@@ -7,8 +7,8 @@ name = "pypi"
 requests = "*"
 loguru = "*"
 decorator = "*"
-pyyaml = "*"
 schedule = "*"
+pyyaml = "*"
 
 [dev-packages]
 autopep8 = "*"

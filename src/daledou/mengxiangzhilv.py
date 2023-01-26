@@ -32,6 +32,8 @@ class MengXiang(DaLeDou):
                 MengXiang.get(f'cmd=dreamtrip&sub=0&bmapid={v}')
                 if '已去过' in html:
                     return True
+                else:
+                    return False
 
     def 普通旅行(self):
         # 普通旅行
@@ -42,7 +44,7 @@ class MengXiang(DaLeDou):
         self.msg += [f'梦幻机票：{text_list[0]}', f'未去过：{c}']
 
     def 梦幻旅行(self):
-        if self.week == '4' and self.梦想之旅():
+        if (self.week == '4') and (self.梦想之旅()):
             # 梦想之旅
             MengXiang.get('cmd=dreamtrip')
             text_list = DaLeDou.findall(r'梦幻旅行</a><br />(.*?)<br /><br />')
@@ -79,7 +81,7 @@ class MengXiang(DaLeDou):
     def main(self) -> list:
         self.msg += DaLeDou.conversion('梦想之旅')
 
-        self.普通旅行()
+        # self.普通旅行()
         self.梦幻旅行()
         self.领取()
 

@@ -33,13 +33,16 @@ class WenDing(DaLeDou):
                 WenDing.get('cmd=tbattle&op=abandon')
                 self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
 
-            # 领地
-            # 1东海 2南荒   3西泽   4北寒
-            WenDing.get(f'cmd=tbattle&op=showregion&region=1')
-            id: list = DaLeDou.findall(r'id=(\d+).*?攻占</a>')
-            # 攻占 倒数第一个
-            WenDing.get(f'cmd=tbattle&op=occupy&id={id[-1]}&region=1')
-            self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
+            for _ in range(3):
+                # 领地
+                # 1东海 2南荒   3西泽   4北寒
+                WenDing.get(f'cmd=tbattle&op=showregion&region=1')
+                id: list = DaLeDou.findall(r'id=(\d+).*?攻占</a>')
+                # 攻占 倒数第一个
+                WenDing.get(f'cmd=tbattle&op=occupy&id={id[-1]}&region=1')
+                self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
+                if '大获全胜' in html:
+                    break
 
     def 淘汰赛(self):
         if self.week == '6':
