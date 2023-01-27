@@ -32,8 +32,7 @@ class MengXiang(DaLeDou):
                 MengXiang.get(f'cmd=dreamtrip&sub=0&bmapid={v}')
                 if '已去过' in html:
                     return True
-                else:
-                    return False
+                return False
 
     def 普通旅行(self):
         # 普通旅行
@@ -81,7 +80,7 @@ class MengXiang(DaLeDou):
     def main(self) -> list:
         self.msg += DaLeDou.conversion('梦想之旅')
 
-        # self.普通旅行()
+        self.普通旅行()
         self.梦幻旅行()
         self.领取()
 

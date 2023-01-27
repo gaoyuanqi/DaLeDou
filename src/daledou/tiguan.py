@@ -21,6 +21,8 @@ class TiGuan(DaLeDou):
                 # 试炼、高倍转盘
                 TiGuan.get(f'cmd=facchallenge&subtype={t}')
                 self.msg += DaLeDou.findall(r'功勋商店</a><br />(.*?)<br />')
+                if '你们帮没有报名参加这次比赛' in html:
+                    return
             for _ in range(30):
                 # 挑战
                 TiGuan.get('cmd=facchallenge&subtype=3')
