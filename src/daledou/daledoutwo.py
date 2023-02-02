@@ -76,6 +76,11 @@ class DaLeDouTwo(DaLeDou):
         from src.daledou.xiangqian import XiangQian
         self.msg += XiangQian().main()
 
+    @deco
+    def 神匠坊(self):
+        from src.daledou.shenjiangfang import ShenJiang
+        self.msg += ShenJiang().main()
+
     def 商店积分(self):
         from src.daledou.shangdianjifen import ShangDian
         self.msg += ShangDian().main()
@@ -117,5 +122,8 @@ class DaLeDouTwo(DaLeDou):
 
         if ('镶嵌' in mission) and (self.week == '4'):
             self.镶嵌()
+
+        if ('神匠坊' in mission) and (self.week == '4'):
+            self.神匠坊()
 
         self.商店积分()

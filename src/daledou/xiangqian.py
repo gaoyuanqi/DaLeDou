@@ -46,8 +46,6 @@ class XiangQian(DaLeDou):
                     break
 
     def main(self) -> list:
-        self.msg += DaLeDou.conversion('镶嵌')
-
         self.镶嵌()
 
         return self.msg

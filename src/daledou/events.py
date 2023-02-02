@@ -220,7 +220,6 @@ class Events(DaLeDou):
         '''
         # 企鹅吉利兑
         Events.get('cmd=geelyexchange')
-        self.msg += DaLeDou.findall(r'】<br /><br />(.*?)<br />')
 
         # 修炼任务 》每日任务
         ids: list = DaLeDou.findall(r'id=(\d+)">领取</a>')
@@ -254,15 +253,6 @@ class Events(DaLeDou):
 
         # 当前精魄
         self.msg += DaLeDou.findall(r'喔~<br />(.*?)<br /><br />')
-        mode = [
-            r'兑换==<br />(.*?)&nbsp;&nbsp;&nbsp;&nbsp;(.*?)&',
-            r'精魄兑换</a><br />(.*?)&nbsp;&nbsp;&nbsp;&nbsp;(.*?)&',
-        ]
-        for m in mode:
-            # 兑换详情
-            data: list[tuple] = DaLeDou.findall(m)
-            for k, v in data:
-                self.msg.append(f'{k} {v}')
 
     def 乐斗游记(self):
         # 乐斗游记

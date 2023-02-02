@@ -101,19 +101,20 @@ class RenWu(DaLeDou):
         RenWu.get('cmd=task&sub=1')
         renwu: str = html
 
-        for id in range(6):
-            # 神兵  0
-            # 神铠  1
-            # 神羽  2
-            # 神兽  3
-            # 神饰  4
-            # 神履  5
-            # 进阶
-            RenWu.get(f'cmd=outfit&op=1&magic_outfit_id={id}')
-            if '失败' in html:
-                break
-            elif '成功' in html:
-                break
+        if 'id=116' in renwu:
+            for id in range(6):
+                # 神兵  0
+                # 神铠  1
+                # 神羽  2
+                # 神兽  3
+                # 神饰  4
+                # 神履  5
+                # 进阶
+                RenWu.get(f'cmd=outfit&op=1&magic_outfit_id={id}')
+                if '失败' in html:
+                    break
+                elif '成功' in html:
+                    break
 
         if 'id=117' in renwu:
             magic_skill_id = [
@@ -204,17 +205,18 @@ class RenWu(DaLeDou):
                 break
 
     def 增强经脉(self):
-        # 20级开启
         # 经脉
         RenWu.get('cmd=intfmerid&sub=1')
-        for _ in range(7):
-            master_id: list = DaLeDou.findall(r'.*?master_id=(\d+)">传功</a>')
+        for _ in range(12):
+            master_id: list = DaLeDou.findall(r'master_id=(\d+)">传功</a>')
             for id in master_id:
                 # 传功
                 RenWu.get(f'cmd=intfmerid&sub=2&master_id={id}')
-                if '请先' in html:
+                if '位置已满' in html:
                     # 位置已满，请先将收入丹田！
-                    # 丹田内力已经满了，请先合并！
+                    if '关闭' in html:
+                        # 关闭合成两次确认
+                        RenWu.get('cmd=intfmerid&sub=19')
                     # 一键合成
                     RenWu.get('cmd=intfmerid&sub=10&op=4')
                     # 一键拾取
