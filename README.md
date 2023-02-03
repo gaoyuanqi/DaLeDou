@@ -1,6 +1,6 @@
 ## 概述
 
-因为等级或者战力差异，脚本不一定适合所有人，脚本参考作者等级 `134`
+因为等级或者战力差异，脚本不一定适合所有人，脚本参考作者等级 `135`
 
 乐斗等级战力不高的玩家使用脚本可能会有一些问题，建议手动提高等级战力后再使用
 
@@ -12,6 +12,9 @@
 - 脚本每隔30分钟（定时由 `Schedule` 库实现）请求一次来保持cookie活跃性，从而使cookie有效期最长可以超过48小时
 - 当天更换cookie，第二天依然有效，但会在第三天早上8点整左右失效
 - 停止脚本超过一个多小时，cookie也会失效
+
+大乐斗已实现的功能：
+- [文档](https://www.gaoyuanqi.cn/python-daledou/#more)
 
 
 ## Python版本
@@ -29,17 +32,6 @@ $ git clone https://github.com/gaoyuanqi/DaLeDou.git
 $ cd DaLeDou
 $ ls
 ```
-
-
-## 更新脚本
-
-在 `DaLeDou` 目录下执行：
-```sh
-$ git reset --hard
-$ git pull
-```
-
-注意这会销毁你本地所有修改，你可能需要重新修改 `./settings.py` 文件和 `./config` 目录下的yaml文件（除了 `_daledou.yaml`）
 
 
 ## settings.py 配置
@@ -95,13 +87,6 @@ PUSHPLUS_TOKEN = 'token'
 ## 使用教程
 
 - [使用教程](./md/tutorials.md ':include')
-
-
-## 脚本执行文档
-
-```bash
-https://www.gaoyuanqi.cn/python-daledou/#more
-```
 
 
 ## QQ交流群

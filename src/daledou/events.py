@@ -493,177 +493,122 @@ class Events(DaLeDou):
             Events.get('cmd=newAct&subtype=170&op=8')
             self.msg += DaLeDou.findall(r'帮助</a><br />(.*?)。')
 
+    def 冰雪企缘(self):
+        # 冰雪企缘
+        Events.get('cmd=newAct&subtype=158&op=0')
+        type: list = DaLeDou.findall(r'gift_type=(\d+)')
+        for t in type:
+            # 领取
+            Events.get(f'cmd=newAct&subtype=158&op=2&gift_type={t}')
+            self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
+
+    def 煮元宵(self):
+        # 煮元宵
+        Events.get('cmd=yuanxiao2014')
+        # number: list = DaLeDou.findall(r'今日剩余烹饪次数：(\d+)')
+        for _ in range(4):
+            # 开始烹饪
+            Events.get('cmd=yuanxiao2014&op=1')
+            if '领取烹饪次数' in html:
+                self.msg.append('没有烹饪次数了')
+                break
+            for _ in range(20):
+                maturity: list = DaLeDou.findall(r'当前元宵成熟度：(\d+)')
+                if int(maturity[0]) >= 96:
+                    # 赶紧出锅
+                    Events.get('cmd=yuanxiao2014&op=3')
+                    self.msg += DaLeDou.findall(r'活动规则</a><br /><br />(.*?)。')
+                    break
+                # 继续加柴
+                Events.get('cmd=yuanxiao2014&op=2')
+
+    def 元宵节(self):
+        # 领取
+        Events.get('cmd=newAct&subtype=101&op=1')
+        self.msg += DaLeDou.findall(r'】</p>(.*?)<br />')
+        # 领取月桂兔
+        Events.get('cmd=newAct&subtype=101&op=2&index=0')
+        self.msg += DaLeDou.findall(r'】</p>(.*?)<br />')
+
     def main_one(self) -> list:
         # 首页
         Events.get('cmd=index')
         events_missions: str = html
 
-        if '幸运金蛋' in events_missions:
-            self.msg += DaLeDou.conversion('幸运金蛋')
-            self.幸运金蛋()
+        func_name = {
+            '幸运金蛋',
+            '乐斗大笨钟',
+            '新春拜年',
+        }
 
-        if '乐斗大笨钟' in events_missions:
-            self.msg += DaLeDou.conversion('乐斗大笨钟')
-            self.乐斗大笨钟()
-
-        if '新春拜年' in events_missions:
-            self.msg += DaLeDou.conversion('新春拜年')
-            self.新春拜年()
+        for func in func_name:
+            if func in events_missions:
+                self.msg += DaLeDou.conversion(func)
+                getattr(self, func)()
 
         return self.msg
 
     def main_two(self) -> list:
-        self.msg += DaLeDou.conversion('活动')
-
         # 首页
         Events.get('cmd=index')
         events_missions: str = html
 
-        if '神魔转盘' in events_missions:
-            self.msg += ['---神魔转盘---']
-            self.神魔转盘()
+        # 每天要执行的任务
+        daily_func_name = {
+            '神魔转盘',
+            '乐斗驿站',
+            '开心娃娃机',
+            '好礼步步升',
+            '浩劫宝箱',
+            '幸运金蛋',
+            '幸运转盘',
+            '惊喜刮刮卡',
+            '甜蜜夫妻',
+            '乐斗菜单',
+            '客栈同福',
+            '周周礼包',
+            '登录有礼',
+            '活跃礼包',
+            '猜单双',
+            '上香活动',
+            '徽章战令',
+            '生肖福卡',
+            '长安盛会',
+            '深渊秘宝',
+            '中秋礼盒',
+            '企鹅吉利兑',
+            '乐斗游记',
+            '万圣节',
+            '双节签到',
+            '乐斗大笨钟',
+            '新春拜年',
+            '新春登录礼',
+            '喜从天降',
+            '春联大赛',
+            '年兽大作战',
+            '冰雪企缘',
+            '煮元宵',
+        }
 
-        if '乐斗驿站' in events_missions:
-            self.msg += ['---乐斗驿站---']
-            self.乐斗驿站()
-
-        if '开心娃娃机' in events_missions:
-            self.msg += ['---开心娃娃机---']
-            self.开心娃娃机()
-
-        if '好礼步步升' in events_missions:
-            self.msg += ['---好礼步步升---']
-            self.好礼步步升()
-
-        if '浩劫宝箱' in events_missions:
-            self.msg += ['---浩劫宝箱---']
-            self.浩劫宝箱()
-
-        if '幸运金蛋' in events_missions:
-            self.msg += ['---幸运金蛋---']
-            self.幸运金蛋()
-
-        if '幸运转盘' in events_missions:
-            self.msg += ['---幸运转盘---']
-            self.幸运转盘()
-
-        if '惊喜刮刮卡' in events_missions:
-            self.msg += ['---惊喜刮刮卡---']
-            self.惊喜刮刮卡()
-
-        if '甜蜜夫妻' in events_missions:
-            self.msg += ['---甜蜜夫妻---']
-            self.甜蜜夫妻()
-
-        if '乐斗菜单' in events_missions:
-            self.msg += ['---乐斗菜单---']
-            self.乐斗菜单()
-        if '客栈同福' in events_missions:
-            self.msg += ['---客栈同福---']
-            self.客栈同福()
-
-        if '周周礼包' in events_missions:
-            self.msg += ['---周周礼包---']
-            self.周周礼包()
-
-        if '登录有礼' in events_missions:
-            self.msg += ['---登录有礼---']
-            self.登录有礼()
-
-        if '活跃礼包' in events_missions:
-            self.msg += ['---活跃礼包---']
-            self.活跃礼包()
-
-        if '猜单双' in events_missions:
-            self.msg += ['---猜单双---']
-            self.猜单双()
-
-        if '上香活动' in events_missions:
-            self.msg += ['---上香活动---']
-            self.上香活动()
-
-        if '徽章战令' in events_missions:
-            self.msg += ['---徽章战令---']
-            self.徽章战令()
-
-        if '生肖福卡' in events_missions:
-            self.msg += ['---生肖福卡---']
-            self.生肖福卡()
-
-        if '长安盛会' in events_missions:
-            self.msg += ['---长安盛会---']
-            self.长安盛会()
-
-        if '深渊秘宝' in events_missions:
-            self.msg += ['---深渊秘宝---']
-            self.深渊秘宝()
-
-        if '中秋礼盒' in events_missions:
-            self.msg += ['---中秋礼盒---']
-            self.中秋礼盒()
-
-        if '企鹅吉利兑' in events_missions:
-            self.msg += ['---企鹅吉利兑---']
-            self.企鹅吉利兑()
-        if '乐斗游记' in events_missions:
-            self.msg += ['---乐斗游记---']
-            self.乐斗游记()
-
-        if '万圣节' in events_missions:
-            self.msg += ['---万圣节---']
-            self.万圣节()
-
-        if '双节签到' in events_missions:
-            self.msg += ['---双节签到---']
-            self.双节签到()
-
-        if '乐斗大笨钟' in events_missions:
-            self.msg += ['---乐斗大笨钟---']
-            self.乐斗大笨钟()
-
-        if '新春拜年' in events_missions:
-            self.msg += ['---新春拜年---']
-            self.新春拜年()
-
-        if '新春登录礼' in events_missions:
-            self.msg += ['---新春登录礼---']
-            self.新春登录礼()
-
-        if '喜从天降' in events_missions:
-            self.msg += ['---喜从天降---']
-            self.喜从天降()
-
-        if '春联大赛' in events_missions:
-            self.msg += ['---春联大赛---']
-            self.春联大赛()
-
-        if '年兽大作战' in events_missions:
-            self.msg += ['---年兽大作战---']
-            self.年兽大作战()
+        # 周四要执行的任务
+        thursday_func_name = {
+            '登录商店',
+            '盛世巡礼',
+            '十二周年生日祝福',
+            '圣诞有礼',
+            '乐斗回忆录',
+            '新春礼包',
+            '元宵节',
+        }
 
         if self.week == '4':
-            if '登录商店' in events_missions:
-                self.msg += ['---登录商店---']
-                self.登录商店()
+            func_name: set = daily_func_name | thursday_func_name
+        else:
+            func_name: set = daily_func_name
 
-            if '盛世巡礼' in events_missions:
-                self.msg += ['---盛世巡礼---']
-                self.盛世巡礼()
-
-            if '十二周年生日祝福' in events_missions:
-                self.msg += ['---十二周年生日祝福---']
-                self.十二周年生日祝福()
-
-            if '圣诞有礼' in events_missions:
-                self.msg += ['---圣诞有礼---']
-                self.圣诞有礼()
-
-            if '乐斗回忆录' in events_missions:
-                self.msg += ['---乐斗回忆录---']
-                self.乐斗回忆录()
-
-            if '新春礼包' in events_missions:
-                self.msg += ['---新春礼包---']
-                self.新春礼包()
+        for func in func_name:
+            if func in events_missions:
+                self.msg += DaLeDou.conversion(func)
+                getattr(self, func)()
 
         return self.msg

@@ -43,7 +43,7 @@ class ShenJiang(DaLeDou):
             if '下一页' not in html:
                 break
 
-        data_I = list(set(data_all) - set(data_II))
+        data_I: set = set(data_all) - set(data_II)
         for num, id in data_I:
             # 分解
             ShenJiang.get(

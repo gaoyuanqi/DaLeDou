@@ -22,9 +22,13 @@ class BiaoXing(DaLeDou):
             for uin in passerby_uin:
                 # 拦截
                 BiaoXing.get(f'cmd=cargo&op=14&passerby_uin={uin}')
-                self.msg += DaLeDou.findall(r'商店</a><br />(.*?)<br />')
-                if '您今天已达拦截次数上限了' in html:
+                if '系统繁忙' in html:
+                    continue
+                elif '这个镖车在保护期内' in html:
+                    continue
+                elif '您今天已达拦截次数上限了' in html:
                     return
+                self.msg += DaLeDou.findall(r'商店</a><br />(.*?)<br />')
 
     def 护送(self):
         '''
