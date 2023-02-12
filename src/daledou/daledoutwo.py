@@ -81,6 +81,7 @@ class DaLeDouTwo(DaLeDou):
         from src.daledou.shenjiangfang import ShenJiang
         self.msg += ShenJiang().main()
 
+    @deco
     def 商店积分(self):
         from src.daledou.shangdianjifen import ShangDian
         self.msg += ShangDian().main()

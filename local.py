@@ -1,4 +1,4 @@
-from src.daledou._run import _daledouone, _daledoutwo
+from src.daledou._run import daledou_one, daledou_two
 
 
 def main():
@@ -8,9 +8,9 @@ def main():
     '''
     lunci = input('输入1或2选择执行轮次：')
     if lunci == '1':
-        _daledouone()
+        daledou_one()
     elif lunci == '2':
-        _daledoutwo()
+        daledou_two()
 
 
 if __name__ == '__main__':

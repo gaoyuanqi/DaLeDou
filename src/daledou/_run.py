@@ -6,47 +6,50 @@ import settings
 from src.pushplus import pushplus
 from src.daledou.daledouone import DaLeDouOne
 from src.daledou.daledoutwo import DaLeDouTwo
-from src.daledou._set import _defaults, _search
+from src.daledou._set import defaults, search
 
 
-def _daledouone():
+def daledou_one():
     reload(settings)
-    for cookie in settings.DALEDOU_COOKIE:
-        if data := _defaults(cookie):
-            qq, cookies = data
+    for account in settings.DALEDOU_ACCOUNT:
+        if data := defaults(account):
+            qq, cookie = data
             logger.info(f'开始运行第一轮账号：{qq}')
-            msg: list = DaLeDouOne().main(cookies)
+            msg: list = DaLeDouOne().main(cookie)
             pushplus(f'第一轮 {qq}', msg)
         else:
-            _error(cookie)
+            error(account)
 
 
-def _daledoutwo():
+def daledou_two():
     reload(settings)
-    for cookie in settings.DALEDOU_COOKIE:
-        if data := _defaults(cookie):
-            qq, cookies = data
+    for account in settings.DALEDOU_ACCOUNT:
+        if data := defaults(account):
+            qq, cookie = data
             logger.info(f'开始运行第二轮账号：{qq}')
-            msg: list = DaLeDouTwo().main(cookies)
+            msg: list = DaLeDouTwo().main(cookie)
             pushplus(f'第二轮 {qq}', msg)
         else:
-            _error(cookie)
+            error(account)
 
 
-def _daledoucookie():
+def daledou_account(t: type) -> None:
     reload(settings)
-    for cookie in settings.DALEDOU_COOKIE:
-        if data := _defaults(cookie):
-            qq, _ = data
-            logger.info(f'账号：{qq} 将在 13:01 和 20:01 运行...')
-        else:
-            _error(cookie)
+    for account in settings.DALEDOU_ACCOUNT:
+        if type(account) == t:
+            if data := defaults(account):
+                qq, _ = data
+                logger.info(f'账号：{qq} 将在 13:01 和 20:01 运行...')
+            else:
+                error(account)
 
 
-def _error(cookie: str):
-    if 'uin' in cookie:
-        msg = _search(r'uin=o(\d+)', cookie)
+def error(account: str):
+    if 'uin' in account:
+        qq: str = search(r'uin=o(\d+)', account)
+        title: str = f'{qq} 无效'
     else:
-        msg = cookie
-    logger.error(f'无效cookie：{msg}')
-    pushplus(f'无效cookie {msg}', [f'{msg}无效'])
+        title: str = f'{account} 无效'
+
+    logger.error(f'{title}')
+    pushplus(f'{title}', [f'无效cookie：{account}'])

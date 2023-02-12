@@ -36,7 +36,7 @@ https://www.gaoyuanqi.cn/docker-install/
 **二、拉取镜像**
 
 ```sh
-docker pull python:3.10
+docker pull python:alpine
 ```
 
 **三、构建镜像**
@@ -73,9 +73,9 @@ ab2c3ca911ea   daledou:v1   "pipenv run python3 …"   30 seconds ago   Up 28 se
 docker logs daledou
 ```
 
-如果大乐斗cookie有效，应该看到以下信息：
+如果大乐斗cookie有效或者账号密码正确，应该看到以下信息：
 ```
-2023-01-15 19:41:29.937 | INFO     | src.daledou._run:_daledoucookie:38 - 账号：xxx 将在 13:01 和 20:01 运行...
+2023-02-12 19:55:02.586 | INFO     | src.daledou._run:daledou_account:42 - 账号：xxxx 将在 13:01 和 20:01 运行...
 ...
 ```
 
@@ -95,7 +95,7 @@ $ pipenv run python local.py
 
 **八、重启脚本**
 
-如果修改了一些文件（更换cookie可以不重启脚本），需要重启脚本以使配置生效：
+如果修改了一些文件（更换cookie可以不重启脚本），就需要重启脚本以使配置生效：
 ```sh
 docker restart daledou
 ```

@@ -6,7 +6,7 @@ import time
 
 import requests
 
-from src.daledou._set import _readyaml
+from src.daledou._set import readyaml
 
 
 class DaLeDou:
@@ -55,7 +55,7 @@ class DaLeDou:
         '''
         读取当前账号的yaml
         '''
-        return _readyaml(key)
+        return readyaml(key)
 
     def run(self):
         ...
@@ -70,8 +70,5 @@ class DaLeDou:
             '\n【运行时长】',
             f'时长：{int(end - self.start)} s'
         ]
-
-        for msg in self.msg:
-            print(msg)
 
         return self.msg

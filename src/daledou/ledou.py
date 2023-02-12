@@ -22,7 +22,7 @@ class LeDou(DaLeDou):
             LeDou.get('cmd=set&type=0')
 
     def 贡献药水(self):
-        for _ in range(3):
+        for _ in range(4):
             # 使用 贡献药水
             LeDou.get('cmd=use&id=3038&store_type=1&page=1')
 
@@ -62,12 +62,24 @@ class LeDou(DaLeDou):
     def 好友(self):
         '''
         乐斗20次 任务
-        乐斗好友第2页
+        好友乐斗从末页开始向前乐斗至多20好友，不包括首页
         '''
-        LeDou.get(f'cmd=friendlist&page=2')
-        B_UID:list = DaLeDou.findall(r'cmd=fight&amp;B_UID=(\d+)')
-        for uin in B_UID:
-            # 乐斗 包括心魔
+        # 好友
+        LeDou.get('cmd=friendlist')
+        page: list = DaLeDou.findall(r'第\d+/(\d+)页')
+        if not page:
+            return
+        elif page[0] == '1':
+            return
+        data = []
+        p: int = int(page[0])
+        for i in range(p, p - 2, -1):
+            if i == 1:
+                break
+            LeDou.get(f'cmd=friendlist&page={i}')
+            data += DaLeDou.findall(r'cmd=fight&amp;B_UID=(\d+)')[:-1]
+        for uin in data:
+            # 乐斗
             LeDou.get(f'cmd=fight&B_UID={uin}')
 
     def main(self) -> list:
