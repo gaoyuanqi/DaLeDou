@@ -83,7 +83,7 @@ docker logs daledou
 
 进入 `daledou` 容器：
 ```sh
-docker exec -it daledou /bin/bash
+docker exec -it daledou /bin/sh
 ```
 
 运行脚本：
