@@ -1,15 +1,65 @@
 import re
+import time
+import traceback
 from shutil import copy
+from importlib import reload
 from os import environ, path, getenv
 
 import yaml
 import requests
+from loguru import logger
+from decorator import decorator
+
+import settings
 
 
-_YAML_PATH = './config'
+YAML_PATH = './config'
 
 
-def defaults(account: str) -> tuple[str] | None:
+def daledou_timing():
+    for qq, _ in get_dld_data():
+        logger.info(f'{qq} 将在 13:01 和 20:01 运行...')
+
+
+def daledou_one():
+    from src.daledou.daledouone import DaLeDouOne
+
+    for qq, cookie in get_dld_data():
+        logger.info(f'开始运行第一轮账号：{qq}')
+        msg: list = DaLeDouOne().main(cookie)
+        pushplus(f'第一轮 {qq}', msg)
+
+
+def daledou_two():
+    from src.daledou.daledoutwo import DaLeDouTwo
+
+    for qq, cookie in get_dld_data():
+        logger.info(f'开始运行第二轮账号：{qq}')
+        msg: list = DaLeDouTwo().main(cookie)
+        pushplus(f'第二轮 {qq}', msg)
+
+
+def get_dld_data():
+    '''
+    获取大乐斗qq及cookie
+
+    return: generator
+    '''
+    reload(settings)
+    for account in settings.DALEDOU_ACCOUNT:
+        if data := defaults(account):
+            yield data
+        else:
+            if 'uin' in account:
+                qq: str = search(r'uin=o(\d+)', account)
+                title: str = f'{qq} 无效'
+            else:
+                title: str = f'{account} 无效'
+            logger.error(f'{title}')
+            pushplus(f'{title}', [f'无效cookie：\n{account}'])
+
+
+def defaults(account: str) -> tuple[str, str] | None:
     '''
     对账号进行对应处理
     '''
@@ -79,9 +129,10 @@ def copy_yaml(qq: str) -> None:
     '''
     从 _daledou.yaml 文件复制一份 qq.yaml 文件
     '''
-    srcpath: str = f'{_YAML_PATH}/_daledou.yaml'
-    yamlpath: str = f'{_YAML_PATH}/{qq}.yaml'
+    srcpath: str = f'{YAML_PATH}/_daledou.yaml'
+    yamlpath: str = f'{YAML_PATH}/{qq}.yaml'
     if not path.isfile(yamlpath):
+        logger.info(f'脚本创建了一个 {qq}.yaml 配置文件')
         copy(srcpath, yamlpath)
 
 
@@ -89,7 +140,45 @@ def readyaml(key: str) -> dict:
     '''
     读取 config 目录下的 yaml 配置文件
     '''
-    with open(f'{_YAML_PATH}/{getenv("QQ")}.yaml', 'r', encoding='utf-8') as fp:
+    with open(f'{YAML_PATH}/{getenv("QQ")}.yaml', 'r', encoding='utf-8') as fp:
         users: dict = yaml.safe_load(fp)
         data: dict = users[key]
     return data
+
+
+@decorator
+def deco(func, *args, **kwargs):
+    time.sleep(0.2)
+    func_name = func.__name__
+    try:
+        start = time.time()
+        func(*args, **kwargs)
+        end = time.time()
+        logger.info(f'【{func_name}】耗时: {round(end-start, 2)} s')
+    except Exception:
+        error = traceback.format_exc()
+        logger.error(f'【{func_name}】error：\n{error}')
+        pushplus(f'【{func_name}】异常', [error])
+
+
+def pushplus(title: str, message: list) -> dict | None:
+    '''
+    '\n'.join(['aa', 'bb', 'cc'])
+    >>>
+    aa
+    bb
+    cc
+    '''
+    if settings.PUSHPLUS_TOKEN:
+        logger.error('pushplus没有配置token，取消推送')
+        return
+    url = 'http://www.pushplus.plus/send/'
+    content = '\n'.join(message)
+    data = {
+        'token': settings.PUSHPLUS_TOKEN,
+        'title': title,
+        'content': content,
+    }
+    res = requests.post(url, data=data)
+    json = res.json()
+    return json.get('data')

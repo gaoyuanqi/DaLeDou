@@ -2,7 +2,7 @@
 大乐斗第一轮
 默认每天 13:01 执行
 '''
-from src.deco import deco
+from src.daledou._set import deco
 from src.daledou.daledou import DaLeDou
 
 

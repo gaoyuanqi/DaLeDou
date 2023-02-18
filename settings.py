@@ -6,4 +6,4 @@ DALEDOU_ACCOUNT = [
 ]
 
 # pushplus一对一推送token
-PUSHPLUS_TOKEN = 'token'
+PUSHPLUS_TOKEN = ''

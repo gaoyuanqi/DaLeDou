@@ -59,7 +59,7 @@ DALEDOU_ACCOUNT = [
 
 将token添加到：
 ```python
-PUSHPLUS_TOKEN = 'token'
+PUSHPLUS_TOKEN = ''
 ```
 
 

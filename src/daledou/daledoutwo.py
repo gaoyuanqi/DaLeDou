@@ -2,7 +2,7 @@
 大乐斗第二轮
 默认每天 20:01 执行
 '''
-from src.deco import deco
+from src.daledou._set import deco
 from src.daledou.daledou import DaLeDou
 
 

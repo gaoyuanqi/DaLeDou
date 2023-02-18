@@ -75,8 +75,7 @@ docker logs daledou
 
 如果大乐斗cookie有效或者账号密码正确，应该看到以下信息：
 ```
-2023-02-12 19:55:02.586 | INFO     | src.daledou._run:daledou_account:42 - 账号：xxxx 将在 13:01 和 20:01 运行...
-...
+2023-02-12 19:55:02.586 | INFO     | src.daledou._set:daledou_timing:21 - 3346533157 将在 13:01 和 20:01 运行...
 ```
 
 **七、立即运行指定轮次脚本**
