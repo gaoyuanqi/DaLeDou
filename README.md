@@ -37,7 +37,7 @@ export PUSH_PLUS_TOKEN=""
 
 **定时任务**
 
-搜索 `daledou` 关键字，除了以下三个文件，其它全删除：
+搜索 `daledou` 关键字，除了以下三个文件，其它可以全删除：
 - `daledouone.py`
 - `daledoutwo.py`
 - `daledoutiming.py`
@@ -46,4 +46,4 @@ export PUSH_PLUS_TOKEN=""
 
 **脚本管理**
 
-在 `gaoyuanqi_DaLeDou_qinglong` 目录下配置以qq命名的 `yaml`
+在 `gaoyuanqi_DaLeDou_ql` 目录下配置以qq命名的 `yaml`
