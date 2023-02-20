@@ -169,7 +169,7 @@ def pushplus(title: str, message: list) -> dict | None:
     bb
     cc
     '''
-    if settings.PUSHPLUS_TOKEN:
+    if not settings.PUSHPLUS_TOKEN:
         logger.error('pushplus没有配置token，取消推送')
         return
     url = 'http://www.pushplus.plus/send/'
