@@ -58,10 +58,17 @@ class HuaShan(DaLeDou):
                 continue
             self.msg += DaLeDou.findall(r'荣誉兑换</a><br />(.*?)<br />')
 
+    def 领取奖励(self):
+        # 领取奖励
+        HuaShan.get(r'cmd=knightarena&op=drawranking')
+        self.msg += DaLeDou.findall(r'【赛季段位奖励】<br />(.*?)<br />')
+
     def main(self) -> list:
         self.msg += DaLeDou.conversion('华山论剑')
 
         self.战阵调整()
         self.开始挑战()
+        if self.week == '26':
+            self.领取奖励()
 
         return self.msg
