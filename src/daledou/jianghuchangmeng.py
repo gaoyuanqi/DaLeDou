@@ -14,21 +14,20 @@ class JiangHu(DaLeDou):
         global html
         html = DaLeDou.get(params)
 
-    def 玄铁令(self):
+    def 兑换玄铁令(self):
         # 【江湖长梦】兑换 玄铁令*10
-        if self.week == '4':
-            for _ in range(7):
-                # 兑换 玄铁令*1
-                JiangHu.get(
-                    'cmd=longdreamexchange&op=exchange&key_id=5&page=1')
-                # 兑换成功
-                self.msg += DaLeDou.findall(r'侠士碎片</a><br />(.*?)<br />')
-                if '该物品兑换次数已达上限' in html:
-                    self.msg += ['玄铁令兑换次数已达上限']
-                    break
-                elif '剩余积分或兑换材料不足' in html:
-                    self.msg += ['商店剩余积分或兑换材料不足']
-                    break
+        for _ in range(7):
+            # 兑换 玄铁令*1
+            JiangHu.get(
+                'cmd=longdreamexchange&op=exchange&key_id=5&page=1')
+            # 兑换成功
+            self.msg += DaLeDou.findall(r'侠士碎片</a><br />(.*?)<br />')
+            if '该物品兑换次数已达上限' in html:
+                self.msg += ['玄铁令兑换次数已达上限']
+                break
+            elif '剩余积分或兑换材料不足' in html:
+                self.msg += ['商店剩余积分或兑换材料不足']
+                break
 
     def 柒承的忙碌日常(self):
         for _ in range(2):
@@ -71,10 +70,11 @@ class JiangHu(DaLeDou):
             JiangHu.get('cmd=jianghudream&op=endInstance')
             self.msg += DaLeDou.findall(r'【江湖长梦】<br />(.*?)<br /><a')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('江湖长梦')
 
-        self.玄铁令()
         self.柒承的忙碌日常()
+        if self.week == '4':
+            self.兑换玄铁令()
 
         return self.msg

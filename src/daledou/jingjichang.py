@@ -35,7 +35,7 @@ class JingJiChang(DaLeDou):
             JingJiChang.get(f'cmd=arena&op=exchange&id={data}&times=10')
             self.msg += DaLeDou.findall(r'竞技场</a><br />(.*?)<br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('竞技场')
 
         self.挑战()

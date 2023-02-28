@@ -27,7 +27,7 @@ class LeDou(DaLeDou):
         LeDou.get('cmd=calender&op=4')
         self.msg += DaLeDou.findall(r'【运势占卜】<br /><br />(.*?)<br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('乐斗黄历')
 
         self.乐斗黄历()

@@ -37,7 +37,7 @@ class ShenYuan(DaLeDou):
             ShenYuan.get('cmd=abysstide&op=endabyss')
             self.msg += DaLeDou.findall(r'【深渊秘境】<br />(.*?)<br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('深渊之潮')
 
         self.巡游赠礼()

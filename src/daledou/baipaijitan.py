@@ -42,7 +42,7 @@ class BangPai(DaLeDou):
                 # 领取奖励
                 BangPai.get('cmd=altar&op=drawreward')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('帮派祭坛')
 
         self.帮派祭坛()

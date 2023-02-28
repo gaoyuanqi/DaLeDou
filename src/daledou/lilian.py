@@ -27,7 +27,7 @@ class LiLian(DaLeDou):
                 if '活力不足' in html:
                     return
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('历练')
 
         self.历练()

@@ -22,7 +22,7 @@ pipenv install
 python local.py
 ```
 
-然后按提示输入，`1` 表示第一轮，`2` 表示第二轮
+按提示输入，`1` 表示第一轮，`2` 表示第二轮
 
 
 ### Docker使用教程
@@ -36,7 +36,7 @@ https://www.gaoyuanqi.cn/docker-install/
 **二、拉取镜像**
 
 ```sh
-docker pull python:alpine
+docker pull python:3.10
 ```
 
 **三、构建镜像**
@@ -73,24 +73,18 @@ ab2c3ca911ea   daledou:v1   "pipenv run python3 …"   30 seconds ago   Up 28 se
 docker logs daledou
 ```
 
-如果大乐斗cookie有效或者账号密码正确，应该看到以下信息：
+如果大乐斗cookie有效，应该看到以下信息：
 ```
-2023-02-12 19:55:02.586 | INFO     | src.daledou._set:daledou_timing:21 - 3346533157 将在 13:01 和 20:01 运行...
+2023-02-12 19:55:02.586 | INFO     | src.daledou._set:daledou_timing:21 - xxxx 将在 13:01 和 20:01 运行...
 ```
 
 **七、立即运行指定轮次脚本**
 
-进入 `daledou` 容器：
 ```sh
-docker exec -it daledou /bin/sh
+docker exec -it daledou pipenv run python local.py
 ```
 
-运行脚本：
-```sh
-$ pipenv run python local.py
-```
-
-然后按提示输入，`1` 表示第一轮，`2` 表示第二轮
+按提示输入，`1` 表示第一轮，`2` 表示第二轮
 
 **八、重启脚本**
 

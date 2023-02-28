@@ -30,7 +30,7 @@ class XianWu(DaLeDou):
             XianWu.get('cmd=immortals&op=fightimmortals')
             self.msg += DaLeDou.findall(r'帮助</a><br />(.*?)<a')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('仙武修真')
 
         self.领取()

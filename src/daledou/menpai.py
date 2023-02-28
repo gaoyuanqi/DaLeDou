@@ -85,7 +85,7 @@ class MenPai(DaLeDou):
             MenPai.get(f'cmd=sect_task&subtype=2&task_id={id}')
             self.msg += DaLeDou.findall(r'【五花堂】<br />(.*?)<br /><br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('门派')
 
         # 门派

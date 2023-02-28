@@ -15,7 +15,7 @@ class BangPai(DaLeDou):
         html = DaLeDou.get(params)
 
     def 参战(self):
-        while self.week != '0':
+        while True:
             # 帮派远征军
             BangPai.get('cmd=factionarmy&op=viewIndex&island_id=-1')
             point_id: list = DaLeDou.findall(r'point_id=(\d+)">参战')
@@ -24,8 +24,7 @@ class BangPai(DaLeDou):
                 return
             for point in point_id:
                 # 参战
-                BangPai.get(
-                    f'cmd=factionarmy&op=viewpoint&point_id={point}')
+                BangPai.get(f'cmd=factionarmy&op=viewpoint&point_id={point}')
                 opp_uin: list = DaLeDou.findall(r'opp_uin=(\d+)">攻击')
                 for uin in opp_uin:
                     # 攻击
@@ -43,22 +42,23 @@ class BangPai(DaLeDou):
                         return
 
     def 领取奖励(self):
-        if self.week == '0':
-            # 领取奖励
-            for id in range(15):
-                BangPai.get(
-                    f'cmd=factionarmy&op=getPointAward&point_id={id}')
-                self.msg += DaLeDou.findall(r'【帮派远征军-领取奖励】<br />(.*?)<br />')
-            # 领取岛屿宝箱
-            for id in range(5):
-                BangPai.get(
-                    f'cmd=factionarmy&op=getIslandAward&island_id={id}')
-                self.msg += DaLeDou.findall(r'【帮派远征军-领取奖励】<br />(.*?)<br />')
+        # 领取奖励
+        for id in range(15):
+            BangPai.get(
+                f'cmd=factionarmy&op=getPointAward&point_id={id}')
+            self.msg += DaLeDou.findall(r'【帮派远征军-领取奖励】<br />(.*?)<br />')
+        # 领取岛屿宝箱
+        for id in range(5):
+            BangPai.get(
+                f'cmd=factionarmy&op=getIslandAward&island_id={id}')
+            self.msg += DaLeDou.findall(r'【帮派远征军-领取奖励】<br />(.*?)<br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('帮派远征军')
 
-        self.参战()
-        self.领取奖励()
+        if self.week != '0':
+            self.参战()
+        else:
+            self.领取奖励()
 
         return self.msg

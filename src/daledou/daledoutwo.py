@@ -19,12 +19,12 @@ class DaLeDouTwo(DaLeDou):
     @deco
     def 邪神秘宝(self):
         from src.daledou.xieshenmibao import XieShen
-        self.msg += XieShen().main()
+        self.msg += XieShen().run()
 
     @deco
     def 每日宝箱(self):
         from src.daledou.meiribaoxiang import MeiRi
-        self.msg += MeiRi().main()
+        self.msg += MeiRi().run()
 
     @deco
     def 问鼎天下(self):
@@ -34,32 +34,32 @@ class DaLeDouTwo(DaLeDou):
     @deco
     def 任务派遣中心(self):
         from src.daledou.renwupaiqianzhongxin import RenWu
-        self.msg += RenWu().main()
+        self.msg += RenWu().run()
 
     @deco
     def 侠士客栈(self):
         from src.daledou.xiashikezhan import XiaShi
-        self.msg += XiaShi().main()
+        self.msg += XiaShi().run()
 
     @deco
     def 仙武修真(self):
         from src.daledou.xianwuxiuzhen import XianWu
-        self.msg += XianWu().main()
+        self.msg += XianWu().run()
 
     @deco
     def 大侠回归三重好礼(self):
         from src.daledou.daxiahuigui import DaXia
-        self.msg += DaXia().main()
+        self.msg += DaXia().run()
 
     @deco
     def 乐斗黄历(self):
         from src.daledou.ledouhuangli import LeDou
-        self.msg += LeDou().main()
+        self.msg += LeDou().run()
 
     @deco
     def 深渊之潮(self):
         from src.daledou.shenyuanzhichao import ShenYuan
-        self.msg += ShenYuan().main()
+        self.msg += ShenYuan().run()
 
     @deco
     def 活动(self):
@@ -69,22 +69,22 @@ class DaLeDouTwo(DaLeDou):
     @deco
     def 背包(self):
         from src.daledou.beibao import BeiBao
-        self.msg += BeiBao().main()
+        self.msg += BeiBao().run()
 
     @deco
     def 镶嵌(self):
         from src.daledou.xiangqian import XiangQian
-        self.msg += XiangQian().main()
+        self.msg += XiangQian().run()
 
     @deco
     def 神匠坊(self):
         from src.daledou.shenjiangfang import ShenJiang
-        self.msg += ShenJiang().main()
+        self.msg += ShenJiang().run()
 
     @deco
     def 商店积分(self):
         from src.daledou.shangdianjifen import ShangDian
-        self.msg += ShangDian().main()
+        self.msg += ShangDian().run()
 
     def run(self):
         # 首页

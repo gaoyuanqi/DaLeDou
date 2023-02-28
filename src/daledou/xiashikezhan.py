@@ -46,7 +46,7 @@ class XiaShi(DaLeDou):
                         f'cmd=warriorinn&op=exceptadventure&pos={pos}')
                     self.msg += DaLeDou.findall(r'侠士客栈<br />(.*?)，<a')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('侠士客栈')
 
         self.领取奖励()

@@ -60,7 +60,7 @@ class BeiBao(DaLeDou):
             for _ in range(int(k)):
                 BeiBao.get(f'cmd=use&id={v}&store_type=0')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.乐斗助手()
         self.锦囊()
         self.属性()

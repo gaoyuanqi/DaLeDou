@@ -42,7 +42,7 @@ class BangPai(DaLeDou):
                 BangPai.get(f'cmd=fac_corp&op=5&type_id={type_id}')
                 self.msg += DaLeDou.findall(r'【帮派商会】</p>(.*?)<br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('帮派商会')
 
         self.帮派宝库()

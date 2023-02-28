@@ -33,24 +33,24 @@ class WuLin(DaLeDou):
         白银赛场  2
         青铜赛场  3
         '''
-        if self.week in ['1', '3', '5']:
-            WuLin.get(f'cmd=wlmz&op=signup&ground_id=1')
-            self.msg += DaLeDou.findall(r'赛场】<br />(.*?)<br />')
+        WuLin.get(f'cmd=wlmz&op=signup&ground_id=1')
+        self.msg += DaLeDou.findall(r'赛场】<br />(.*?)<br />')
 
     def 竞猜(self):
-        if self.week in ['2', '4', '6']:
-            for index in range(8):
-                # 选择
-                WuLin.get(f'cmd=wlmz&op=guess_up&index={index}')
-            # 确定竞猜选择
-            WuLin.get('cmd=wlmz&op=comfirm')
-            self.msg += DaLeDou.findall(r'战报</a><br />(.*?)<br /><br />')
+        for index in range(8):
+            # 选择
+            WuLin.get(f'cmd=wlmz&op=guess_up&index={index}')
+        # 确定竞猜选择
+        WuLin.get('cmd=wlmz&op=comfirm')
+        self.msg += DaLeDou.findall(r'战报</a><br />(.*?)<br /><br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('武林盟主')
 
         self.领取奖励()
-        self.报名()
-        self.竞猜()
+        if self.week in ['1', '3', '5']:
+            self.报名()
+        elif self.week in ['2', '4', '6']:
+            self.竞猜()
 
         return self.msg

@@ -82,7 +82,7 @@ class LeDou(DaLeDou):
             # 乐斗
             LeDou.get(f'cmd=fight&B_UID={uin}')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.乐斗助手()
         self.贡献药水()
         self.好友大侠()

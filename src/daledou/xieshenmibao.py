@@ -25,7 +25,7 @@ class XieShen(DaLeDou):
             XieShen.get(f'cmd=tenlottery&op=2&type={i}')
             self.msg += DaLeDou.findall(r'【邪神秘宝】</p>(.*?)<br />')
 
-    def main(self) -> list[str]:
+    def run(self) -> list[str]:
         self.msg += DaLeDou.conversion('邪神秘宝')
 
         self.邪神秘宝()

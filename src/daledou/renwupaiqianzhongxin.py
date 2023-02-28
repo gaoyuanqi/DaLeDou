@@ -82,7 +82,7 @@ class RenWu(DaLeDou):
 
         self.msg += DaLeDou.findall(r'<br />(.*?)<a.*?查看')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('任务派遣中心')
 
         self.领取奖励()

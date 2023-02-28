@@ -31,7 +31,7 @@ class QiangDiPan(DaLeDou):
         QiangDiPan.get('cmd=manor&sub=0')
         self.msg += DaLeDou.findall(r'【抢地盘】<br /><br />(.*?)<br /><br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('抢地盘')
 
         self.抢地盘()

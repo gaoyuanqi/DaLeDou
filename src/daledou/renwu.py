@@ -265,7 +265,7 @@ class RenWu(DaLeDou):
                     # 要么 没有该属性
                     break
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('任务')
 
         # 日常任务
