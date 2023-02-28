@@ -24,7 +24,7 @@ class HuaJuan(DaLeDou):
             elif '征战书不足' in html:
                 break
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('画卷迷踪')
 
         self.画卷迷踪()

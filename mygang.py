@@ -96,7 +96,7 @@ class MyGang(DaLeDou):
             MyGang.get(f'cmd=factiontask&sub=3&id={id}')
         self.msg += DaLeDou.findall(r'id=\d+">(.*?)<br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('我的帮派')
 
         # 我的帮派

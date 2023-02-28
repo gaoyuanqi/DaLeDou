@@ -20,7 +20,7 @@ class MeiRi(DaLeDou):
             MeiRi.get(f'cmd=dailygift&op=draw&key={key}')
             self.msg += DaLeDou.findall(r'【每日奖励】<br />(.*?)<br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('每日奖励')
 
         self.每日奖励()

@@ -53,19 +53,21 @@ class FenXiang(DaLeDou):
                 break
 
     def 领取奖励(self):
-        if self.week == '4':
-            # 领取奖励
-            FenXiang.get('cmd=sharegame&subtype=3')
-            sharenums: list = DaLeDou.findall(r'sharenums=(\d+)')
-            for s in sharenums:
-                # 领取
-                FenXiang.get(f'cmd=sharegame&subtype=4&sharenums={s}')
-                self.msg += DaLeDou.findall(r'<p>【领取奖励】</p>(.*?)<p>')
+        '''
+        周四领取奖励
+        '''
+        FenXiang.get('cmd=sharegame&subtype=3')
+        sharenums: list = DaLeDou.findall(r'sharenums=(\d+)')
+        for s in sharenums:
+            # 领取
+            FenXiang.get(f'cmd=sharegame&subtype=4&sharenums={s}')
+            self.msg += DaLeDou.findall(r'<p>【领取奖励】</p>(.*?)<p>')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('分享')
 
         self.分享()
-        self.领取奖励()
+        if self.week == '4':
+            self.领取奖励()
 
         return self.msg

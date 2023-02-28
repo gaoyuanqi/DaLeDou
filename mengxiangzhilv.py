@@ -43,7 +43,7 @@ class MengXiang(DaLeDou):
         self.msg += [f'梦幻机票：{text_list[0]}', f'未去过：{c}']
 
     def 梦幻旅行(self):
-        if (self.week == '4') and (self.梦想之旅()):
+        if self.梦想之旅():
             # 梦想之旅
             MengXiang.get('cmd=dreamtrip')
             text_list = DaLeDou.findall(r'梦幻旅行</a><br />(.*?)<br /><br />')
@@ -66,22 +66,22 @@ class MengXiang(DaLeDou):
                     break
 
     def 领取(self):
-        if self.week == '4':
-            # 梦想之旅
-            MengXiang.get('cmd=dreamtrip')
-            for _ in range(2):
-                bmapid: list = DaLeDou.findall(r'sub=4&amp;bmapid=(\d+)')
-                if bmapid:
-                    # 礼包     1 or 2 or 3 or 4
-                    # 超级礼包 0
-                    MengXiang.get(f'cmd=dreamtrip&sub=4&bmapid={bmapid[0]}')
-                    self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
+        # 梦想之旅
+        MengXiang.get('cmd=dreamtrip')
+        for _ in range(2):
+            bmapid: list = DaLeDou.findall(r'sub=4&amp;bmapid=(\d+)')
+            if bmapid:
+                # 礼包     1 or 2 or 3 or 4
+                # 超级礼包 0
+                MengXiang.get(f'cmd=dreamtrip&sub=4&bmapid={bmapid[0]}')
+                self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('梦想之旅')
 
         self.普通旅行()
-        self.梦幻旅行()
-        self.领取()
+        if self.week == '4':
+            self.梦幻旅行()
+            self.领取()
 
         return self.msg

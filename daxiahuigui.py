@@ -26,7 +26,7 @@ class DaXia(DaLeDou):
             DaXia.get(f'cmd=newAct&subtype={s}&op=2&taskid={t}')
             self.msg += DaLeDou.findall(r'】<br /><br />(.*?)<br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('大侠回归三重好礼')
 
         self.大侠回归三重好礼()

@@ -57,7 +57,7 @@ class FeiSheng(DaLeDou):
                 FeiSheng.get(f'cmd=ascendheaven&op=getrealmgift&season={s}')
                 self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('飞升大作战')
 
         self.境界修为()

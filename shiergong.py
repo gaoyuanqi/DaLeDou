@@ -33,7 +33,7 @@ class ShiErGong(DaLeDou):
         ShiErGong.get('cmd=zodiacdungeon&op=showexchange&type=2')
         self.msg += DaLeDou.findall(r'<p>兑换奖励<br />(.*?)<br /><br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('十二宫')
 
         self.扫荡()

@@ -33,7 +33,7 @@ class QuanMin(DaLeDou):
             self.msg += DaLeDou.conversion('全民乱斗')
             self.msg += msg
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.全民乱斗()
 
         return self.msg

@@ -48,7 +48,7 @@ class BangPai(DaLeDou):
                         self.msg += ['您已阵亡']
                         return
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('帮派黄金联赛')
 
         self.帮派黄金联赛()

@@ -23,7 +23,7 @@ class XuYuan(DaLeDou):
             if sub != 4:
                 self.msg += DaLeDou.findall(r'【每日许愿】<br />(.*?)<br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('许愿')
 
         self.许愿()

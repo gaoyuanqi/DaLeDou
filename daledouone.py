@@ -1,5 +1,5 @@
 '''
-1 13 * * * daledouone.py, tag=大乐斗第一轮
+1 13 * * * daledouone.py
 '''
 from daledou import DaLeDou
 from _set import deco, get_dld_data, pushplus
@@ -18,117 +18,117 @@ class DaLeDouOne(DaLeDou):
     @deco
     def 邪神秘宝(self):
         from xieshenmibao import XieShen
-        self.msg += XieShen().main()
+        self.msg += XieShen().run()
 
     @deco
     def 华山论剑(self):
         from huashanlunjian import HuaShan
-        self.msg += HuaShan().main()
+        self.msg += HuaShan().run()
 
     @deco
     def 分享(self):
         from fenxiang import FenXiang
-        self.msg += FenXiang().main()
+        self.msg += FenXiang().run()
 
     @deco
     def 乐斗(self):
         from ledou import LeDou
-        self.msg += LeDou().main()
+        self.msg += LeDou().run()
 
     @deco
     def 兵法(self):
         from bingfa import BingFa
-        self.msg += BingFa().main()
+        self.msg += BingFa().run()
 
     @deco
     def 我要报名(self):
         from baoming import BaoMing
-        self.msg += BaoMing().main()
+        self.msg += BaoMing().run()
 
     @deco
     def 巅峰之战进行中(self):
         from dianfeng import DianFeng
-        self.msg += DianFeng().main()
+        self.msg += DianFeng().run()
 
     @deco
     def 矿洞(self):
         from kuangdong import KuangDong
-        self.msg += KuangDong().main()
+        self.msg += KuangDong().run()
 
     @deco
     def 掠夺(self):
         from lueduo import LueDuo
-        self.msg += LueDuo().main()
+        self.msg += LueDuo().run()
 
     @deco
     def 踢馆(self):
         from tiguan import TiGuan
-        self.msg += TiGuan().main()
+        self.msg += TiGuan().run()
 
     @deco
     def 竞技场(self):
         from jingjichang import JingJiChang
-        self.msg += JingJiChang().main()
+        self.msg += JingJiChang().run()
 
     @deco
     def 十二宫(self):
         from shiergong import ShiErGong
-        self.msg += ShiErGong().main()
+        self.msg += ShiErGong().run()
 
     @deco
     def 许愿(self):
         from xuyuan import XuYuan
-        self.msg += XuYuan().main()
+        self.msg += XuYuan().run()
 
     @deco
     def 抢地盘(self):
         from qiangdipan import QiangDiPan
-        self.msg += QiangDiPan().main()
+        self.msg += QiangDiPan().run()
 
     @deco
     def 历练(self):
         from lilian import LiLian
-        self.msg += LiLian().main()
+        self.msg += LiLian().run()
 
     @deco
     def 镖行天下(self):
         from biaoxingtianxia import BiaoXing
-        self.msg += BiaoXing().main()
+        self.msg += BiaoXing().run()
 
     @deco
     def 幻境(self):
         from huanjing import HuanJing
-        self.msg += HuanJing().main()
+        self.msg += HuanJing().run()
 
     @deco
     def 群雄逐鹿(self):
         from qunxiongzhulu import QunXiong
-        self.msg += QunXiong().main()
+        self.msg += QunXiong().run()
 
     @deco
     def 画卷迷踪(self):
         from huajuanmizong import HuaJuan
-        self.msg += HuaJuan().main()
+        self.msg += HuaJuan().run()
 
     @deco
     def 门派(self):
         from menpai import MenPai
-        self.msg += MenPai().main()
+        self.msg += MenPai().run()
 
     @deco
     def 门派邀请赛(self):
         from menpaiyaoqingsai import MenPai
-        self.msg += MenPai().main()
+        self.msg += MenPai().run()
 
     @deco
     def 会武(self):
         from huiwu import HuiWu
-        self.msg += HuiWu().main()
+        self.msg += HuiWu().run()
 
     @deco
     def 梦想之旅(self):
         from mengxiangzhilv import MengXiang
-        self.msg += MengXiang().main()
+        self.msg += MengXiang().run()
 
     @deco
     def 问鼎天下(self):
@@ -138,67 +138,67 @@ class DaLeDouOne(DaLeDou):
     @deco
     def 帮派商会(self):
         from bangpaishanghui import BangPai
-        self.msg += BangPai().main()
+        self.msg += BangPai().run()
 
     @deco
     def 帮派远征军(self):
         from baipaiyuanzhengjiu import BangPai
-        self.msg += BangPai().main()
+        self.msg += BangPai().run()
 
     @deco
     def 帮派黄金联赛(self):
         from baipaihuangjinliansai import BangPai
-        self.msg += BangPai().main()
+        self.msg += BangPai().run()
 
     @deco
     def 任务派遣中心(self):
         from renwupaiqianzhongxin import RenWu
-        self.msg += RenWu().main()
+        self.msg += RenWu().run()
 
     @deco
     def 武林盟主(self):
         from wulinmengzhu import WuLin
-        self.msg += WuLin().main()
+        self.msg += WuLin().run()
 
     @deco
     def 全民乱斗(self):
         from quanminluandou import QuanMin
-        self.msg += QuanMin().main()
+        self.msg += QuanMin().run()
 
     @deco
     def 侠士客栈(self):
         from xiashikezhan import XiaShi
-        self.msg += XiaShi().main()
+        self.msg += XiaShi().run()
 
     @deco
     def 江湖长梦(self):
         from jianghuchangmeng import JiangHu
-        self.msg += JiangHu().main()
+        self.msg += JiangHu().run()
 
     @deco
     def 任务(self):
         from renwu import RenWu
-        self.msg += RenWu().main()
+        self.msg += RenWu().run()
 
     @deco
     def 我的帮派(self):
         from mygang import MyGang
-        self.msg += MyGang().main()
+        self.msg += MyGang().run()
 
     @deco
     def 帮派祭坛(self):
         from baipaijitan import BangPai
-        self.msg += BangPai().main()
+        self.msg += BangPai().run()
 
     @deco
     def 飞升大作战(self):
         from feisheng import FeiSheng
-        self.msg += FeiSheng().main()
+        self.msg += FeiSheng().run()
 
     @deco
     def 深渊之潮(self):
         from shenyuanzhichao import ShenYuan
-        self.msg += ShenYuan().main()
+        self.msg += ShenYuan().run()
 
     @deco
     def 活动(self):
@@ -208,12 +208,12 @@ class DaLeDouOne(DaLeDou):
     @deco
     def 每日奖励(self):
         from meirijiangli import MeiRi
-        self.msg += MeiRi().main()
+        self.msg += MeiRi().run()
 
     @deco
     def 今日活跃度(self):
         from jinrihuoyuedu import JinRi
-        self.msg += JinRi().main()
+        self.msg += JinRi().run()
 
     def run(self):
         # 首页

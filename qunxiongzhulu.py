@@ -20,7 +20,7 @@ class QunXiong(DaLeDou):
             # 报名 》领奖
             self.msg += DaLeDou.findall(r'届群雄逐鹿<br />(.*?)<br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('群雄逐鹿')
 
         self.群雄逐鹿()

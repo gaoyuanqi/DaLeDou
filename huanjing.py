@@ -24,7 +24,7 @@ class HuanJing(DaLeDou):
         # 返回飘渺幻境
         HuanJing.get('cmd=misty&op=return')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('幻境')
 
         self.幻境()

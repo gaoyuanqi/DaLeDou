@@ -63,7 +63,7 @@ class HuaShan(DaLeDou):
         HuaShan.get(r'cmd=knightarena&op=drawranking')
         self.msg += DaLeDou.findall(r'【赛季段位奖励】<br />(.*?)<br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('华山论剑')
 
         self.战阵调整()

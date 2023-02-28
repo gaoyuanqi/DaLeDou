@@ -45,7 +45,7 @@ class XiangQian(DaLeDou):
                 if '抱歉' in html:
                     break
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.镶嵌()
 
         return self.msg

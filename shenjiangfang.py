@@ -65,7 +65,7 @@ class ShenJiang(DaLeDou):
                 # 打造一次
                 ShenJiang.get('cmd=weapongod&sub=8&produce_type=1&times=1')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.普通合成()
         self.符石分解()
         self.符石打造()

@@ -36,7 +36,7 @@ class KuangDong(DaLeDou):
             else:
                 break
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('矿洞')
 
         self.矿洞()

@@ -30,7 +30,7 @@ class JinRi(DaLeDou):
         JinRi.get('cmd=factionop&subtype=18')
         self.msg += DaLeDou.findall(r'<br />(.*?)</p><p>你的职位:')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('今日活跃度')
 
         self.领取奖励()

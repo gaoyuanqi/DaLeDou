@@ -22,7 +22,7 @@ class MeiRi(DaLeDou):
             MeiRi.get(f'cmd=dailychest&op=open&type={type_list[0]}')
             self.msg += DaLeDou.findall(r'规则说明</a><br />(.*?)<br />')
 
-    def main(self) -> list:
+    def run(self) -> list:
         self.msg += DaLeDou.conversion('每日宝箱')
 
         self.打开()
