@@ -50,10 +50,10 @@ class BingFa(DaLeDou):
     def run(self) -> list:
         self.msg += DaLeDou.conversion('兵法')
 
-        self.领斗币()
         if self.week == '4':
             self.助威()
         if self.week == '6':
             self.领奖()
+            self.领斗币()
 
         return self.msg

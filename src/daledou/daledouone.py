@@ -229,10 +229,6 @@ class DaLeDouOne(DaLeDou):
 
         self.分享()
         self.乐斗()
-
-        if ('兵法' in mission) and (self.week in ['4', '6']):
-            self.兵法()
-
         self.我要报名()
 
         if '巅峰之战进行中' in mission:
@@ -312,6 +308,9 @@ class DaLeDouOne(DaLeDou):
 
         if '江湖长梦' in mission:
             self.江湖长梦()
+
+        if ('兵法' in mission) and (self.week in ['4', '6']):
+            self.兵法()
 
         self.任务()
         self.我的帮派()
