@@ -37,11 +37,6 @@ class DaLeDouOne(DaLeDou):
         self.msg += LeDou().run()
 
     @deco
-    def 兵法(self):
-        from src.daledou.bingfa import BingFa
-        self.msg += BingFa().run()
-
-    @deco
     def 我要报名(self):
         from src.daledou.baoming import BaoMing
         self.msg += BaoMing().run()
@@ -175,6 +170,11 @@ class DaLeDouOne(DaLeDou):
     def 江湖长梦(self):
         from src.daledou.jianghuchangmeng import JiangHu
         self.msg += JiangHu().run()
+
+    @deco
+    def 兵法(self):
+        from src.daledou.bingfa import BingFa
+        self.msg += BingFa().run()
 
     @deco
     def 任务(self):

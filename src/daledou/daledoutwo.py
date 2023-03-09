@@ -82,6 +82,16 @@ class DaLeDouTwo(DaLeDou):
         self.msg += ShenJiang().run()
 
     @deco
+    def 专精(self):
+        from src.daledou.zhuanjing import ZhuanJing
+        self.msg += ZhuanJing().run()
+
+    @deco
+    def 奥义(self):
+        from src.daledou.aoyi import AoYi
+        self.msg += AoYi().run()
+
+    @deco
     def 商店积分(self):
         from src.daledou.shangdianjifen import ShangDian
         self.msg += ShangDian().run()
@@ -126,5 +136,11 @@ class DaLeDouTwo(DaLeDou):
 
         if ('神匠坊' in mission) and (self.week == '4'):
             self.神匠坊()
+
+        if '专精' in mission:
+            self.专精()
+
+        if '奥义' in mission:
+            self.奥义()
 
         self.商店积分()
