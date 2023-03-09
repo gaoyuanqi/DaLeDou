@@ -86,6 +86,11 @@ class DaLeDouTwo(DaLeDou):
         self.msg += ZhuanJing().run()
 
     @deco
+    def 奥义(self):
+        from aoyi import AoYi
+        self.msg += AoYi().run()
+
+    @deco
     def 商店积分(self):
         from shangdianjifen import ShangDian
         self.msg += ShangDian().run()
@@ -133,6 +138,9 @@ class DaLeDouTwo(DaLeDou):
 
         if '专精' in mission:
             self.专精()
+
+        if '奥义' in mission:
+            self.奥义()
 
         self.商店积分()
 
