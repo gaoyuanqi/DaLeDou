@@ -59,7 +59,7 @@ def get_dld_data():
             pushplus(f'{title}', [f'无效cookie：\n{account}'])
 
 
-def defaults(account: str) -> tuple[str, str] | None:
+def defaults(account: str) -> tuple:
     '''
     对账号进行对应处理
     '''
@@ -96,7 +96,7 @@ def match_cookie(cookie: str) -> str:
     return f'RK={RK}; ptcz={ptcz}; uin={uin}; skey={skey}'
 
 
-def verification_cookie(cookie: str) -> str | None:
+def verification_cookie(cookie: str) -> str:
     '''
     验证大乐斗cookie是否有效
     '''
@@ -116,7 +116,7 @@ def verification_cookie(cookie: str) -> str | None:
         ...
 
 
-def search(mode: str, html: str) -> str | None:
+def search(mode: str, html: str) -> str:
     '''
     返回第一个成功匹配的字符串，失败返回None
     '''
@@ -161,7 +161,7 @@ def deco(func, *args, **kwargs):
         pushplus(f'【{func_name}】异常', [error])
 
 
-def pushplus(title: str, message: list) -> dict | None:
+def pushplus(title: str, message: list) -> dict:
     '''
     '\n'.join(['aa', 'bb', 'cc'])
     >>>
