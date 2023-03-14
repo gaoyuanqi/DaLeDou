@@ -40,7 +40,7 @@ def get_dld_data():
         pushplus(f'DALEDOU_ACCOUNT', [f'没有在环境变量设置大乐斗DALEDOU_ACCOUNT'])
 
 
-def defaults(account: str) -> tuple[str, str]:
+def defaults(account: str) -> tuple:
     '''
     对账号进行对应处理
     '''

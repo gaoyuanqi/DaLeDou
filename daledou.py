@@ -19,7 +19,7 @@ class DaLeDou:
         self.week: str = time.strftime('%w')
 
     @staticmethod
-    def conversion(name: str) -> list[str]:
+    def conversion(name: str) -> list:
         '''
         DaLeDou.conversion('aa') -> ['\n【aa】']
         '''
