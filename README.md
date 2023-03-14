@@ -37,10 +37,10 @@ export PUSH_PLUS_TOKEN=""
 
 **定时任务**
 
-搜索 `daledou` 关键字，除了以下三个文件，其它可以全删除：
-- `daledouone.py`
-- `daledoutwo.py`
-- `daledoutiming.py`
+搜索 `daledou` 关键字，除了以下三个文件可以运行，其它可以全删除：
+- `daledoutiming.py`：用于快速验证大乐斗ck是否配置、保持ck活跃，每隔30分钟运行
+- `daledouone.py`：大乐斗第一轮，每天 `13:01` 运行
+- `daledoutwo.py`：大乐斗第二轮，每天 `20:01` 运行
 
 直接运行 `daledoutiming.py`，然后查看运行日志
 
