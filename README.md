@@ -10,7 +10,7 @@
 - 第一轮 `13:01` 运行 `daledouone.py` 模块
 - 第二轮 `20:01` 运行 `daledoutwo.py` 模块
 
-大乐斗cookie有效期：
+大乐斗cookie有效期（通过账号密码登录获得时）：
 - 脚本每隔30分钟（定时由 `Schedule` 库实现）请求一次来保持cookie活跃性，从而使cookie有效期最长可以超过48小时
 - 当天更换cookie，第二天依然有效，但会在第三天早上8点整左右失效
 - 停止脚本超过一个多小时，cookie也会失效
@@ -40,7 +40,7 @@ $ ls
 
 **添加大乐斗cookie（必须，支持多账号）**
 
-首先浏览器登录大乐斗：
+抓包以下链接：
 ```
 https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index&channel=0
 ```
