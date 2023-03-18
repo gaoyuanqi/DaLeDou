@@ -50,15 +50,35 @@ class BeiBao(DaLeDou):
         # 背包
         BeiBao.get('cmd=store')
         page: list = DaLeDou.findall(r'第1/(\d+)')
-        for p in range(1, int(page[0])+1):
-            # 下页
-            BeiBao.get(f'cmd=store&store_type=0&page={p}')
-            data += DaLeDou.findall(r'宝箱</a>数量：(\d+).*?id=(\d+).*?使用')
+        if page:
+            for p in range(1, int(page[0]) + 1):
+                # 下页
+                BeiBao.get(f'cmd=store&store_type=0&page={p}')
+                data += DaLeDou.findall(r'宝箱</a>数量：(\d+).*?id=(\d+).*?使用')
 
-        # 使用
-        for k, v in data:
-            for _ in range(int(k)):
-                BeiBao.get(f'cmd=use&id={v}&store_type=0')
+            # 使用
+            for k, v in data:
+                for _ in range(int(k)):
+                    BeiBao.get(f'cmd=use&id={v}&store_type=0')
+
+        id_list = [
+            3030,  # 神来拳套(赠)
+            3176,  # 阅历羊皮卷
+            3356,  # 贡献小笼包
+            3381,  # 阅历卷宗
+            3487,  # 巅峰之战二等勋章
+            3488,  # 巅峰之战一等勋章
+            3503,  # 贡献叉烧包
+            3671,  # 资源补给箱
+            5392,  # 3级星石礼盒
+            6779,  # 惊喜锦囊
+        ]
+
+        for id in id_list:
+            for _ in range(70):
+                BeiBao.get(f'cmd=use&id={id}')
+                if '您使用了' not in html:
+                    break
 
     def run(self) -> list:
         self.乐斗助手()
