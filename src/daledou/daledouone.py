@@ -172,11 +172,6 @@ class DaLeDouOne(DaLeDou):
         self.msg += JiangHu().run()
 
     @deco
-    def 兵法(self):
-        from src.daledou.bingfa import BingFa
-        self.msg += BingFa().run()
-
-    @deco
     def 任务(self):
         from src.daledou.renwu import RenWu
         self.msg += RenWu().run()
@@ -308,9 +303,6 @@ class DaLeDouOne(DaLeDou):
 
         if '江湖长梦' in mission:
             self.江湖长梦()
-
-        if ('兵法' in mission) and (self.week in ['4', '6']):
-            self.兵法()
 
         self.任务()
         self.我的帮派()

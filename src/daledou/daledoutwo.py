@@ -92,6 +92,11 @@ class DaLeDouTwo(DaLeDou):
         self.msg += AoYi().run()
 
     @deco
+    def 兵法(self):
+        from src.daledou.bingfa import BingFa
+        self.msg += BingFa().run()
+
+    @deco
     def 商店积分(self):
         from src.daledou.shangdianjifen import ShangDian
         self.msg += ShangDian().run()
@@ -142,5 +147,8 @@ class DaLeDouTwo(DaLeDou):
 
         if '奥义' in mission:
             self.奥义()
+
+        if ('兵法' in mission) and (self.week in ['4', '6']):
+            self.兵法()
 
         self.商店积分()
