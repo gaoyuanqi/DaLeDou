@@ -40,16 +40,10 @@ class MenPai(DaLeDou):
     def run(self) -> list:
         self.msg += DaLeDou.conversion('门派邀请赛')
 
-        # 门派
-        MenPai.get('cmd=sect')
-        if '出师' in html:
+        if self.week == '1':
+            self.报名()
+        elif self.week not in ['1', '2']:
+            self.开始挑战()
+            self.兑换()
 
-            if self.week == '1':
-                self.报名()
-            elif self.week not in ['1', '2']:
-                self.开始挑战()
-                self.兑换()
-            return self.msg
-
-        self.msg += ['您还没有加入门派']
         return self.msg
