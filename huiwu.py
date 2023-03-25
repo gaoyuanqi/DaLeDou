@@ -47,17 +47,12 @@ class HuiWu(DaLeDou):
     def run(self) -> list:
         self.msg += DaLeDou.conversion('会武')
 
-        # 门派
-        HuiWu.get('cmd=sect')
-        if '出师' in html:
-            if self.week in ['1', '2', '3']:
-                self.挑战()
-            elif self.week == '4':
-                self.助威()
-            elif self.week == '6':
-                self.领奖()
-                self.兑换()
-            return self.msg
+        if self.week in ['1', '2', '3']:
+            self.挑战()
+        elif self.week == '4':
+            self.助威()
+        elif self.week == '6':
+            self.领奖()
+            self.兑换()
 
-        self.msg += ['您需手动加入门派']
         return self.msg
