@@ -1,4 +1,5 @@
 '''
+new Env('大乐斗第一轮')
 1 13 * * * daledouone.py
 '''
 from daledou import DaLeDou
