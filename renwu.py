@@ -2,7 +2,6 @@
 任务
 '''
 import random
-from os import getenv
 
 from daledou import DaLeDou
 
