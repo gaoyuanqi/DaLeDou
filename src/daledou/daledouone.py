@@ -219,7 +219,7 @@ class DaLeDouOne(DaLeDou):
         if '邪神秘宝' in mission:
             self.邪神秘宝()
 
-        if ('华山论剑' in mission) and (int(self.date) <= 25):
+        if ('华山论剑' in mission) and (int(self.date) <= 26):
             self.华山论剑()
 
         self.分享()
