@@ -1,10 +1,8 @@
-'''
-背包
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class BeiBao(DaLeDou):
+    '''背包'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -24,8 +22,7 @@ class BeiBao(DaLeDou):
     def 锦囊(self):
         # 锦囊
         BeiBao.get('cmd=store&store_type=5&page=1')
-        two_tuple_list: list = DaLeDou.findall(r'数量：(\d+).*?id=(\d+).*?使用')
-        for number, id in two_tuple_list:
+        for number, id in DaLeDou.findall(r'数量：(\d+).*?id=(\d+).*?使用'):
             if id in ['3023', '3024', '3025', '3103']:
                 # xx洗刷刷
                 continue
@@ -35,22 +32,22 @@ class BeiBao(DaLeDou):
                 for _ in range(int(number)):
                     # 使用
                     BeiBao.get(f'cmd=use&id={id}&store_type=2&page=1')
+                    DaLeDou.search(r'jpg"><br />(.*?)<br />')
 
     def 属性(self):
         # 属性
         BeiBao.get('cmd=store&store_type=2&page=1')
-        two_tuple_list: list = DaLeDou.findall(r'数量：(\d+).*?id=(\d+).*?使用')
-        for number, id in two_tuple_list:
+        for number, id in DaLeDou.findall(r'数量：(\d+).*?id=(\d+).*?使用'):
             for _ in range(int(number)):
                 # 使用
                 BeiBao.get(f'cmd=use&id={id}&store_type=2&page=1')
+                DaLeDou.search(r'jpg"><br />(.*?)<br />')
 
     def 使用(self):
         data = []
         # 背包
         BeiBao.get('cmd=store')
-        page: list = DaLeDou.findall(r'第1/(\d+)')
-        if page:
+        if page := DaLeDou.findall(r'第1/(\d+)'):
             for p in range(1, int(page[0]) + 1):
                 # 下页
                 BeiBao.get(f'cmd=store&store_type=0&page={p}')
@@ -60,28 +57,17 @@ class BeiBao(DaLeDou):
             for k, v in data:
                 for _ in range(int(k)):
                     BeiBao.get(f'cmd=use&id={v}&store_type=0')
+                    DaLeDou.search(r'jpg"><br />(.*?)<br />')
 
-        id_list = [
-            3030,  # 神来拳套(赠)
-            3176,  # 阅历羊皮卷
-            3356,  # 贡献小笼包
-            3381,  # 阅历卷宗
-            3487,  # 巅峰之战二等勋章
-            3488,  # 巅峰之战一等勋章
-            3503,  # 贡献叉烧包
-            3671,  # 资源补给箱
-            5392,  # 3级星石礼盒
-            6779,  # 惊喜锦囊
-        ]
-
-        for id in id_list:
+        for id in DaLeDou.read_yaml('背包'):
             for _ in range(70):
                 BeiBao.get(f'cmd=use&id={id}')
+                DaLeDou.search(r'jpg"><br />(.*?)<br />')
                 if '您使用了' not in html:
                     break
 
     def run(self) -> list:
-        self.乐斗助手()
+        # self.乐斗助手()
         self.锦囊()
         self.属性()
         if self.week == '4':

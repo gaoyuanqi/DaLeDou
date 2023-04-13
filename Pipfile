@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 requests = "*"
 loguru = "*"
-decorator = "*"
 schedule = "*"
 pyyaml = "*"
 
@@ -14,4 +13,4 @@ pyyaml = "*"
 autopep8 = "*"
 
 [requires]
-python_version = "3.10"
+python_version = "3.11"

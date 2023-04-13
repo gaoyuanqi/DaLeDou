@@ -1,10 +1,8 @@
-'''
-飞升大作战
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class FeiSheng(DaLeDou):
+    '''飞升大作战'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -17,7 +15,7 @@ class FeiSheng(DaLeDou):
     def 境界修为(self):
         # 境界修为
         FeiSheng.get('cmd=ascendheaven&op=showrealm')
-        self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
+        self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
 
     def 报名(self):
         '''
@@ -26,11 +24,13 @@ class FeiSheng(DaLeDou):
         for _ in range(2):
             # 报名单排模式
             FeiSheng.get('cmd=ascendheaven&op=signup&type=1')
+            self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />S'))
             if '时势造英雄' in html:
                 break
             elif '还没有入场券玄铁令' in html:
                 # 兑换 玄铁令*1
                 FeiSheng.get('cmd=ascendheaven&op=exchange&id=2&times=1')
+                self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
                 if '不足' not in html:
                     # 本赛季该道具库存不足
                     # 积分不足，快去参加飞升大作战吧~
@@ -39,8 +39,8 @@ class FeiSheng(DaLeDou):
                 break
             # 当前为休赛期，报名匹配模式
             FeiSheng.get('cmd=ascendheaven&op=signup&type=2')
+            self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />S'))
             break
-        self.msg += DaLeDou.findall(r'】<br />(.*?)<br />S')
 
     def 领取奖励(self):
         '''
@@ -48,20 +48,18 @@ class FeiSheng(DaLeDou):
         '''
         # 飞升大作战
         FeiSheng.get('cmd=ascendheaven')
-        if ('赛季结算中' in html) and (self.week == '4'):
+        if ('赛季结算中' in html):
             # 境界修为
             FeiSheng.get('cmd=ascendheaven&op=showrealm')
-            season: list = DaLeDou.findall(r'season=(\d+)')
-            for s in season:
+            for s in DaLeDou.findall(r'season=(\d+)'):
                 # 领取奖励
                 FeiSheng.get(f'cmd=ascendheaven&op=getrealmgift&season={s}')
-                self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
+                self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
 
     def run(self) -> list:
-        self.msg += DaLeDou.conversion('飞升大作战')
-
         self.境界修为()
         self.报名()
-        self.领取奖励()
+        if self.week == '4':
+            self.领取奖励()
 
         return self.msg

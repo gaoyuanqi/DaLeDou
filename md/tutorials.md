@@ -36,7 +36,7 @@ https://www.gaoyuanqi.cn/docker-install/
 **二、拉取镜像**
 
 ```sh
-docker pull python:3.10
+docker pull python:3.11
 ```
 
 **三、构建镜像**
@@ -73,9 +73,10 @@ ab2c3ca911ea   daledou:v1   "pipenv run python3 …"   30 seconds ago   Up 28 se
 docker logs daledou
 ```
 
-如果大乐斗cookie有效，应该看到以下信息：
+假定大乐斗cookie有效，首次运行应该看到以下信息：
 ```
-2023-02-12 19:55:02.586 | INFO     | src.daledou._set:daledou_timing:21 - xxxx 将在 13:01 和 20:01 运行...
+2023-04-13 19:15:04.025 | SUCCESS  | src.daledou.daledou:copy_yaml:67 - 脚本创建了一个配置文件：./config/xxx.yaml
+2023-04-13 19:15:04.029 | SUCCESS  | src.daledou.daledou:main:91 -    xxx：将在 13:01 和 20:01 定时运行...
 ```
 
 **七、立即运行指定轮次脚本**

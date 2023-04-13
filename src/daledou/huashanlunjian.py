@@ -1,10 +1,8 @@
-'''
-华山论剑
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class HuaShan(DaLeDou):
+    '''华山论剑'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -20,15 +18,14 @@ class HuaShan(DaLeDou):
         '''
         # 战阵调整页面
         HuaShan.get('cmd=knightarena&op=viewsetknightlist&pos=0')
-        knightid: list = DaLeDou.findall(r'knightid=(\d+)')
+        knightid = DaLeDou.findall(r'knightid=(\d+)')
 
         # 出战侠士页面
         HuaShan.get('cmd=knightarena&op=viewteam')
-        xuanze_pos: list = DaLeDou.findall(r'pos=(\d+)">选择侠士')
-        genggai: list = DaLeDou.findall(
-            r'耐久：(\d+)/.*?pos=(\d+)">更改侠士.*?id=(\d+)')
+        xuanze_pos = DaLeDou.findall(r'pos=(\d+)">选择侠士')
+        genggai = DaLeDou.findall(r'耐久：(\d+)/.*?pos=(\d+)">更改侠士.*?id=(\d+)')
 
-        genggai_pos: list = []
+        genggai_pos = []
         for n, p, id in genggai:
             # 移除不可出战的侠士id
             knightid.remove(id)
@@ -56,16 +53,16 @@ class HuaShan(DaLeDou):
             if '耐久不足' in html:
                 self.战阵调整()
                 continue
-            self.msg += DaLeDou.findall(r'荣誉兑换</a><br />(.*?)<br />')
+            self.msg.append(DaLeDou.search(r'荣誉兑换</a><br />(.*?)<br />'))
+            if '论剑所需门票不足' in html:
+                break
 
     def 领取奖励(self):
-        # 每月26号领取奖励
+        '''每月26号领取段位奖励'''
         HuaShan.get(r'cmd=knightarena&op=drawranking')
-        self.msg += DaLeDou.findall(r'【赛季段位奖励】<br />(.*?)<br />')
+        self.msg.append(DaLeDou.search(r'【赛季段位奖励】<br />(.*?)<br />'))
 
     def run(self) -> list:
-        self.msg += DaLeDou.conversion('华山论剑')
-
         if int(self.date) <= 25:
             self.战阵调整()
             self.开始挑战()

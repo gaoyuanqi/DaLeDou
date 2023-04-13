@@ -1,4 +1,10 @@
-from src.daledou._set import daledou_one, daledou_two
+from os import environ
+from importlib import reload
+
+from loguru import logger
+
+import settings
+from src.daledou.daledou import InitDaLeDou
 
 
 def main():
@@ -7,10 +13,17 @@ def main():
     2 表示第二轮
     '''
     lunci = input('输入1或2选择执行轮次：')
-    if lunci == '1':
-        daledou_one()
-    elif lunci == '2':
-        daledou_two()
+    reload(settings)
+    environ['PUSHPLUS_TOKEN'] = settings.PUSHPLUS_TOKEN
+    for ck in settings.DALEDOU_ACCOUNT:
+        if trace := InitDaLeDou(ck).main():
+            if lunci == '1':
+                from src.daledou.daledouone import DaLeDouOne
+                DaLeDouOne().main('第一轮')
+            elif lunci == '2':
+                from src.daledou.daledoutwo import DaLeDouTwo
+                DaLeDouTwo().main('第二轮')
+            logger.remove(trace)
 
 
 if __name__ == '__main__':

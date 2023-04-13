@@ -1,10 +1,8 @@
-'''
-任务派遣中心
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class RenWu(DaLeDou):
+    '''任务派遣中心'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -17,12 +15,10 @@ class RenWu(DaLeDou):
     def 领取奖励(self):
         # 任务派遣中心
         RenWu.get('cmd=missionassign&subtype=0')
-
-        # 查看 》领取奖励
-        mission_id: list = DaLeDou.findall(r'0时0分.*?mission_id=(.*?)">查看')
-        for id in mission_id:
+        for id in DaLeDou.findall(r'0时0分.*?mission_id=(.*?)">查看'):
+            # 领取奖励
             RenWu.get(f'cmd=missionassign&subtype=5&mission_id={id}')
-            self.msg += DaLeDou.findall(r'\[任务派遣中心\](.*?)<br />')
+            self.msg.append(DaLeDou.search(r'\[任务派遣中心\](.*?)<br />'))
 
     def 派遣(self):
         # 任务派遣中心
@@ -60,8 +56,7 @@ class RenWu(DaLeDou):
             '勤劳园丁': '29'
         }
         for _ in range(3):
-            # 获取可接受任务id ['1', '2', '3']
-            mission_id: list = DaLeDou.findall(r'小时.*?mission_id=(.*?)">接受')
+            mission_id = DaLeDou.findall(r'小时.*?mission_id=(.*?)">接受')
             for _, id in missions_dict.items():
                 if id in mission_id:
                     # 快速委派
@@ -83,8 +78,6 @@ class RenWu(DaLeDou):
         self.msg += DaLeDou.findall(r'<br />(.*?)<a.*?查看')
 
     def run(self) -> list:
-        self.msg += DaLeDou.conversion('任务派遣中心')
-
         self.领取奖励()
         self.派遣()
 

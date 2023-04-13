@@ -1,10 +1,8 @@
-'''
-镶嵌
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class XiangQian(DaLeDou):
+    '''镶嵌'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -14,7 +12,7 @@ class XiangQian(DaLeDou):
         global html
         html = DaLeDou.get(params)
 
-    def _data(self) -> tuple:
+    def data(self) -> tuple:
         '''
         魂珠碎片
         魂珠1级
@@ -33,7 +31,7 @@ class XiangQian(DaLeDou):
         '''
         魂珠升级（碎 -> 1 -> 2 -> 3）
         '''
-        for k, v in self._data():
+        for k, v in self.data():
             for _ in range(50):
                 if k == '6':
                     # 魂珠碎片 -> 1
@@ -43,7 +41,9 @@ class XiangQian(DaLeDou):
                     # 1 -> 2 -> 3
                     XiangQian.get(f'cmd=upgradepearl&type={k}&pearl_id={v}')
                 if '抱歉' in html:
+                    DaLeDou.search(r'魂珠升级</p><>(.*?)。')
                     break
+                DaLeDou.search(r'魂珠升级</p><p>(.*?)</p>')
 
     def run(self) -> list:
         self.镶嵌()

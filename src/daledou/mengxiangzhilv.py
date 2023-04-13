@@ -1,10 +1,8 @@
-'''
-梦想之旅
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class MengXiang(DaLeDou):
+    '''梦想之旅'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -37,48 +35,39 @@ class MengXiang(DaLeDou):
     def 普通旅行(self):
         # 普通旅行
         MengXiang.get('cmd=dreamtrip&sub=2')
-        self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
-        text_list = DaLeDou.findall(r'梦幻机票：(\d+)<br />')
-        c: int = html.count('未去过')
-        self.msg += [f'梦幻机票：{text_list[0]}', f'未去过：{c}']
+        self.msg.append(DaLeDou.search(r'规则</a><br />(.*?)<br />'))
 
     def 梦幻旅行(self):
         if self.梦想之旅():
             # 梦想之旅
             MengXiang.get('cmd=dreamtrip')
-            text_list = DaLeDou.findall(r'梦幻旅行</a><br />(.*?)<br /><br />')
-            if not text_list:
-                return
+            if smapid := DaLeDou.findall(r'梦幻旅行</a><br />(.*?)<br /><br />'):
+                # 查找未去过的目的地
+                id_list = []
+                list = smapid[0].split('<br />')
+                for i, v in enumerate(list):
+                    if '未去过' in v:
+                        id_list.append(i + 1)
 
-            # 查找未去过的目的地
-            id_list = []
-            list = text_list[0].split('<br />')
-            for i, v in enumerate(list):
-                if '未去过' in v:
-                    id_list.append(i + 1)
-
-            # 消耗梦幻机票去目的地
-            for id in id_list:
-                # 去这里
-                MengXiang.get(f'cmd=dreamtrip&sub=2&smapid={id}')
-                self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
-                if '当前没有梦幻机票' in html:
-                    break
+                # 消耗梦幻机票去目的地
+                for id in id_list:
+                    # 去这里
+                    MengXiang.get(f'cmd=dreamtrip&sub=2&smapid={id}')
+                    self.msg.append(DaLeDou.search(r'规则</a><br />(.*?)<br />'))
+                    if '当前没有梦幻机票' in html:
+                        break
 
     def 领取(self):
         # 梦想之旅
         MengXiang.get('cmd=dreamtrip')
         for _ in range(2):
-            bmapid: list = DaLeDou.findall(r'sub=4&amp;bmapid=(\d+)')
-            if bmapid:
+            if bmapid := DaLeDou.findall(r'sub=4&amp;bmapid=(\d+)'):
                 # 礼包     1 or 2 or 3 or 4
                 # 超级礼包 0
                 MengXiang.get(f'cmd=dreamtrip&sub=4&bmapid={bmapid[0]}')
-                self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
+                self.msg.append(DaLeDou.search(r'规则</a><br />(.*?)<br />'))
 
     def run(self) -> list:
-        self.msg += DaLeDou.conversion('梦想之旅')
-
         self.普通旅行()
         if self.week == '4':
             self.梦幻旅行()

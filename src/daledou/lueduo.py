@@ -1,10 +1,8 @@
-'''
-掠夺
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class LueDuo(DaLeDou):
+    '''掠夺'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -14,14 +12,9 @@ class LueDuo(DaLeDou):
         global html
         html = DaLeDou.get(params)
 
-    def 领取胜负奖励(self):
-        # 领取胜负奖励
-        LueDuo.get('cmd=forage_war&subtype=6')
-        self.msg += DaLeDou.findall(r'规则</a><br />(.*?)<br />')
-
     def run(self) -> list:
-        self.msg += DaLeDou.conversion('掠夺')
-
-        self.领取胜负奖励()
+        '''周三领取胜负奖励'''
+        LueDuo.get('cmd=forage_war&subtype=6')
+        self.msg.append(DaLeDou.search(r'规则</a><br />(.*?)<br />'))
 
         return self.msg

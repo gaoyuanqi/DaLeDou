@@ -1,10 +1,8 @@
-'''
-镖行天下
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class BiaoXing(DaLeDou):
+    '''镖行天下'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -18,8 +16,7 @@ class BiaoXing(DaLeDou):
         for _ in range(5):
             # 刷新
             BiaoXing.get('cmd=cargo&op=3')
-            passerby_uin: list = DaLeDou.findall(r'passerby_uin=(\d+)">拦截')
-            for uin in passerby_uin:
+            for uin in DaLeDou.findall(r'passerby_uin=(\d+)">拦截'):
                 # 拦截
                 BiaoXing.get(f'cmd=cargo&op=14&passerby_uin={uin}')
                 if '系统繁忙' in html:
@@ -28,7 +25,7 @@ class BiaoXing(DaLeDou):
                     continue
                 elif '您今天已达拦截次数上限了' in html:
                     return
-                self.msg += DaLeDou.findall(r'商店</a><br />(.*?)<br />')
+                self.msg.append(DaLeDou.search(r'商店</a><br />(.*?)<br />'))
 
     def 护送(self):
         '''
@@ -36,11 +33,9 @@ class BiaoXing(DaLeDou):
         '''
         for op in [3, 16, 7, 8, 6]:
             BiaoXing.get(f'cmd=cargo&op={op}')
-            self.msg += DaLeDou.findall(r'商店</a><br />(.*?)<br />')
+            self.msg.append(DaLeDou.search(r'商店</a><br />(.*?)<br />'))
 
     def run(self) -> list:
-        self.msg += DaLeDou.conversion('镖行天下')
-
         self.拦截()
         self.护送()
 

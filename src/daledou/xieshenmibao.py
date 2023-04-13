@@ -1,10 +1,8 @@
-'''
-邪神秘宝
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class XieShen(DaLeDou):
+    '''邪神秘宝'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -14,20 +12,15 @@ class XieShen(DaLeDou):
         global html
         html = DaLeDou.get(params)
 
-    def 邪神秘宝(self):
+    def run(self) -> list:
         '''
-        免费一次 or 抽奖一次
-        0: 高级秘宝 24h
-        1: 极品秘宝 96h
+        高级秘宝    免费一次 or 抽奖一次
+        极品秘宝    免费一次 or 抽奖一次
         '''
         for i in [0, 1]:
             # 免费一次 or 抽奖一次
             XieShen.get(f'cmd=tenlottery&op=2&type={i}')
-            self.msg += DaLeDou.findall(r'【邪神秘宝】</p>(.*?)<br />')
-
-    def run(self) -> list:
-        self.msg += DaLeDou.conversion('邪神秘宝')
-
-        self.邪神秘宝()
+            msg = DaLeDou.search(r'【邪神秘宝】</p>(.*?)<br />')
+            self.msg.append(msg)
 
         return self.msg

@@ -1,10 +1,8 @@
-'''
-侠士客栈
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class XiaShi(DaLeDou):
+    '''侠士客栈'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -17,14 +15,12 @@ class XiaShi(DaLeDou):
     def 领取奖励(self):
         # 侠士客栈
         XiaShi.get('cmd=warriorinn')
-
-        type: list = DaLeDou.findall(r'type=(\d+).*?领取奖励</a>')
-        if type:
+        if type := DaLeDou.findall(r'type=(\d+).*?领取奖励</a>'):
             for n in range(1, 4):
                 # 领取奖励
                 XiaShi.get(
                     f'cmd=warriorinn&op=getlobbyreward&type={type[0]}&num={n}')
-                self.msg += DaLeDou.findall(r'侠士客栈<br />(.*?)<br />')
+                self.msg.append(DaLeDou.search(r'侠士客栈<br />(.*?)<br />'))
 
     def 客栈奇遇(self):
         # 侠士客栈
@@ -36,7 +32,7 @@ class XiaShi(DaLeDou):
                 for pos in range(2):
                     XiaShi.get(
                         f'cmd=warriorinn&op=rejectadventure&pos={pos}')
-                    self.msg += DaLeDou.findall(r'侠士客栈<br />(.*?)，<a')
+                    self.msg.append(DaLeDou.search(r'侠士客栈<br />(.*?)，<a'))
 
         # 前来捣乱的柒承 -> 与TA理论 -> 确定
         for exceptadventure in ['前来捣乱的柒承', '前来捣乱的洪七公', '前来捣乱的欧阳锋', '前来捣乱的燕青', '前来捣乱的圣诞老鹅', '前来捣乱的断亦']:
@@ -44,11 +40,9 @@ class XiaShi(DaLeDou):
                 for pos in range(2):
                     XiaShi.get(
                         f'cmd=warriorinn&op=exceptadventure&pos={pos}')
-                    self.msg += DaLeDou.findall(r'侠士客栈<br />(.*?)，<a')
+                    self.msg.append(DaLeDou.search(r'侠士客栈<br />(.*?)，<a'))
 
     def run(self) -> list:
-        self.msg += DaLeDou.conversion('侠士客栈')
-
         self.领取奖励()
         self.客栈奇遇()
 

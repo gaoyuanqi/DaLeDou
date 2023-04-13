@@ -1,10 +1,8 @@
-'''
-群雄逐鹿
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class QunXiong(DaLeDou):
+    '''群雄逐鹿'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -14,15 +12,10 @@ class QunXiong(DaLeDou):
         global html
         html = DaLeDou.get(params)
 
-    def 群雄逐鹿(self):
+    def run(self) -> list:
+        '''周六报名、领奖'''
         for op in ['signup', 'drawreward']:
             QunXiong.get(f'cmd=thronesbattle&op={op}')
-            # 报名 》领奖
-            self.msg += DaLeDou.findall(r'届群雄逐鹿<br />(.*?)<br />')
-
-    def run(self) -> list:
-        self.msg += DaLeDou.conversion('群雄逐鹿')
-
-        self.群雄逐鹿()
+            self.msg.append(DaLeDou.search(r'届群雄逐鹿<br />(.*?)<br />'))
 
         return self.msg

@@ -1,10 +1,8 @@
-'''
-每日奖励
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class MeiRi(DaLeDou):
+    '''每日奖励'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -14,15 +12,10 @@ class MeiRi(DaLeDou):
         global html
         html = DaLeDou.get(params)
 
-    def 每日奖励(self):
+    def run(self) -> list:
         for key in ['login', 'meridian', 'daren', 'wuzitianshu']:
             # 每日奖励
             MeiRi.get(f'cmd=dailygift&op=draw&key={key}')
-            self.msg += DaLeDou.findall(r'【每日奖励】<br />(.*?)<br />')
-
-    def run(self) -> list:
-        self.msg += DaLeDou.conversion('每日奖励')
-
-        self.每日奖励()
+            self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
 
         return self.msg

@@ -1,154 +1,43 @@
-'''
-大乐斗第二轮
-默认每天 20:01 执行
-'''
-from src.daledou._set import deco
+from os import environ
+
 from src.daledou.daledou import DaLeDou
 
 
 class DaLeDouTwo(DaLeDou):
+    '''大乐斗第二轮'''
 
     def __init__(self) -> None:
         super().__init__()
+        self.path = 'src.daledou.'
+        self.modulepath = [
+            ['邪神秘宝', True, 'xieshenmibao.XieShen'],
+            ['每日宝箱', (self.date == '20'), 'meiribaoxiang.MeiRi'],
+            ['问鼎天下', True, 'wendingtianxia.WenDingTwo'],
+            ['任务派遣中心', True, 'renwupaiqianzhongxin.RenWu'],
+            ['侠士客栈', True, 'xiashikezhan.XiaShi'],
+            ['深渊之潮', True, 'shenyuanzhichao.ShenYuan'],
+            ['镶嵌', (self.week == '4'), 'xiangqian.XiangQian'],
+            ['神匠坊', (self.week == '4'), 'shenjiangfang.ShenJiang'],
+            ['专精', True, 'zhuanjing.ZhuanJing'],
+            ['奥义', True, 'aoyi.AoYi'],
+            ['兵法', (self.week in ['4', '6']), 'bingfa.BingFa'],
+            ['活动', True, 'events.EventsTwo'],
+            ['背包', True, 'beibao.BeiBao'],
+            ['商店', True, 'shangdian.ShangDian'],
+        ]
 
     @staticmethod
     def get(params: str):
         global html
         html = DaLeDou.get(params)
 
-    @deco
-    def 邪神秘宝(self):
-        from src.daledou.xieshenmibao import XieShen
-        self.msg += XieShen().run()
-
-    @deco
-    def 每日宝箱(self):
-        from src.daledou.meiribaoxiang import MeiRi
-        self.msg += MeiRi().run()
-
-    @deco
-    def 问鼎天下(self):
-        from src.daledou.wendingtianxia import WenDing
-        self.msg += WenDing().main_two()
-
-    @deco
-    def 任务派遣中心(self):
-        from src.daledou.renwupaiqianzhongxin import RenWu
-        self.msg += RenWu().run()
-
-    @deco
-    def 侠士客栈(self):
-        from src.daledou.xiashikezhan import XiaShi
-        self.msg += XiaShi().run()
-
-    @deco
-    def 仙武修真(self):
-        from src.daledou.xianwuxiuzhen import XianWu
-        self.msg += XianWu().run()
-
-    @deco
-    def 大侠回归三重好礼(self):
-        from src.daledou.daxiahuigui import DaXia
-        self.msg += DaXia().run()
-
-    @deco
-    def 乐斗黄历(self):
-        from src.daledou.ledouhuangli import LeDou
-        self.msg += LeDou().run()
-
-    @deco
-    def 深渊之潮(self):
-        from src.daledou.shenyuanzhichao import ShenYuan
-        self.msg += ShenYuan().run()
-
-    @deco
-    def 活动(self):
-        from src.daledou.events import Events
-        self.msg += Events().main_two()
-
-    @deco
-    def 背包(self):
-        from src.daledou.beibao import BeiBao
-        self.msg += BeiBao().run()
-
-    @deco
-    def 镶嵌(self):
-        from src.daledou.xiangqian import XiangQian
-        self.msg += XiangQian().run()
-
-    @deco
-    def 神匠坊(self):
-        from src.daledou.shenjiangfang import ShenJiang
-        self.msg += ShenJiang().run()
-
-    @deco
-    def 专精(self):
-        from src.daledou.zhuanjing import ZhuanJing
-        self.msg += ZhuanJing().run()
-
-    @deco
-    def 奥义(self):
-        from src.daledou.aoyi import AoYi
-        self.msg += AoYi().run()
-
-    @deco
-    def 兵法(self):
-        from src.daledou.bingfa import BingFa
-        self.msg += BingFa().run()
-
-    @deco
-    def 商店积分(self):
-        from src.daledou.shangdianjifen import ShangDian
-        self.msg += ShangDian().run()
-
     def run(self):
-        # 首页
-        DaLeDouTwo.get('cmd=index')
-        mission: str = html[:-200]
-
-        if '邪神秘宝' in mission:
-            self.邪神秘宝()
-
-        if ('每日宝箱' in mission) and (self.date == '20'):
-            self.每日宝箱()
-
-        if ('问鼎天下' in mission) and (self.week not in ['6', '0']):
-            self.问鼎天下()
-
-        if '任务派遣中心' in mission:
-            self.任务派遣中心()
-
-        if '侠士客栈' in mission:
-            self.侠士客栈()
-
-        if '仙武修真' in mission:
-            self.仙武修真()
-
-        if ('大侠回归三重好礼' in mission) and (self.week == '4'):
-            self.大侠回归三重好礼()
-
-        if '乐斗黄历' in mission:
-            self.乐斗黄历()
-
-        if '深渊之潮' in mission:
-            self.深渊之潮()
-
-        self.活动()
-        self.背包()
-
-        if ('镶嵌' in mission) and (self.week == '4'):
-            self.镶嵌()
-
-        if ('神匠坊' in mission) and (self.week == '4'):
-            self.神匠坊()
-
-        if '专精' in mission:
-            self.专精()
-
-        if '奥义' in mission:
-            self.奥义()
-
-        if ('兵法' in mission) and (self.week in ['4', '6']):
-            self.兵法()
-
-        self.商店积分()
+        if mission := DaLeDou.is_dld():
+            for name, bool, path in self.modulepath:
+                if (name in mission) and bool:
+                    if name not in ['背包', '活动']:
+                        self.msg.append(f'\n【{name}】')
+                    environ['DLD_MISSIONS'] = name
+                    self.msg += DaLeDou.load_object(f'{self.path}{path}')
+        # print(self.msg)
+        return self.msg

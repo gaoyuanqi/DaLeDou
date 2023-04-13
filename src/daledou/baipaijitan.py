@@ -1,10 +1,8 @@
-'''
-帮派祭坛
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class BangPai(DaLeDou):
+    '''帮派祭坛'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -23,8 +21,7 @@ class BangPai(DaLeDou):
             elif '转动轮盘' in html:
                 # 转动轮盘
                 BangPai.get('cmd=altar&op=spinwheel')
-                self.msg += DaLeDou.findall(
-                    r'积分兑换</a><br />(.*?)<br /><br />')
+                self.msg.append(DaLeDou.search(r'兑换</a><br />(.*?)<br />'))
             elif '随机分配' in html:
                 two_tuple_list = DaLeDou.findall(
                     r'op=(.*?)&amp;id=(\d+)">选择</a>')
@@ -41,10 +38,9 @@ class BangPai(DaLeDou):
             elif '领取奖励' in html:
                 # 领取奖励
                 BangPai.get('cmd=altar&op=drawreward')
+                self.msg.append(DaLeDou.search(r'<br /><br />(.*?)</p>'))
 
     def run(self) -> list:
-        self.msg += DaLeDou.conversion('帮派祭坛')
-
         self.帮派祭坛()
 
         return self.msg

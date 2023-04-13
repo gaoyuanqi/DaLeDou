@@ -1,10 +1,8 @@
-'''
-深渊之潮
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class ShenYuan(DaLeDou):
+    '''深渊之潮'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -17,30 +15,28 @@ class ShenYuan(DaLeDou):
     def 巡游赠礼(self):
         # 帮派巡礼 》领取巡游赠礼
         ShenYuan.get('cmd=abysstide&op=getfactiongift')
-        self.msg += DaLeDou.findall(r'【帮派巡礼】<br />(.*?)<br />当前')
+        self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
         if '您暂未加入帮派' in html:
-            self.msg += ['帮派巡礼需要加入帮派才能领取']
+            self.msg.append('帮派巡礼需要加入帮派才能领取')
 
-    def 开始挑战(self):
-        data: int = DaLeDou.readyaml('深渊之潮')
+    def 深渊秘境(self):
+        data: int = DaLeDou.read_yaml('深渊之潮')
         for _ in range(3):
             ShenYuan.get(f'cmd=abysstide&op=enterabyss&id={data}')
             if '暂无可用挑战次数' in html:
                 break
             elif '该副本需要顺序通关解锁' in html:
-                self.msg += [f'该副本需要顺序通关解锁！']
+                self.msg.append('该副本需要顺序通关解锁！')
                 break
             for _ in range(5):
                 # 开始挑战
                 ShenYuan.get('cmd=abysstide&op=beginfight')
             # 退出副本
             ShenYuan.get('cmd=abysstide&op=endabyss')
-            self.msg += DaLeDou.findall(r'【深渊秘境】<br />(.*?)<br />')
+            self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
 
     def run(self) -> list:
-        self.msg += DaLeDou.conversion('深渊之潮')
-
         self.巡游赠礼()
-        self.开始挑战()
+        self.深渊秘境()
 
         return self.msg

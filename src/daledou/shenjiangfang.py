@@ -1,10 +1,8 @@
-'''
-神匠坊
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class ShenJiang(DaLeDou):
+    '''神匠坊'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -26,11 +24,11 @@ class ShenJiang(DaLeDou):
 
         for remaining, amount, id in data:
             if int(remaining) >= int(amount):
-                count: int = int(int(remaining) / int(amount))
+                count = int(int(remaining) / int(amount))
                 for _ in range(count):
                     # 普通合成
                     ShenJiang.get(f'cmd=weapongod&sub=13&stone_id={id}')
-                    # self.msg += DaLeDou.findall(r'背包<br /></p>(.*?)!')
+                    DaLeDou.search(r'背包<br /></p>(.*?)!')
 
     def 符石分解(self):
         data_II = []
@@ -43,27 +41,28 @@ class ShenJiang(DaLeDou):
             if '下一页' not in html:
                 break
 
-        data_I: set = set(data_all) - set(data_II)
+        data_I = set(data_all) - set(data_II)
         for num, id in data_I:
             # 分解
             ShenJiang.get(
                 f'cmd=weapongod&sub=11&stone_id={id}&num={int(num)}&i_p_w=num%7C')
-            # self.msg += DaLeDou.findall(r'背包</a><br /></p>(.*?)!')
+            DaLeDou.search(r'背包</a><br /></p>(.*?)!')
 
     def 符石打造(self):
         # 符石
         ShenJiang.get('cmd=weapongod&sub=7')
-        data: list = DaLeDou.findall(r'符石水晶：(\d+)')
-        if data:
-            amount: int = int(data[0])
-            ten: int = int(amount / 60)
-            one: int = int((amount - (ten * 60)) / 6)
+        if data := DaLeDou.findall(r'符石水晶：(\d+)'):
+            amount = int(data[0])
+            ten = int(amount / 60)
+            one = int((amount - (ten * 60)) / 6)
             for _ in range(ten):
                 # 打造十次
                 ShenJiang.get('cmd=weapongod&sub=8&produce_type=1&times=10')
+                DaLeDou.search(r'背包</a><br /></p>(.*?)!')
             for _ in range(one):
                 # 打造一次
                 ShenJiang.get('cmd=weapongod&sub=8&produce_type=1&times=1')
+                DaLeDou.search(r'背包</a><br /></p>(.*?)!')
 
     def run(self) -> list:
         self.普通合成()

@@ -1,10 +1,8 @@
-'''
-我的帮派
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class MyGang(DaLeDou):
+    '''我的帮派'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -27,11 +25,11 @@ class MyGang(DaLeDou):
             for _ in range(5):
                 # 供奉
                 MyGang.get(f'cmd=oblation&id={id}&page=1')
+                self.msg.append(DaLeDou.search(r'【供奉守护神】<br />(.*?)<br />'))
                 if '每天最多供奉5次' in html:
                     return
                 elif '很抱歉' in html:
                     break
-                self.msg += DaLeDou.findall(r'【供奉守护神】<br />(.*?)<br />')
 
     def 帮战(self):
         '''
@@ -40,7 +38,7 @@ class MyGang(DaLeDou):
         if self.week == '0':
             for sub in [4, 9, 6]:
                 MyGang.get(f'cmd=facwar&sub={sub}')
-                self.msg += DaLeDou.findall(r'</p>(.*?)<br /><a.*?查看上届')
+                self.msg.append(DaLeDou.search(r'</p>(.*?)<br /><a.*?查看上届'))
 
     def 帮派任务(self):
         '''
@@ -56,7 +54,7 @@ class MyGang(DaLeDou):
         '''
         # 帮派任务
         MyGang.get('cmd=factiontask&sub=1')
-        faction_missions: str = html
+        faction_missions = html
 
         missions = {
             '帮战冠军': 'cmd=facwar&sub=4',
@@ -80,7 +78,7 @@ class MyGang(DaLeDou):
                         f'cmd=factiontrain&type=2&id={id}&num=1&i_p_w=num%7C')
                     if '你需要提升帮派等级来让你进行下一步的修炼' in html:
                         if id == 2429:
-                            self.msg += ['所有武功秘籍已满级']
+                            self.msg.append('所有武功秘籍已满级')
                         break
                     elif '技能经验增加' in html:
                         # 技能经验增加20！
@@ -90,22 +88,19 @@ class MyGang(DaLeDou):
 
         # 帮派任务
         MyGang.get('cmd=factiontask&sub=1')
-        ids: list = DaLeDou.findall(r'id=(\d+)">领取奖励</a>')
-        for id in ids:
+        for id in DaLeDou.findall(r'id=(\d+)">领取奖励</a>'):
             # 领取奖励
             MyGang.get(f'cmd=factiontask&sub=3&id={id}')
-        self.msg += DaLeDou.findall(r'id=\d+">(.*?)<br />')
+            self.msg.append(DaLeDou.search(r'日常任务</a><br />(.*?)<br />'))
 
     def run(self) -> list:
-        self.msg += DaLeDou.conversion('我的帮派')
-
         # 我的帮派
         MyGang.get('cmd=factionop&subtype=3&facid=0')
         if '你的职位' in html:
             self.供奉()
             self.帮战()
             self.帮派任务()
-            return self.msg
+        else:
+            self.msg.append('您还没有加入帮派')
 
-        self.msg += ['您还没有加入帮派']
         return self.msg

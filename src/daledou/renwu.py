@@ -1,12 +1,10 @@
-'''
-任务
-'''
 import random
 
 from src.daledou.daledou import DaLeDou
 
 
 class RenWu(DaLeDou):
+    '''任务'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -24,8 +22,7 @@ class RenWu(DaLeDou):
             RenWu.get('cmd=set&type=1')
         # 查看好友第2页
         RenWu.get(f'cmd=friendlist&page=2')
-        B_UID: list = DaLeDou.findall(r'\d+：.*?B_UID=(\d+).*?级')
-        for uin in B_UID:
+        for uin in DaLeDou.findall(r'\d+：.*?B_UID=(\d+).*?级'):
             RenWu.get(f'cmd=totalinfo&B_UID={uin}')
 
     def 徽章进阶(self):
@@ -90,7 +87,7 @@ class RenWu(DaLeDou):
     def 挑战陌生人(self):
         # 斗友
         RenWu.get('cmd=friendlist&type=1')
-        B_UID: list = DaLeDou.findall(r'：.*?级.*?B_UID=(\d+).*?乐斗</a>')
+        B_UID = DaLeDou.findall(r'：.*?级.*?B_UID=(\d+).*?乐斗</a>')
         for uin in B_UID[:4]:
             # 乐斗
             RenWu.get(f'cmd=fight&B_UID={uin}&page=1&type=9')
@@ -98,7 +95,7 @@ class RenWu(DaLeDou):
     def 强化神装(self):
         # 任务
         RenWu.get('cmd=task&sub=1')
-        renwu: str = html
+        renwu = html
 
         if 'id=116' in renwu:
             for id in range(6):
@@ -158,7 +155,7 @@ class RenWu(DaLeDou):
         '''
         # 任务
         RenWu.get('cmd=task&sub=1')
-        renwu: str = html
+        renwu = html
 
         if 'id=114' in renwu:
             # 武器专精
@@ -207,8 +204,7 @@ class RenWu(DaLeDou):
         # 经脉
         RenWu.get('cmd=intfmerid&sub=1')
         for _ in range(12):
-            master_id: list = DaLeDou.findall(r'master_id=(\d+)">传功</a>')
-            for id in master_id:
+            for id in DaLeDou.findall(r'master_id=(\d+)">传功</a>'):
                 # 传功
                 RenWu.get(f'cmd=intfmerid&sub=2&master_id={id}')
                 if '位置已满' in html:
@@ -265,42 +261,30 @@ class RenWu(DaLeDou):
                     break
 
     def run(self) -> list:
-        self.msg += DaLeDou.conversion('任务')
-
         # 日常任务
         RenWu.get('cmd=task&sub=1')
-        daily_missions: str = html
+        daily_missions = html
 
-        if '查看好友资料' in daily_missions:
-            self.查看好友资料()
+        func_name = {
+            '查看好友资料',
+            '徽章进阶',
+            '兵法研习',
+            '挑战陌生人',
+            '强化神装',
+            '武器专精',
+            '强化铭刻',
+            '增强经脉'
+        }
 
-        if '徽章进阶' in daily_missions:
-            self.徽章进阶()
-
-        if '兵法研习' in daily_missions:
-            self.兵法研习()
-
-        if '挑战陌生人' in daily_missions:
-            self.挑战陌生人()
-
-        if '强化神装' in daily_missions:
-            self.强化神装()
-
-        if '武器专精' in daily_missions:
-            self.武器专精()
-
-        if '强化铭刻' in daily_missions:
-            self.强化铭刻()
-
-        if '增强经脉' in daily_missions:
-            self.增强经脉()
+        for func in func_name:
+            if func in daily_missions:
+                getattr(self, func)()
 
         self.助阵()
 
         # 一键完成任务
         RenWu.get('cmd=task&sub=7')
-        renwu: list[tuple] = DaLeDou.findall(r'id=\d+">(.*?)</a>.*?>(.*?)</a>')
-        for k, v in renwu:
+        for k, v in DaLeDou.findall(r'id=\d+">(.*?)</a>.*?>(.*?)</a>'):
             self.msg.append(f'{k} {v}')
 
         return self.msg

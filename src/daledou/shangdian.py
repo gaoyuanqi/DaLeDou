@@ -1,10 +1,8 @@
-'''
-商店积分
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class ShangDian(DaLeDou):
+    '''商店积分'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -32,7 +30,7 @@ class ShangDian(DaLeDou):
         '''
         for type in [1, 2, 3, 4, 9, 10, 11, 12, 13, 14]:
             ShangDian.get(f'cmd=exchange&subtype=10&costtype={type}')
-            self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
+            self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
 
         # 江湖长梦
         # 武林盟主
@@ -46,19 +44,17 @@ class ShangDian(DaLeDou):
         ]
         for url in urls:
             ShangDian.get(url)
-            self.msg += DaLeDou.findall(r'】<br />(.*?)<br />')
+            self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
 
         # 竞技场
         ShangDian.get('cmd=arena&op=queryexchange')
-        self.msg += DaLeDou.findall(r'竞技场</a><br />(.*?)<br /><br />')
+        self.msg.append(DaLeDou.search(r'竞技场</a><br />(.*?)<br /><br />'))
 
         # 帮派商会
         ShangDian.get('cmd=fac_corp&op=2')
-        self.msg += DaLeDou.findall(r'剩余刷新时间.*?秒&nbsp;(.*?)<br />')
+        self.msg.append(DaLeDou.search(r'剩余刷新时间.*?秒&nbsp;(.*?)<br />'))
 
     def run(self) -> list:
-        self.msg += DaLeDou.conversion('商店积分')
-
         self.商店积分()
 
         return self.msg

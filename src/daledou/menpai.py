@@ -1,10 +1,8 @@
-'''
-门派
-'''
 from src.daledou.daledou import DaLeDou
 
 
 class MenPai(DaLeDou):
+    '''门派'''
 
     def __init__(self) -> None:
         super().__init__()
@@ -18,19 +16,18 @@ class MenPai(DaLeDou):
         # 点燃 》点燃
         for op in ['fumigatefreeincense', 'fumigatepaidincense']:
             MenPai.get(f'cmd=sect&op={op}')
-            self.msg += DaLeDou.findall(r'修行。<br />(.*?)<br />')
+            self.msg.append(DaLeDou.search(r'修行。<br />(.*?)<br />'))
 
     def 八叶堂(self):
         # 进入木桩训练 》进入同门切磋
         for op in ['trainingwithnpc', 'trainingwithmember']:
             MenPai.get(f'cmd=sect&op={op}')
-            self.msg += DaLeDou.findall(r'【八叶堂】<br />(.*?)<br />')
+            self.msg.append(DaLeDou.search(r'【八叶堂】<br />(.*?)<br />'))
 
     def 五花堂(self):
-
         # 五花堂
         MenPai.get('cmd=sect_task')
-        wuhuatang: str = html
+        wuhuatang = html
 
         missions = {
             '进入华藏寺看一看': 'cmd=sect_art',
@@ -54,8 +51,7 @@ class MenPai(DaLeDou):
             for page in [2, 3]:
                 # 好友第2、3页
                 MenPai.get(f'cmd=friendlist&page={page}')
-                B_UID: list = DaLeDou.findall(r'\d+：.*?B_UID=(\d+).*?级')
-                for uin in B_UID:
+                for uin in DaLeDou.findall(r'\d+：.*?B_UID=(\d+).*?级'):
                     # 查看好友
                     MenPai.get(f'cmd=totalinfo&B_UID={uin}')
 
@@ -69,25 +65,22 @@ class MenPai(DaLeDou):
             for id in range(101, 119):
                 MenPai.get(f'cmd=sect_art&subtype=2&art_id={id}&times=1')
                 if '修炼成功' in html:
-                    self.msg += DaLeDou.findall(r'【心法修炼】<br />(.*?)<br />')
+                    self.msg.append(DaLeDou.search(r'【心法修炼】<br />(.*?)<br />'))
                     break
                 elif '修炼失败' in html:
                     if '你的门派贡献不足无法修炼' in html:
                         break
                     elif ('你的心法已达顶级无需修炼' in html) and (id == 118):
-                        self.msg += ['所有心法都已经顶级']
+                        self.msg.append('所有心法都已经顶级')
 
         # 五花堂
         MenPai.get('cmd=sect_task')
-        task_id: list = DaLeDou.findall(r'task_id=(\d+)">完成')
-        for id in task_id:
+        for id in DaLeDou.findall(r'task_id=(\d+)">完成'):
             # 完成
             MenPai.get(f'cmd=sect_task&subtype=2&task_id={id}')
-            self.msg += DaLeDou.findall(r'【五花堂】<br />(.*?)<br /><br />')
+            self.msg.append(DaLeDou.search(r'【五花堂】<br />(.*?)<br /><br />'))
 
     def run(self) -> list:
-        self.msg += DaLeDou.conversion('门派')
-
         self.万年寺()
         self.八叶堂()
         self.五花堂()
