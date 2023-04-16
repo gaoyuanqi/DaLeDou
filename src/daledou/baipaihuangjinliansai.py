@@ -12,6 +12,21 @@ class BangPai(DaLeDou):
         global html
         html = DaLeDou.get(params)
 
+    def get_data(self) -> list:
+        '''获取对方防守列表所有战力和uin'''
+        # 参战
+        BangPai.get('cmd=factionleague&op=2')
+        if pages := DaLeDou.findall(r'pages=(\d+)">末页'):
+            uin = []
+            for p in range(1, int(pages[0]) + 1):
+                BangPai.get(f'cmd=factionleague&op=2&pages={p}')
+                uin += DaLeDou.findall(r'%&nbsp;&nbsp;(\d+).*?opp_uin=(\d+)')
+            # 按战力排序
+            uin.sort()
+            return uin
+        self.msg.append('没有可攻击的敌人')
+        return []
+
     def 帮派黄金联赛(self):
         # 帮派黄金联赛
         BangPai.get('cmd=factionleague&op=0')
@@ -32,22 +47,16 @@ class BangPai(DaLeDou):
                 BangPai.get('cmd=factionleague&op=1')
                 self.msg.append(DaLeDou.search(r'<p>(.*?)<br /><br />'))
         if ('参战</a>' in html) and data:
-            while True:
-                # 参战
-                BangPai.get('cmd=factionleague&op=2')
-                opp_uin = DaLeDou.findall(r'&amp;opp_uin=(\d+)">攻击</a>')
-                if not opp_uin:
-                    self.msg.append('已经没有可攻击的对象')
+            for _, uin in self.get_data():
+                # 攻击
+                BangPai.get(f'cmd=factionleague&op=4&opp_uin={uin}')
+                if '不幸战败' in html:
+                    self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
                     break
-                for uin in opp_uin:
-                    # 攻击
-                    BangPai.get(f'cmd=factionleague&op=4&opp_uin={uin}')
-                    DaLeDou.search(r'】<br />(.*?)<br />')
-                    if '不幸战败' in html:
-                        return
-                    elif '您已阵亡' in html:
-                        self.msg.append('您已阵亡')
-                        return
+                elif '您已阵亡' in html:
+                    self.msg.append(DaLeDou.search(r'】<br /><br />(.*?)</p>'))
+                    break
+                DaLeDou.search(r'】<br />(.*?)<br />')
 
     def run(self) -> list:
         self.帮派黄金联赛()

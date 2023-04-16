@@ -22,8 +22,8 @@ class XianWu(DaLeDou):
         for _ in range(5):
             # 寻访
             XianWu.get('cmd=immortals&op=visitimmortals&mountainId=1')
-            self.msg.append(DaLeDou.search(r'帮助</a><br />(.*?)<br />'))
             if '你的今日寻访挑战次数已用光' in html:
+                self.msg.append(DaLeDou.search(r'帮助</a><br />(.*?)<br />'))
                 break
             # 挑战
             XianWu.get('cmd=immortals&op=fightimmortals')

@@ -8,7 +8,6 @@ class DaLeDouOne(DaLeDou):
 
     def __init__(self) -> None:
         super().__init__()
-        self.path = 'src.daledou.'
         self.modulepath = [
             ['邪神秘宝', True, 'xieshenmibao.XieShen'],
             ['华山论剑', (int(self.date) <= 26), 'huashanlunjian.HuaShan'],
@@ -53,11 +52,6 @@ class DaLeDouOne(DaLeDou):
             ['乐斗黄历', True, 'ledouhuangli.LeDou'],
             ['活动', True, 'events.EventsOne'],
         ]
-
-    @staticmethod
-    def get(params: str):
-        global html
-        html = DaLeDou.get(params)
 
     def run(self):
         if mission := DaLeDou.is_dld():

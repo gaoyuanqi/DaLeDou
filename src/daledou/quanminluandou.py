@@ -14,15 +14,18 @@ class QuanMin(DaLeDou):
 
     def 全民乱斗(self):
         '''
-        大乱斗 领取
-        六门会武 -> 武林盟主 -> 武林大会
+        乱斗竞技、乱斗任务领取
         '''
+        n = True
         for t in [2, 3, 4]:
             QuanMin.get(f'cmd=luandou&op=0&acttype={t}')
             for id in DaLeDou.findall(r'.*?id=(\d+)">领取</a>'):
+                n = False
                 # 领取
                 QuanMin.get(f'cmd=luandou&op=8&id={id}')
                 self.msg.append(DaLeDou.search(r'斗】<br /><br />(.*?)<br />'))
+        if n:
+            self.msg.append('没有可领取的')
 
     def run(self) -> list:
         self.全民乱斗()

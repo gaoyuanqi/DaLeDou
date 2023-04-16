@@ -8,11 +8,11 @@ class DaLeDouTwo(DaLeDou):
 
     def __init__(self) -> None:
         super().__init__()
-        self.path = 'src.daledou.'
         self.modulepath = [
             ['邪神秘宝', True, 'xieshenmibao.XieShen'],
             ['每日宝箱', (self.date == '20'), 'meiribaoxiang.MeiRi'],
-            ['问鼎天下', True, 'wendingtianxia.WenDingTwo'],
+            ['问鼎天下', (self.week not in ['6', '0']),
+             'wendingtianxia.WenDingTwo'],
             ['任务派遣中心', True, 'renwupaiqianzhongxin.RenWu'],
             ['侠士客栈', True, 'xiashikezhan.XiaShi'],
             ['深渊之潮', True, 'shenyuanzhichao.ShenYuan'],
@@ -25,11 +25,6 @@ class DaLeDouTwo(DaLeDou):
             ['背包', True, 'beibao.BeiBao'],
             ['商店', True, 'shangdian.ShangDian'],
         ]
-
-    @staticmethod
-    def get(params: str):
-        global html
-        html = DaLeDou.get(params)
 
     def run(self):
         if mission := DaLeDou.is_dld():

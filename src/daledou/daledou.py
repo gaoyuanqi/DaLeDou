@@ -103,6 +103,7 @@ class DaLeDou:
         self.date: str = time.strftime('%d', time.localtime())
         self.times: str = time.strftime('%H%M')
         self.week: str = time.strftime('%w')
+        self.path = 'src.daledou.'
 
     @staticmethod
     def get(params: str) -> str:

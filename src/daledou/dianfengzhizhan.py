@@ -23,7 +23,7 @@ class DianFeng(DaLeDou):
         for _ in range(14):
             # 征战
             DianFeng.get('cmd=gvg&sub=5')
-            self.msg.append(DaLeDou.search(r'【巅峰之战】</p>(.*?)。'))
+            self.msg.append(DaLeDou.search(r'【巅峰之战】</p>(.*?)<br />'))
             if '您今天' in html:
                 break
             elif '撒花祝贺' in html:

@@ -26,6 +26,9 @@ class TiGuan(DaLeDou):
             if '您的挑战次数已用光' in html:
                 self.msg.append('您的挑战次数已用光')
                 break
+            elif '您的复活次数已耗尽' in html:
+                self.msg.append('您的复活次数已耗尽')
+                break
 
     def 领奖(self):
         '''周六领奖、报名'''
