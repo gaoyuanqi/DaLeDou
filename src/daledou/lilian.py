@@ -20,9 +20,9 @@ class LiLian(DaLeDou):
                 self.msg.append(DaLeDou.search(r'阅历值：\d+<br />(.*?)<br />'))
                 if '您还没有打到该历练场景' in html:
                     self.msg.append(DaLeDou.search(r'介绍</a><br />(.*?)<br />'))
-                    return
+                    break
                 elif '还不能挑战' in html:
-                    return
+                    break
                 elif '活力不足' in html:
                     return
 

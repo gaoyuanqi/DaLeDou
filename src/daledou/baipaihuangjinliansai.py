@@ -27,26 +27,27 @@ class BangPai(DaLeDou):
         self.msg.append('没有可攻击的敌人')
         return []
 
-    def 帮派黄金联赛(self):
-        # 帮派黄金联赛
-        BangPai.get('cmd=factionleague&op=0')
-        data: bool = DaLeDou.read_yaml('帮派黄金联赛')
-        if '休赛期' in html:
-            self.msg.append('当前处于休赛期，没有可执行的操作')
-            return
-        if '领取奖励' in html:
-            # 领取奖励
-            BangPai.get('cmd=factionleague&op=5')
+    def 领取奖励(self):
+        '''领取轮次奖励'''
+        BangPai.get('cmd=factionleague&op=5')
+        self.msg.append(DaLeDou.search(r'<p>(.*?)<br /><br />'))
+
+    def 领取帮派赛季奖励(self):
+        '''领取帮派赛季奖励'''
+        BangPai.get('cmd=factionleague&op=7')
+        self.msg.append(DaLeDou.search(r'<p>(.*?)<br /><br />'))
+
+    def 参与防守(self):
+        '''参与防守'''
+        if DaLeDou.read_yaml('帮派黄金联赛'):
+            # 参与防守
+            BangPai.get('cmd=factionleague&op=1')
             self.msg.append(DaLeDou.search(r'<p>(.*?)<br /><br />'))
-        if '领取帮派赛季奖励' in html:
-            # 领取帮派赛季奖励
-            BangPai.get('cmd=factionleague&op=7')
-            self.msg.append(DaLeDou.search(r'<p>(.*?)<br /><br />'))
-            if data:
-                # 参与防守
-                BangPai.get('cmd=factionleague&op=1')
-                self.msg.append(DaLeDou.search(r'<p>(.*?)<br /><br />'))
-        if ('参战</a>' in html) and data:
+        else:
+            self.msg.append('你已设置不参与防守')
+
+    def 参战(self):
+        if DaLeDou.read_yaml('帮派黄金联赛'):
             for _, uin in self.get_data():
                 # 攻击
                 BangPai.get(f'cmd=factionleague&op=4&opp_uin={uin}')
@@ -57,8 +58,20 @@ class BangPai(DaLeDou):
                     self.msg.append(DaLeDou.search(r'】<br /><br />(.*?)</p>'))
                     break
                 DaLeDou.search(r'】<br />(.*?)<br />')
+        else:
+            self.msg.append('你没有参与防守，不可参战')
 
     def run(self) -> list:
-        self.帮派黄金联赛()
+        # 帮派黄金联赛
+        BangPai.get('cmd=factionleague&op=0')
+        if '领取奖励' in html:
+            self.领取奖励()
+        elif '领取帮派赛季奖励' in html:
+            self.领取帮派赛季奖励()
+        elif '参与防守' in html:
+            self.参与防守()
+
+        if '参战</a>' in html:
+            self.参战()
 
         return self.msg

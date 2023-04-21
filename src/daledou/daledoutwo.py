@@ -30,7 +30,7 @@ class DaLeDouTwo(DaLeDou):
         if mission := DaLeDou.is_dld():
             for name, bool, path in self.modulepath:
                 if (name in mission) and bool:
-                    if name not in ['背包', '活动']:
+                    if name not in ['镶嵌', '神匠坊', '背包', '活动']:
                         self.msg.append(f'\n【{name}】')
                     environ['DLD_MISSIONS'] = name
                     self.msg += DaLeDou.load_object(f'{self.path}{path}')
