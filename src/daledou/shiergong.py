@@ -14,9 +14,9 @@ class ShiErGong(DaLeDou):
 
     def run(self) -> list:
         '''请猴王扫荡'''
-        if data := DaLeDou.read_yaml('十二宫'):
+        if yaml := DaLeDou.read_yaml('十二宫'):
             # 请猴王扫荡
-            ShiErGong.get(f'cmd=zodiacdungeon&op=autofight&scene_id={data}')
+            ShiErGong.get(f'cmd=zodiacdungeon&op=autofight&scene_id={yaml}')
             if msg := DaLeDou.search(r'<br />(.*?)<br /><br /></p>'):
                 # 要么 扫荡
                 self.msg.append(msg.split('<br />')[-1])

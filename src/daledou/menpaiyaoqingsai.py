@@ -27,9 +27,10 @@ class MenPai(DaLeDou):
             self.msg.append(DaLeDou.search(r'规则</a><br />(.*?)<br />'))
 
     def 兑换(self):
-        if t := DaLeDou.read_yaml('门派邀请赛'):
+        if yaml := DaLeDou.read_yaml('门派邀请赛'):
             # 兑换10个
-            MenPai.get(f'cmd=exchange&subtype=2&type={t}&times=10&costtype=11')
+            MenPai.get(
+                f'cmd=exchange&subtype=2&type={yaml}&times=10&costtype=11')
             self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
 
     def run(self) -> list:

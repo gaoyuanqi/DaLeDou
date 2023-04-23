@@ -16,9 +16,12 @@ class WuLin(DaLeDou):
         '''周三、五、日领取排行奖励和竞猜奖励'''
         # 武林盟主
         WuLin.get('cmd=wlmz&op=view_index')
-        for s, r in DaLeDou.findall(r'section_id=(\d+)&amp;round_id=(\d+)">'):
-            WuLin.get(f'cmd=wlmz&op=get_award&section_id={s}&round_id={r}')
-            self.msg.append(DaLeDou.search(r'【武林盟主】<br /><br />(.*?)</p>'))
+        if data := DaLeDou.findall(r'section_id=(\d+)&amp;round_id=(\d+)">'):
+            for s, r in data:
+                WuLin.get(f'cmd=wlmz&op=get_award&section_id={s}&round_id={r}')
+                self.msg.append(DaLeDou.search(r'【武林盟主】<br /><br />(.*?)</p>'))
+        else:
+            self.msg.append('没有可领取的排行奖励和竞猜奖励')
 
     def 报名(self):
         '''周一、三、五报名比赛
@@ -26,12 +29,12 @@ class WuLin(DaLeDou):
         分站赛报名黄金、白银、青铜，默认报名黄金
         总决赛不需报名
         '''
-        data = DaLeDou.read_yaml('武林盟主')
-        WuLin.get(f'cmd=wlmz&op=signup&ground_id={data}')
-        if '总决赛周不允许报名' in html:
-            self.msg.append(DaLeDou.search(r'战报</a><br />(.*?)<br />'))
-            return
-        self.msg.append(DaLeDou.search(r'赛场】<br />(.*?)<br />'))
+        if yaml := DaLeDou.read_yaml('武林盟主'):
+            WuLin.get(f'cmd=wlmz&op=signup&ground_id={yaml}')
+            if '总决赛周不允许报名' in html:
+                self.msg.append(DaLeDou.search(r'战报</a><br />(.*?)<br />'))
+                return
+            self.msg.append(DaLeDou.search(r'赛场】<br />(.*?)<br />'))
 
     def 竞猜(self):
         '''周二、四、六竞猜'''

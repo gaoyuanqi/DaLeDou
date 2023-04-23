@@ -13,8 +13,8 @@ class HuanJing(DaLeDou):
         html = DaLeDou.get(params)
 
     def run(self) -> list:
-        if data := DaLeDou.read_yaml('幻境'):
-            HuanJing.get(f'cmd=misty&op=start&stage_id={data}')
+        if yaml := DaLeDou.read_yaml('幻境'):
+            HuanJing.get(f'cmd=misty&op=start&stage_id={yaml}')
             for _ in range(5):
                 # 乐斗
                 HuanJing.get(f'cmd=misty&op=fight')

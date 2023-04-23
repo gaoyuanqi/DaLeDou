@@ -28,9 +28,9 @@ class JingJiChang(DaLeDou):
 
     def 兑换(self):
         '''商店兑换材料'''
-        if data := DaLeDou.read_yaml('竞技场'):
+        if yaml := DaLeDou.read_yaml('竞技场'):
             # 兑换10个
-            JingJiChang.get(f'cmd=arena&op=exchange&id={data}&times=10')
+            JingJiChang.get(f'cmd=arena&op=exchange&id={yaml}&times=10')
             self.msg.append(DaLeDou.search(r'竞技场</a><br />(.*?)<br />'))
 
     def run(self) -> list:

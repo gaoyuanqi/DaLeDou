@@ -31,22 +31,20 @@ class ShenJiang(DaLeDou):
                     DaLeDou.search(r'背包<br /></p>(.*?)!')
 
     def 符石分解(self):
-        data_II = []
-        data_all = []
-        for p in range(1, 5):
-            # 下一页
-            ShenJiang.get(f'cmd=weapongod&sub=9&stone_type=0&page={p}')
-            data_II += DaLeDou.findall(r'II \(数量:(\d+)\).*?stone_id=(\d+)')
-            data_all += DaLeDou.findall(r'I \(数量:(\d+)\).*?stone_id=(\d+)')
-            if '下一页' not in html:
-                break
-
-        data_I = set(data_all) - set(data_II)
-        for num, id in data_I:
-            # 分解
-            ShenJiang.get(
-                f'cmd=weapongod&sub=11&stone_id={id}&num={int(num)}&i_p_w=num%7C')
-            DaLeDou.search(r'背包</a><br /></p>(.*?)!')
+        if yaml := DaLeDou.read_yaml('神匠坊'):
+            data = []
+            for p in range(1, 10):
+                # 下一页
+                ShenJiang.get(f'cmd=weapongod&sub=9&stone_type=0&page={p}')
+                data += DaLeDou.findall(r'数量:(\d+).*?stone_id=(\d+)')
+                if '下一页' not in html:
+                    break
+            for num, id in data:
+                if int(id) in yaml:
+                    # 分解
+                    ShenJiang.get(
+                        f'cmd=weapongod&sub=11&stone_id={id}&num={num}&i_p_w=num%7C')
+                    DaLeDou.search(r'背包</a><br /></p>(.*?)<')
 
     def 符石打造(self):
         # 符石
@@ -58,11 +56,11 @@ class ShenJiang(DaLeDou):
             for _ in range(ten):
                 # 打造十次
                 ShenJiang.get('cmd=weapongod&sub=8&produce_type=1&times=10')
-                DaLeDou.search(r'背包</a><br /></p>(.*?)!')
+                DaLeDou.search(r'背包</a><br /></p>(.*?)<')
             for _ in range(one):
                 # 打造一次
                 ShenJiang.get('cmd=weapongod&sub=8&produce_type=1&times=1')
-                DaLeDou.search(r'背包</a><br /></p>(.*?)!')
+                DaLeDou.search(r'背包</a><br /></p>(.*?)<')
 
     def run(self) -> list:
         self.普通合成()

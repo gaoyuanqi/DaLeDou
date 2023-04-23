@@ -13,18 +13,21 @@ class LiLian(DaLeDou):
         html = DaLeDou.get(params)
 
     def 历练(self):
-        for id in DaLeDou.read_yaml('历练'):
-            for _ in range(3):
-                LiLian.get(
-                    f'cmd=mappush&subtype=3&mapid=6&npcid={id}&pageid=2')
-                self.msg.append(DaLeDou.search(r'阅历值：\d+<br />(.*?)<br />'))
-                if '您还没有打到该历练场景' in html:
-                    self.msg.append(DaLeDou.search(r'介绍</a><br />(.*?)<br />'))
-                    break
-                elif '还不能挑战' in html:
-                    break
-                elif '活力不足' in html:
-                    return
+        if yaml := DaLeDou.read_yaml('历练'):
+            for id in yaml:
+                for _ in range(3):
+                    LiLian.get(
+                        f'cmd=mappush&subtype=3&mapid=6&npcid={id}&pageid=2')
+                    self.msg.append(DaLeDou.search(
+                        r'阅历值：\d+<br />(.*?)<br />'))
+                    if '您还没有打到该历练场景' in html:
+                        self.msg.append(DaLeDou.search(
+                            r'介绍</a><br />(.*?)<br />'))
+                        break
+                    elif '还不能挑战' in html:
+                        break
+                    elif '活力不足' in html:
+                        return
 
     def run(self) -> list:
         self.历练()

@@ -52,7 +52,7 @@ pip3 install -r requirements.txt
 pipenv install
 ```
 
-**2、立即运行指定轮次脚本**
+**2、手动运行指定轮次脚本**
 
 ```sh
 python local.py
@@ -115,7 +115,7 @@ docker logs daledou
 2023-04-13 19:15:04.029 | SUCCESS  | src.daledou.daledou:main:91 -    xxx：将在 13:01 和 20:01 定时运行...
 ```
 
-**7、立即运行指定轮次脚本**
+**7、手动运行指定轮次脚本**
 
 ```sh
 docker exec -it daledou pipenv run python local.py
@@ -137,6 +137,8 @@ docker restart daledou
 
 当你前面运行脚本后，会自动为当前有效cookie在 `./config` 目录下创建以 `QQ` 命名的yaml文件，比如 `123456.yaml`，其内容与 `daledou.yaml` 完全一致
 
+如果 `123456.yaml` 文件已存在则不做任何操作，这意味着当 `daledou.yaml` 有变化时，你需要手动更新 `123456.yaml`
+
 你需要为这个 `123456.yaml` 进行配置：
 - `十二宫`: 选择扫荡关卡，默认扫荡 `双鱼宫`
 - `幻境`: 选择场景，默认乐斗 `鹅王的试炼`
@@ -149,3 +151,4 @@ docker restart daledou
 - `帮派商会`: 交易、兑换物品
 - `背包`: 指定物品id将被使用至多70次
 - `活动`: `企鹅吉利兑` 材料兑换
+- `神匠坊`: 用于指定符石分解，默认分解 `I类`

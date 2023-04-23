@@ -59,12 +59,13 @@ class BeiBao(DaLeDou):
                     BeiBao.get(f'cmd=use&id={v}&store_type=0')
                     DaLeDou.search(r'jpg"><br />(.*?)<br />')
 
-        for id in DaLeDou.read_yaml('背包'):
-            for _ in range(70):
-                BeiBao.get(f'cmd=use&id={id}')
-                DaLeDou.search(r'jpg"><br />(.*?)<br />')
-                if '您使用了' not in html:
-                    break
+        if yaml := DaLeDou.read_yaml('背包'):
+            for id in yaml:
+                for _ in range(70):
+                    BeiBao.get(f'cmd=use&id={id}')
+                    DaLeDou.search(r'jpg"><br />(.*?)<br />')
+                    if '您使用了' not in html:
+                        break
 
     def run(self) -> list:
         # self.乐斗助手()
