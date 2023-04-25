@@ -15,17 +15,23 @@ class BaoMing(DaLeDou):
     def 武林大会(self):
         '''武林大会 每天报名'''
         BaoMing.get('cmd=fastSignWulin&ifFirstSign=1')
-        self.msg.append(DaLeDou.search(r'升级。<br />(.*?) '))
+        if '使用规则' in html:
+            self.msg.append(DaLeDou.search(r'】</p><p>(.*?)<br />'))
+        else:
+            self.msg.append(DaLeDou.search(r'升级。<br />(.*?) '))
 
     def 侠侣争霸(self):
         '''侠侣争霸 周二、五、日报名'''
         BaoMing.get('cmd=cfight&subtype=9')
-        self.msg.append(DaLeDou.search(r'报名状态.*?<br />(.*?)<br /></br>'))
+        if '使用规则' in html:
+            self.msg.append(DaLeDou.search(r'】</p><p>(.*?)<br />'))
+        else:
+            self.msg.append(DaLeDou.search(r'报名状态.*?<br />(.*?)<br />'))
 
     def 笑傲群侠(self):
         '''笑傲群侠 周六、日报名'''
         BaoMing.get('cmd=knightfight&op=signup')
-        self.msg.append(DaLeDou.search(r'级<br />(.*?)<br />'))
+        self.msg.append(DaLeDou.search(r'侠士侠号.*?<br />(.*?)<br />'))
 
     def run(self) -> list:
         self.武林大会()

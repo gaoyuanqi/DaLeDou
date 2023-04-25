@@ -16,7 +16,7 @@ class DaLeDouOne(DaLeDou):
             ['报名', True, 'baoming.BaoMing'],
             ['巅峰之战进行中', True, 'dianfengzhizhan.DianFeng'],
             ['矿洞', True, 'kuangdong.KuangDong'],
-            ['掠夺', (self.week == '3'), 'lueduo.LueDuo'],
+            ['掠夺', (self.week in ['2', '3']), 'lueduo.LueDuo'],
             ['踢馆', (self.week in ['5', '6']), 'tiguan.TiGuan'],
             ['竞技场', (int(self.date) <= 25), 'jingjichang.JingJiChang'],
             ['十二宫', True, 'shiergong.ShiErGong'],
