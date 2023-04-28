@@ -4,7 +4,7 @@ from importlib import reload
 from loguru import logger
 
 import settings
-from src.daledou.daledou import InitDaLeDou
+from src.daledou.daledou import InitDaLeDou, DaLeDouOne, DaLeDouTwo
 
 
 def main():
@@ -18,10 +18,8 @@ def main():
     for ck in settings.DALEDOU_ACCOUNT:
         if trace := InitDaLeDou(ck).main():
             if lunci == '1':
-                from src.daledou.daledouone import DaLeDouOne
                 DaLeDouOne().main('第一轮')
             elif lunci == '2':
-                from src.daledou.daledoutwo import DaLeDouTwo
                 DaLeDouTwo().main('第二轮')
             logger.remove(trace)
 

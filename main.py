@@ -6,7 +6,7 @@ from loguru import logger
 from schedule import every, repeat, run_pending
 
 import settings
-from src.daledou.daledou import InitDaLeDou
+from src.daledou.daledou import InitDaLeDou, DaLeDouOne, DaLeDouTwo
 
 
 def run(job: str):
@@ -17,10 +17,8 @@ def run(job: str):
             if job == 'timing':
                 ...
             elif job == 'one':
-                from src.daledou.daledouone import DaLeDouOne
                 DaLeDouOne().main('第一轮')
             elif job == 'two':
-                from src.daledou.daledoutwo import DaLeDouTwo
                 DaLeDouTwo().main('第二轮')
             logger.remove(trace)
 

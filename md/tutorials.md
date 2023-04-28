@@ -135,7 +135,7 @@ docker restart daledou
 
 考虑到每位玩家的战力存在差别，有些任务高战力能过关，而低战力不能，因此创建yaml文件来为每个账号自定义配置
 
-当你前面运行脚本后，会自动为当前有效cookie在 `./config` 目录下创建以 `QQ` 命名的yaml文件，比如 `123456.yaml`，其内容与 `daledou.yaml` 完全一致
+当你前面运行脚本后（`local.py`、`main.py` 之一），会自动为当前有效cookie在 `./config` 目录下创建以 `QQ` 命名的yaml文件，比如 `123456.yaml`，其内容与 `daledou.yaml` 完全一致
 
 如果 `123456.yaml` 文件已存在则不做任何操作，这意味着当 `daledou.yaml` 有变化时，你需要手动更新 `123456.yaml`
 
