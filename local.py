@@ -4,7 +4,7 @@ from importlib import reload
 from loguru import logger
 
 import settings
-from src.daledou.daledou import InitDaLeDou, DaLeDouOne, DaLeDouTwo
+from src.daledou.daledou import DaLeDouInit, DaLeDouOne, DaLeDouTwo
 
 
 def main():
@@ -16,7 +16,7 @@ def main():
     reload(settings)
     environ['PUSHPLUS_TOKEN'] = settings.PUSHPLUS_TOKEN
     for ck in settings.DALEDOU_ACCOUNT:
-        if trace := InitDaLeDou(ck).main():
+        if trace := DaLeDouInit(ck).main():
             if lunci == '1':
                 DaLeDouOne().main('第一轮')
             elif lunci == '2':

@@ -6,14 +6,14 @@ from loguru import logger
 from schedule import every, repeat, run_pending
 
 import settings
-from src.daledou.daledou import InitDaLeDou, DaLeDouOne, DaLeDouTwo
+from src.daledou.daledou import DaLeDouInit, DaLeDouOne, DaLeDouTwo
 
 
 def run(job: str):
     reload(settings)
     environ['PUSHPLUS_TOKEN'] = settings.PUSHPLUS_TOKEN
     for ck in settings.DALEDOU_ACCOUNT:
-        if trace := InitDaLeDou(ck).main():
+        if trace := DaLeDouInit(ck).main():
             if job == 'timing':
                 ...
             elif job == 'one':

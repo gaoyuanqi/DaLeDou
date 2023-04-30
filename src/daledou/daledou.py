@@ -18,7 +18,7 @@ class CookieError(Exception):
     ...
 
 
-class InitDaLeDou:
+class DaLeDouInit:
     def __init__(self, cookie: str) -> None:
         self.cookie = cookie
 
@@ -53,14 +53,12 @@ class InitDaLeDou:
         for _ in range(3):
             res = requests.get(url=url, headers=headers)
             res.encoding = 'utf-8'
-            html = res.text
-            if '商店' in html:
+            if '商店' in res.text:
                 return True
 
     @staticmethod
     def copy_yaml(qq: str):
-        '''从 daledou.yaml 复制一份并命名为 qq.yaml 文件
-        '''
+        '''从 daledou.yaml 复制一份并命名为 qq.yaml 文件'''
         srcpath = f'{YAML_PATH}/daledou.yaml'
         yamlpath = f'{YAML_PATH}/{qq}.yaml'
         if not path.isfile(yamlpath):
@@ -85,11 +83,11 @@ class InitDaLeDou:
         environ['QQ'] = qq
         if self.verify_cookie(cookie):
             environ['COOKIE'] = cookie
-            InitDaLeDou.copy_yaml(qq)
+            DaLeDouInit.copy_yaml(qq)
             if cookie != getenv(f'YOUXIAO_{qq}'):
                 environ[f'YOUXIAO_{qq}'] = cookie
                 logger.success(f'   {getenv("QQ")}：将在 13:01 和 20:01 定时运行...')
-            return InitDaLeDou.create_log()
+            return DaLeDouInit.create_log()
 
         if cookie != getenv(f'SHIXIAO_{qq}'):
             environ[f'SHIXIAO_{qq}'] = cookie
@@ -101,7 +99,6 @@ class DaLeDou:
     def __init__(self) -> None:
         self.msg: list = []
         self.date: str = time.strftime('%d', time.localtime())
-        self.times: str = time.strftime('%H%M')
         self.week: str = time.strftime('%w')
         self.path = 'src.daledou.'
 
@@ -148,8 +145,7 @@ class DaLeDou:
     @staticmethod
     def search(mode: str) -> str:
         '''查找首个'''
-        match = re.search(mode, html, re.S)
-        if match:
+        if match := re.search(mode, html, re.S):
             result = match.group(1)
             logger.info(f'{getenv("QQ")} | {getenv("DLD_MISSIONS")}：{result}')
             return result

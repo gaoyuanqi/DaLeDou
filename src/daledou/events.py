@@ -511,6 +511,15 @@ class EventsOne(DaLeDou):
         EventsOne.get('cmd=newAct&subtype=101&op=2&index=0')
         self.msg.append(DaLeDou.search(r'】</p>(.*?)<br />'))
 
+    def 五一礼包(self):
+        for id in range(3):
+            EventsOne.get(f'cmd=newAct&subtype=113&op=1&id={id}')
+            if '【劳动节礼包】' in html:
+                mode = r'】<br /><br />(.*?)</p>'
+            else:
+                mode = r'】<br /><br />(.*?)<br />'
+        self.msg.append(DaLeDou.search(mode))
+
     def run(self) -> list:
         # 首页
         EventsOne.get('cmd=index')
@@ -562,6 +571,7 @@ class EventsOne(DaLeDou):
             '乐斗回忆录',
             '新春礼包',
             '元宵节',
+            '5.1礼包',
         }
 
         if self.week == '4':
