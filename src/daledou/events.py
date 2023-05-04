@@ -518,7 +518,7 @@ class EventsOne(DaLeDou):
                 mode = r'】<br /><br />(.*?)</p>'
             else:
                 mode = r'】<br /><br />(.*?)<br />'
-        self.msg.append(DaLeDou.search(mode))
+            self.msg.append(DaLeDou.search(mode))
 
     def run(self) -> list:
         # 首页
@@ -527,61 +527,61 @@ class EventsOne(DaLeDou):
 
         # 每天要执行的任务
         daily_func_name = {
-            '神魔转盘',
-            '乐斗驿站',
-            '开心娃娃机',
-            '好礼步步升',
-            '浩劫宝箱',
-            '幸运金蛋',
-            '幸运转盘',
-            '惊喜刮刮卡',
-            '甜蜜夫妻',
-            '乐斗菜单',
-            '客栈同福',
-            '周周礼包',
-            '登录有礼',
-            '活跃礼包',
-            '猜单双',
-            '上香活动',
-            '徽章战令',
-            '生肖福卡',
-            '长安盛会',
-            '深渊秘宝',
-            '中秋礼盒',
-            '企鹅吉利兑',
-            '乐斗游记',
-            '万圣节',
-            '双节签到',
-            '乐斗大笨钟',
-            '新春拜年',
-            '新春登录礼',
-            '喜从天降',
-            '春联大赛',
-            '年兽大作战',
-            '冰雪企缘',
-            '煮元宵',
+            '神魔转盘': '神魔转盘',
+            '乐斗驿站': '乐斗驿站',
+            '开心娃娃机': '开心娃娃机',
+            '好礼步步升': '好礼步步升',
+            '浩劫宝箱': '浩劫宝箱',
+            '幸运金蛋': '幸运金蛋',
+            '幸运转盘': '幸运转盘',
+            '惊喜刮刮卡': '惊喜刮刮卡',
+            '甜蜜夫妻': '甜蜜夫妻',
+            '乐斗菜单': '乐斗菜单',
+            '客栈同福': '客栈同福',
+            '周周礼包': '周周礼包',
+            '登录有礼': '登录有礼',
+            '活跃礼包': '活跃礼包',
+            '猜单双': '猜单双',
+            '上香活动': '上香活动',
+            '徽章战令': '徽章战令',
+            '生肖福卡': '生肖福卡',
+            '长安盛会': '长安盛会',
+            '深渊秘宝': '深渊秘宝',
+            '中秋礼盒': '中秋礼盒',
+            '企鹅吉利兑': '企鹅吉利兑',
+            '乐斗游记': '乐斗游记',
+            '万圣节': '万圣节',
+            '双节签到': '双节签到',
+            '乐斗大笨钟': '乐斗大笨钟',
+            '新春拜年': '新春拜年',
+            '新春登录礼': '新春登录礼',
+            '喜从天降': '喜从天降',
+            '春联大赛': '春联大赛',
+            '年兽大作战': '年兽大作战',
+            '冰雪企缘': '冰雪企缘',
+            '煮元宵': '煮元宵',
         }
 
         # 周四要执行的任务
         thursday_func_name = {
-            '登录商店',
-            '盛世巡礼',
-            '十二周年生日祝福',
-            '圣诞有礼',
-            '乐斗回忆录',
-            '新春礼包',
-            '元宵节',
-            '5.1礼包',
+            '登录商店': '登录商店',
+            '盛世巡礼': '盛世巡礼',
+            '十二周年生日祝福': '十二周年生日祝福',
+            '圣诞有礼': '圣诞有礼',
+            '乐斗回忆录': '乐斗回忆录',
+            '新春礼包': '新春礼包',
+            '元宵节': '元宵节',
+            '5.1礼包': '五一礼包',
         }
 
         if self.week == '4':
-            func_name: set = daily_func_name | thursday_func_name
+            func_name = daily_func_name | thursday_func_name
         else:
-            func_name: set = daily_func_name
+            func_name = daily_func_name
 
-        for func in func_name:
-            if func in events_missions:
-                self.msg.append(f'\n【{func}】')
+        for missions, func in func_name.items():
+            if missions in events_missions:
+                self.msg.append(f'\n【{missions}】')
                 getattr(self, func)()
 
         return self.msg
@@ -625,14 +625,14 @@ class EventsTwo(DaLeDou):
         events_missions = html
 
         func_name = {
-            '幸运金蛋',
-            '乐斗大笨钟',
-            '新春拜年',
+            '幸运金蛋': "幸运金蛋",
+            '乐斗大笨钟': '乐斗大笨钟',
+            '新春拜年': '新春拜年',
         }
 
-        for func in func_name:
-            if func in events_missions:
-                self.msg.append(f'\n【{func}】')
+        for missions, func in func_name.items():
+            if missions in events_missions:
+                self.msg.append(f'\n【{missions}】')
                 getattr(self, func)()
 
         return self.msg
