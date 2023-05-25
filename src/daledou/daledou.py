@@ -110,10 +110,14 @@ class DaLeDou:
             'Cookie': getenv('COOKIE'),
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
         }
-        res = requests.get(url, headers=headers)
-        res.encoding = 'utf-8'
-        html = res.text
-        time.sleep(0.2)
+        for _ in range(3):
+            res = requests.get(url, headers=headers)
+            res.encoding = 'utf-8'
+            html = res.text
+            time.sleep(0.2)
+            if '系统繁忙' not in html:
+                break
+
         return html
 
     @staticmethod

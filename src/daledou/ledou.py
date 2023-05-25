@@ -84,6 +84,6 @@ class LeDou(DaLeDou):
         self.好友大侠()
         self.帮友大侠()
         self.侠侣()
-        self.好友()
+        # self.好友()
 
         return self.msg

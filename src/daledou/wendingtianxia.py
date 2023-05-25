@@ -20,7 +20,7 @@ class WenDingOne(DaLeDou):
     def 攻占(self):
         '''周一~周五攻占东海倒数第一个
 
-        至多攻占3次，直到大获全胜结束攻占
+        至多攻占2次，直到大获全胜结束攻占
         '''
         # 问鼎天下
         WenDingOne.get('cmd=tbattle')
@@ -33,7 +33,7 @@ class WenDingOne(DaLeDou):
             WenDingOne.get('cmd=tbattle&op=abandon')
             self.msg.append(DaLeDou.search(r'规则</a><br />(.*?)<br />'))
 
-        for _ in range(3):
+        for _ in range(2):
             # 1东海 2南荒   3西泽   4北寒
             WenDingOne.get(f'cmd=tbattle&op=showregion&region=1')
             # 攻占 倒数第一个

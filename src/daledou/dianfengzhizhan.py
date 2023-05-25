@@ -16,7 +16,7 @@ class DianFeng(DaLeDou):
         '''周一报名、领奖'''
         for c in ['cmd=gvg&sub=4&group=0&check=1', 'cmd=gvg&sub=1']:
             DianFeng.get(c)
-            self.msg.append(DaLeDou.search(r'【巅峰之战】</p>(.*?)。'))
+            self.msg.append(DaLeDou.search(r'【巅峰之战】</p>(.*?)<br />'))
 
     def 征战(self):
         '''周三、四、五、六、日征战'''
@@ -30,6 +30,9 @@ class DianFeng(DaLeDou):
             # 征战
             DianFeng.get('cmd=gvg&sub=5')
             if '您今天' in html:
+                break
+            elif '请您先报名再挑战' in html:
+                self.msg.append(DaLeDou.search(r'】</p>(.*?)<br />'))
                 break
             elif '撒花祝贺' in html:
                 self.msg.append(DaLeDou.search(r'】</p>(.*?)<br />'))

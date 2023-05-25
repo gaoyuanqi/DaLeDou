@@ -205,17 +205,15 @@ class RenWu(DaLeDou):
         RenWu.get('cmd=intfmerid&sub=1')
         for _ in range(12):
             for id in DaLeDou.findall(r'master_id=(\d+)">传功</a>'):
+                if '关闭' in html:
+                    # 关闭合成两次确认
+                    RenWu.get('cmd=intfmerid&sub=19')
+                # 一键合成
+                RenWu.get('cmd=intfmerid&sub=10&op=4')
+                # 一键拾取
+                RenWu.get('cmd=intfmerid&sub=5')
                 # 传功
                 RenWu.get(f'cmd=intfmerid&sub=2&master_id={id}')
-                if '位置已满' in html:
-                    # 位置已满，请先将收入丹田！
-                    if '关闭' in html:
-                        # 关闭合成两次确认
-                        RenWu.get('cmd=intfmerid&sub=19')
-                    # 一键合成
-                    RenWu.get('cmd=intfmerid&sub=10&op=4')
-                    # 一键拾取
-                    RenWu.get('cmd=intfmerid&sub=5')
 
     def 助阵(self):
         '''
@@ -273,13 +271,13 @@ class RenWu(DaLeDou):
             '强化神装',
             '武器专精',
             '强化铭刻',
-            '增强经脉'
         }
 
         for func in func_name:
             if func in daily_missions:
                 getattr(self, func)()
 
+        self.增强经脉()
         self.助阵()
 
         # 一键完成任务

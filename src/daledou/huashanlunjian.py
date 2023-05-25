@@ -56,6 +56,8 @@ class HuaShan(DaLeDou):
             self.msg.append(DaLeDou.search(r'荣誉兑换</a><br />(.*?)<br />'))
             if '论剑所需门票不足' in html:
                 break
+            elif '请先设置上阵侠士后再开始战斗' in html:
+                break
 
     def 领取奖励(self):
         '''每月26号领取段位奖励'''
