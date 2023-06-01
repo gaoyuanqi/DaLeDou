@@ -222,6 +222,7 @@ class DaLeDouOne(DaLeDou):
             ['帮派祭坛', True, 'baipaijitan.BangPai'],
             ['飞升大作战', True, 'feisheng.FeiSheng'],
             ['深渊之潮', True, 'shenyuanzhichao.ShenYuan'],
+            ['器魂附魔', True, 'qihunfumo.QiHun'],
             ['每日奖励', True, 'meirijiangli.MeiRi'],
             ['今日活跃度', True, 'jinrihuoyuedu.JinRi'],
             ['仙武修真', True, 'xianwuxiuzhen.XianWu'],
