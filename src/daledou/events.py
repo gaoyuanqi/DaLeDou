@@ -1,6 +1,5 @@
-from random import choice, sample
-
 from src.daledou.daledou import DaLeDou
+from random import choice, sample
 
 
 class EventsOne(DaLeDou):
@@ -128,16 +127,18 @@ class EventsOne(DaLeDou):
         self.msg.append(DaLeDou.search(r'~<br /><br />(.*?)<br />活跃度80'))
 
     def 长安盛会(self):
-        for id in ['1', '2']:
-            # 【盛会豪礼】》【签到宝箱】
+        '''
+        1 盛会豪礼点击领取
+        2 签到宝箱点击领取
+        3 点击参与
+        '''
+        # 选择奖励内容 3036黄金卷轴 or 5089黄金卷轴
+        EventsOne.get('cmd=newAct&subtype=118&op=2&select_id=3036')
+        for id in [1, 2, 3, 3, 3]:
             EventsOne.get(f'cmd=newAct&subtype=118&op=1&id={id}')
             self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
-        for _ in range(3):
-            # 点击参与
-            EventsOne.get('cmd=newAct&subtype=118&op=1&id=5')
-            self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
-            if '剩余次数不足' in html:
-                break
+            if '【周年嘉年华】' in html:
+                self.msg.append(DaLeDou.search(r'】<br /><br />(.*?)</p>'))
 
     def 深渊秘宝(self):
         '''
