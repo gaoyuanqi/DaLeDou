@@ -128,17 +128,24 @@ class EventsOne(DaLeDou):
 
     def 长安盛会(self):
         '''
-        1 盛会豪礼点击领取
-        2 签到宝箱点击领取
-        3 点击参与
+        id
+        1           盛会豪礼点击领取
+        2           签到宝箱点击领取
+        3、4、5     点击参与
         '''
-        # 选择奖励内容 3036黄金卷轴 or 5089黄金卷轴
-        EventsOne.get('cmd=newAct&subtype=118&op=2&select_id=3036')
-        for id in [1, 2, 3, 3, 3]:
-            EventsOne.get(f'cmd=newAct&subtype=118&op=1&id={id}')
-            self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
-            if '【周年嘉年华】' in html:
-                self.msg.append(DaLeDou.search(r'】<br /><br />(.*?)</p>'))
+        for _ in range(3):
+            # 长安盛会
+            DaLeDou.get('cmd=newAct&subtype=118&op=0')
+            for id in DaLeDou.findall(r'op=1&amp;id=(\d+)'):
+                if id == 3:
+                    # 选择奖励内容 3036黄金卷轴 or 5089黄金卷轴
+                    EventsOne.get('cmd=newAct&subtype=118&op=2&select_id=3036')
+                EventsOne.get(f'cmd=newAct&subtype=118&op=1&id={id}')
+                if '【周年嘉年华】' in html:
+                    self.msg.append(DaLeDou.search(r'】<br /><br />(.*?)</p>'))
+                    return
+                else:
+                    self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
 
     def 深渊秘宝(self):
         '''
