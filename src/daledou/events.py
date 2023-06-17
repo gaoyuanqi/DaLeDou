@@ -186,7 +186,7 @@ class EventsOne(DaLeDou):
             EventsOne.get(f'cmd=newAct&subtype=150&op=5&itemId={itemId}')
             self.msg.append(DaLeDou.search(r'礼物<br />(.*?)<br />'))
 
-    def 十二周年生日祝福(self):
+    def 周年生日祝福(self):
         for day in range(1, 8):
             EventsOne.get(f'cmd=newAct&subtype=165&op=3&day={day}')
             self.msg.append(DaLeDou.search(r'】<br />(.*?)<br />'))
@@ -574,7 +574,7 @@ class EventsOne(DaLeDou):
         thursday_func_name = {
             '登录商店': '登录商店',
             '盛世巡礼': '盛世巡礼',
-            '十二周年生日祝福': '十二周年生日祝福',
+            '周年生日祝福': '周年生日祝福',
             '圣诞有礼': '圣诞有礼',
             '乐斗回忆录': '乐斗回忆录',
             '新春礼包': '新春礼包',

@@ -29,9 +29,9 @@ def job_timing():
     run('timing')
 
 
-@repeat(every().day.at('13:01'))
+@repeat(every().day.at('13:05'))
 def job_one():
-    # 每天 13:01 运行第一轮
+    # 每天 13:05 运行第一轮
     run('one')
 
 

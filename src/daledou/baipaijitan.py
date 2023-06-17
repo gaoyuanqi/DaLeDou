@@ -12,7 +12,7 @@ class BangPai(DaLeDou):
         global html
         html = DaLeDou.get(params)
 
-    def 帮派祭坛(self):
+    def run(self) -> list:
         # 帮派祭坛
         BangPai.get('cmd=altar')
         for _ in range(30):
@@ -34,11 +34,8 @@ class BangPai(DaLeDou):
             elif '领取奖励' in html:
                 BangPai.get('cmd=altar&op=drawreward')
                 if '当前没有累积奖励可以领取' in html:
-                    self.msg.append(DaLeDou.search(r'兑换</a><br />(.*?)<br />'))
-                else:
                     self.msg.append(DaLeDou.search(r'<br /><br />(.*?)</p>'))
-
-    def run(self) -> list:
-        self.帮派祭坛()
+                else:
+                    self.msg.append(DaLeDou.search(r'兑换</a><br />(.*?)<br />'))
 
         return self.msg

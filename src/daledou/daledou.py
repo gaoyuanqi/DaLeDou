@@ -86,7 +86,7 @@ class DaLeDouInit:
             DaLeDouInit.copy_yaml(qq)
             if cookie != getenv(f'YOUXIAO_{qq}'):
                 environ[f'YOUXIAO_{qq}'] = cookie
-                logger.success(f'   {getenv("QQ")}：将在 13:01 和 20:01 定时运行...')
+                logger.success(f'   {getenv("QQ")}：将在 13:05 和 20:01 定时运行...')
             return DaLeDouInit.create_log()
 
         if cookie != getenv(f'SHIXIAO_{qq}'):
