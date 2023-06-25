@@ -4,10 +4,10 @@ from importlib import reload
 from loguru import logger
 
 import settings
-from src.daledou.daledou import DaLeDouInit, DaLeDouOne, DaLeDouTwo
+from daledou import DaLeDouInit, daledou
 
 
-def main():
+if __name__ == '__main__':
     '''
     1 表示第一轮
     2 表示第二轮
@@ -18,11 +18,7 @@ def main():
     for ck in settings.DALEDOU_ACCOUNT:
         if trace := DaLeDouInit(ck).main():
             if lunci == '1':
-                DaLeDouOne().main('第一轮')
+                daledou('第一轮')
             elif lunci == '2':
-                DaLeDouTwo().main('第二轮')
+                daledou('第二轮')
             logger.remove(trace)
-
-
-if __name__ == '__main__':
-    main()
