@@ -5,5 +5,5 @@ DALEDOU_ACCOUNT = [
     # 'RK=xxx; ptcz=xxx; uin=xxx; skey=xxx',
 ]
 
-# pushplus一对一推送token
+# pushplus公众号一对一推送token
 PUSHPLUS_TOKEN = ''

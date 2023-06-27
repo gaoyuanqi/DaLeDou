@@ -40,7 +40,7 @@ class DaLeDouInit:
         srcpath = f'{YAML_PATH}/daledou.yaml'
         yamlpath = f'{YAML_PATH}/{qq}.yaml'
         if not path.isfile(yamlpath):
-            logger.success(f'脚本创建了一个配置文件：{YAML_PATH}/{qq}.yaml')
+            logger.success(f'成功创建配置文件：{YAML_PATH}/{qq}.yaml')
             copy(srcpath, yamlpath)
 
     @staticmethod
@@ -248,6 +248,7 @@ def daledou(lunci: str):
     elif lunci == '第二轮':
         missions = [
             ['邪神秘宝', True],
+            ['问鼎天下', (WEEK not in ['6', '0'])],
             ['任务派遣中心', True],
             ['侠士客栈', True],
             ['深渊之潮', True],
