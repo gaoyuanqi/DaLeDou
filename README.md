@@ -29,12 +29,12 @@ git clone https://github.com/gaoyuanqi/DaLeDou.git
 pip3 install -r requirements.txt
 ```
 
-4、如果你第一次使用，运行以下命令：
+4、如果你第一次使用，需运行以下命令
 ```sh
 python local.py 0
 ```
 
-输出如下：
+输出如下
 ```sh
 2023-06-24 19:52:51.264 | SUCCESS  | daledou:main:82 -    123456：COOKIE有效
 2023-06-24 19:52:51.264 | SUCCESS  | daledou:copy_yaml:60 - 成功创建配置文件：./config/123456.yaml
@@ -42,12 +42,12 @@ python local.py 0
 
 5、修改创建的 `./config/123456.yaml` 配置文件（大乐斗Cookie有效才会创建）
 
-6、**13:05** 之后运行第一轮：
+6、**13:05** 之后运行第一轮
 ```sh
 python local.py 1
 ```
 
-7、**20:01** 之后运行第二轮：
+7、**20:01** 之后运行第二轮
 ```sh
 python local.py 2
 ```
