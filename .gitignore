@@ -3,3 +3,6 @@ log
 __pycache__
 
 *[0-9].yaml
+
+Pipfile
+Pipfile.lock
