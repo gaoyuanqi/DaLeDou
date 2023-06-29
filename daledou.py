@@ -91,12 +91,12 @@ class DaLeDou:
         return html
 
     @staticmethod
-    def read_yaml(key: str) -> dict:
+    def read_yaml(key: str):
         '''读取 config 目录下的 yaml 配置文件'''
         try:
             with open(f'{YAML_PATH}/{getenv("QQ")}.yaml', 'r', encoding='utf-8') as fp:
-                users: dict = yaml.safe_load(fp)
-                data: dict = users[key]
+                users = yaml.safe_load(fp)
+                data = users[key]
             return data
         except Exception:
             error = traceback.format_exc()
@@ -126,7 +126,7 @@ class DaLeDou:
 
 
 def push(title: str, message: list) -> None:
-    ''' pushplus 微信通知'''
+    '''pushplus 微信通知'''
     if token := getenv('PUSHPLUS_TOKEN'):
         url = 'http://www.pushplus.plus/send/'
         content = '\n'.join(list(filter(lambda x:  x, message)))
@@ -2691,7 +2691,7 @@ def 好礼步步升():
 def 企鹅吉利兑():
     '''企鹅吉利兑
 
-        领取、活动截止日的前一天兑换材料
+        领取、活动截止日的前一天兑换材料（每种至多兑换100次）
     '''
     # 企鹅吉利兑
     D.get('cmd=geelyexchange')
@@ -2705,23 +2705,15 @@ def 企鹅吉利兑():
         # 限时兑换
         date: str = D.findall(r'至\d+月(\d+)日')[0]
         if int(DATE) == int(date) - 1:
-            data: dict = D.read_yaml('活动')
-            duihuan_name: list = data['企鹅吉利兑']
-            for name in duihuan_name:
-                id = D.findall(f'{name}.*?op=ExchangeProps&amp;id=(\d+)')[0]
-                # used/total 0/1
-                used, total = D.findall(f'{name}.*?(\d+)/(\d+)')[0]
-                if used == total:
-                    continue
-                for _ in range(int(total)):
-                    # 兑换
-                    D.get(f'cmd=geelyexchange&op=ExchangeProps&id={id}')
+            for p in D.read_yaml('企鹅吉利兑'):
+                for _ in range(100):
+                    D.get(f'cmd=geelyexchange&op=ExchangeProps&id={p}')
                     if '你的精魄不足，快去完成任务吧~' in html:
                         break
                     elif '该物品已达兑换上限~' in html:
                         break
                     MSG.append(D.search(r'】<br /><br />(.*?)<br />'))
-                if D.findall(r'当前精魄：(\d+)')[0] == '0':
+                if '当前精魄：0' in html:
                     break
     except Exception:
         ...
