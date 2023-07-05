@@ -1557,7 +1557,7 @@ def 任务():
     # 日常任务
     D.get('cmd=task&sub=1')
     daily_missions = html
-    if '徽章进阶' in daily_missions:
+    if '查看好友资料' in daily_missions:
         查看好友资料()
     if '徽章进阶' in daily_missions:
         徽章进阶()
