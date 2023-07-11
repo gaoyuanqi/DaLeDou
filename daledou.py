@@ -14,18 +14,42 @@ from loguru import logger
 YAML_PATH = './config'
 
 
+class CookieError(Exception):
+    ...
+
+
 class DaLeDouInit:
     def __init__(self, cookie: str) -> None:
         self.cookie = cookie
 
-    def verify_cookie(self):
+    @staticmethod
+    def clean_cookie(cookie) -> str:
+        '''清洁大乐斗cookie
+
+        :return: 'RK=xxx; ptcz=xxx; uin=xxx; skey=xxx'
+        '''
+        ck = ''
+        for key in ['RK', 'ptcz', 'uin', 'skey']:
+            try:
+                result = re.search(
+                    f'{key}=(.*?); ',
+                    f'{cookie}; ',
+                    re.S
+                ).group(0)
+            except AttributeError:
+                raise CookieError(f'大乐斗cookie不正确：{cookie}')
+            ck += f'{result}'
+        return ck[:-2]
+
+    @staticmethod
+    def verify_cookie(cookie: str):
         '''验证cookie是否有效（至多重试3次）
 
         :return: str | None
         '''
         url = 'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index'
         headers = {
-            'Cookie': self.cookie,
+            'Cookie': cookie,
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
         }
         for _ in range(3):
@@ -44,11 +68,11 @@ class DaLeDouInit:
             copy(srcpath, yamlpath)
 
     @staticmethod
-    def create_log() -> int:
+    def create_log(qq: str) -> int:
         '''创建当天日志文件'''
         date = time.strftime("%Y-%m-%d", time.localtime())
         return logger.add(
-            f'./log/{getenv("QQ")}/{date}.log',
+            f'./log/{qq}/{date}.log',
             format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <4}</level> | <level>{message}</level>',
             enqueue=True,
             encoding='utf-8',
@@ -56,20 +80,21 @@ class DaLeDouInit:
         )
 
     def main(self):
-        qq = re.search(r'uin=o(\d+); ', self.cookie, re.S).group(1)
-        environ['QQ'] = qq
-        if self.verify_cookie():
-            environ['COOKIE'] = self.cookie
-            if self.cookie != getenv(f'YOUXIAO_{qq}'):
-                environ[f'YOUXIAO_{qq}'] = self.cookie
-                logger.success(f'   {getenv("QQ")}：COOKIE有效')
+        cookie = DaLeDouInit.clean_cookie(self.cookie)
+        qq = re.search(r'uin=o(\d+); ', cookie, re.S).group(1)
+        if DaLeDouInit.verify_cookie(cookie):
+            environ['QQ'] = qq
+            environ['DLD_COOKIE'] = cookie
+            logger.success(f'   {qq}：COOKIE有效')
+            if cookie != getenv(f'DLD_COOKIE_VALID_{qq}'):
+                environ[f'DLD_COOKIE_VALID_{qq}'] = cookie
                 DaLeDouInit.copy_yaml(qq)
-            return DaLeDouInit.create_log()
+            return DaLeDouInit.create_log(qq)
 
-        if self.cookie != getenv(f'WUXIAO_{qq}'):
-            environ[f'WUXIAO_{qq}'] = self.cookie
-            logger.warning(f'   {getenv("QQ")}无效：COOKIE无效')
-            push(f'cookie失效：{qq} ', [f'{self.cookie}'])
+        logger.warning(f'   {qq}：COOKIE无效！！!')
+        if cookie != getenv(f'DLD_COOKIE_NULL_{qq}'):
+            environ[f'DLD_COOKIE_NULL_{qq}'] = cookie
+            push(f'cookie失效：{qq} ', [f'{cookie}'])
 
 
 class DaLeDou:
@@ -78,7 +103,7 @@ class DaLeDou:
         global html
         url = f'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?{params}'
         headers = {
-            'Cookie': getenv('COOKIE'),
+            'Cookie': getenv('DLD_COOKIE'),
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
         }
         for _ in range(3):
