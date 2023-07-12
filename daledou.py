@@ -2006,7 +2006,7 @@ def 背包():
             for _ in range(int(number)):
                 # 使用
                 D.get(f'cmd=use&id={id}&store_type=2&page=1')
-                D.search(r'jpg"><br />(.*?)<br />')
+                D.search(r'<br />(.*?)<br />斗豆')
 
     # 属性
     D.get('cmd=store&store_type=2&page=1')
@@ -2014,7 +2014,7 @@ def 背包():
         for _ in range(int(number)):
             # 使用
             D.get(f'cmd=use&id={id}&store_type=2&page=1')
-            D.search(r'jpg"><br />(.*?)<br />')
+            D.search(r'<br />(.*?)<br />斗豆')
 
     if WEEK == '4':
         data = []
@@ -2030,12 +2030,12 @@ def 背包():
             for k, v in data:
                 for _ in range(int(k)):
                     D.get(f'cmd=use&id={v}&store_type=0')
-                    D.search(r'jpg"><br />(.*?)<br />')
+                    D.search(r'<br />(.*?)<br />斗豆')
 
             for id in D.read_yaml('背包'):
                 for _ in range(70):
                     D.get(f'cmd=use&id={id}')
-                    D.search(r'jpg"><br />(.*?)<br />')
+                    D.search(r'<br />(.*?)<br />斗豆')
                     if '您使用了' not in html:
                         break
 
