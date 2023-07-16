@@ -129,12 +129,16 @@ class DaLeDou:
             push(f'{getenv("QQ")}.yaml 异常', [error])
 
     @staticmethod
-    def search(mode: str) -> str:
+    def search(mode: str, name=None):
         '''查找首个'''
         if match := re.search(mode, html, re.S):
             result = match.group(1)
-            logger.info(f'{getenv("QQ")} | {getenv("DLD_MISSIONS")}：{result}')
-            return result
+        else:
+            result = None
+        if name is None:
+            name = getenv("DLD_MISSIONS")
+        logger.info(f'{getenv("QQ")} | {name}：{result}')
+        return result
 
     @staticmethod
     def findall(mode: str) -> list:
@@ -1331,12 +1335,14 @@ def 增强经脉():
             if '关闭' in html:
                 # 关闭合成两次确认
                 D.get('cmd=intfmerid&sub=19')
-            # 一键合成
-            D.get('cmd=intfmerid&sub=10&op=4')
-            # 一键拾取
-            D.get('cmd=intfmerid&sub=5')
-            # 传功
-            D.get(f'cmd=intfmerid&sub=2&master_id={id}')
+            url = [
+                'cmd=intfmerid&sub=10&op=4',   # 一键合成
+                'cmd=intfmerid&sub=5',  # 一键拾取
+                f'cmd=intfmerid&sub=2&master_id={id}'  # 传功
+            ]
+            for u in url:
+                D.get(u)
+                D.search(r'</p>(.*?)<p>', '任务-增强经脉')
 
 
 def 助阵():
@@ -1368,19 +1374,13 @@ def 助阵():
         for dex in dex_list:
             D.get(
                 f'cmd=formation&type=4&formationid={id}&attrindex={dex}&times=1')
+            D.search(r'<br />(.*?)<br />激活所需佣兵', '任务-助阵')
             if n == 2:
                 return
             elif '提升成功' in html:
                 n += 1
-                continue
-            elif '经验值已经达到最大' in html:
-                continue
             elif '阅历不足' in html:
                 return
-            elif '你还没有激活该属性' in html:
-                # 要么 没有激活该属性
-                # 要么 没有该属性
-                break
 
 
 def 查看好友资料():
@@ -1434,6 +1434,7 @@ def 徽章进阶():
         '''
     for id in range(1, 34):
         D.get(f'cmd=achievement&op=upgradelevel&achievement_id={id}&times=1')
+        D.search(r';<br />(.*?)<br />', '任务-徽章进阶')
         if '进阶失败' in html:
             break
         elif '进阶成功' in html:
@@ -1452,6 +1453,7 @@ def 兵法研习():
     '''
     for id in [21001, 2570, 21032, 2544]:
         D.get(f'cmd=brofight&subtype=12&op=practice&baseid={id}')
+        D.search(r'武穆遗书：\d+个<br />(.*?)<br />', '任务-兵法研习')
         if '研习成功' in html:
             break
 
@@ -1464,6 +1466,7 @@ def 挑战陌生人():
     for uin in B_UID[:4]:
         # 乐斗
         D.get(f'cmd=fight&B_UID={uin}&page=1&type=9')
+        D.search(r'删</a><br />(.*?)！', '任务-挑战陌生人')
 
 
 def 强化神装():
@@ -1479,7 +1482,7 @@ def 强化神装():
             # 神饰  4
             # 神履  5
             D.get(f'cmd=outfit&op=1&magic_outfit_id={id}')
-            D.search(r'\|<br />(.*?)<br />')
+            D.search(r'\|<br />(.*?)<br />', '任务-强化神装')
             if '进阶失败' in html:
                 break
             elif '成功' in html:
@@ -1507,7 +1510,7 @@ def 强化神装():
         ]
         for id in magic_skill_id:
             D.get(f'cmd=outfit&op=3&magic_skill_id={id}')
-            D.search(r'</a><br />(.*?)<br />')
+            D.search(r'</a><br />(.*?)<br />', '任务-强化神装')
             if '升级失败' in html:
                 break
 
@@ -1531,17 +1534,22 @@ def 武器专精():
         # 武器专精
         for tid in range(4):
             D.get(f'cmd=weapon_specialize&op=2&type_id={tid}')
-            if '失败' in html:
+            D.search(r'<br />(.*?)<br />', '任务-武器专精')
+            if '升星失败' in html:
                 break
-            elif '成功' in html:
+            elif '升星成功' in html:
                 break
     if 'id=115' in missions:
         # 武器栏
         for sid in range(1000, 1012):
             D.get(f'cmd=weapon_specialize&op=5&storage_id={sid}')
-            if '失败' in html:
+            if '激活' in html:
+                D.search(r'<br /><br />(.*?)<br />', '任务-武器专精')
+                continue
+            D.search(r'<br />(.*?)<br />', '任务-武器专精')
+            if '升星失败' in html:
                 break
-            elif '成功' in html:
+            elif '升星成功' in html:
                 break
 
 
@@ -1565,6 +1573,7 @@ def 强化铭刻():
     for id in range(11):
         D.get(
             f'cmd=inscription&subtype=5&type_id={id}&weapon_idx={idx}&attr_id={id}')
+        D.search(r'<br />(.*?)<br />', '任务-强化铭刻')
         if '升级所需材料不足' in html:
             continue
         else:
