@@ -129,7 +129,7 @@ class DaLeDou:
             push(f'{getenv("QQ")}.yaml 异常', [error])
 
     @staticmethod
-    def search(mode: str, name=None):
+    def search(mode: str, name=None) -> None:
         '''查找首个'''
         if match := re.search(mode, html, re.S):
             result = match.group(1)
@@ -138,7 +138,6 @@ class DaLeDou:
         if name is None:
             name = getenv("DLD_MISSIONS")
         logger.info(f'{getenv("QQ")} | {name}：{result}')
-        return result
 
     @staticmethod
     def findall(mode: str) -> list:
@@ -670,12 +669,12 @@ def 十二宫():
     if yaml := D.read_yaml('十二宫'):
         # 请猴王扫荡
         D.get(f'cmd=zodiacdungeon&op=autofight&scene_id={yaml}')
-        if msg := D.search(r'<br />(.*?)<br /><br /></p>'):
-            # 要么 扫荡
-            MSG.append(msg.split('<br />')[-1])
-        else:
-            # 要么 挑战次数不足 or 当前场景进度不足以使用自动挑战功能！
-            MSG.append(D.search(r'id="id"><p>(.*?)<br />'))
+        if '恭喜你' in html:
+            MSG.append(D.search(r'恭喜你，(.*?)！'))
+        elif '挑战次数不足' in html:
+            MSG.append(D.search(r'<p>(.*?)<br />'))
+        elif '当前场景进度不足以使用自动挑战功能' in html:
+            MSG.append(D.search(r'<p>(.*?)<br />'))
 
 
 def 许愿():
