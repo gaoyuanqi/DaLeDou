@@ -1478,19 +1478,19 @@ def 强化神装():
             # 神兽  3
             # 神饰  4
             # 神履  5
-            # 进阶
             D.get(f'cmd=outfit&op=1&magic_outfit_id={id}')
-            if '失败' in html:
+            D.search(r'\|<br />(.*?)<br />')
+            if '进阶失败' in html:
                 break
             elif '成功' in html:
                 break
     if 'id=117' in missions:
         magic_skill_id = [
-            2643,  # 神武之力
+            2644,  # 武神附体
             2665,  # 断筋
             2675,  # 召唤神兵
             2653,  # 圣盾术
-            2686,  # 荆刺护甲
+            2687,  # 荆刺护甲
             2697,  # 无懈可击
             2782,  # 惩击
             2794,  # 圣洁之躯
@@ -1507,9 +1507,8 @@ def 强化神装():
         ]
         for id in magic_skill_id:
             D.get(f'cmd=outfit&op=3&magic_skill_id={id}')
-            if '失败' in html:
-                break
-            elif '成功' in html:
+            D.search(r'</a><br />(.*?)<br />')
+            if '升级失败' in html:
                 break
 
 
