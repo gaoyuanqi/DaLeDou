@@ -447,7 +447,7 @@ def 乐斗():
     for u in D.findall(r'侠：.*?B_UID=(\d+)'):
         # 乐斗
         D.get(f'cmd=fight&B_UID={u}')
-        D.search(r'删</a><br />(.*?)。')
+        D.search(r'删</a><br />(.*?)，')
         if '体力值不足' in html:
             break
 
@@ -456,7 +456,7 @@ def 乐斗():
     for u in D.findall(r'侠：.*?B_UID=(\d+)'):
         # 乐斗
         D.get(f'cmd=fight&B_UID={u}')
-        D.search(r'侠侣</a><br />(.*?)<br />')
+        D.search(r'侠侣</a><br />(.*?)，')
         if '体力值不足' in html:
             break
 
@@ -466,7 +466,10 @@ def 乐斗():
         for u in D.findall(r'：.*?B_UID=(\d+)')[1:]:
             # 乐斗
             D.get(f'cmd=fight&B_UID={u}')
-            D.search(r'侠侣<br />(.*?)。')
+            if '使用规则' in html:
+                D.search(r'】</p><p>(.*?)<br />')
+            elif '查看乐斗过程' in html:
+                D.search(r'删</a><br />(.*?)！')
             if '体力值不足' in html:
                 break
     except Exception:
