@@ -1130,13 +1130,11 @@ def 任务派遣中心():
     '''
     # 任务派遣中心
     D.get('cmd=missionassign&subtype=0')
-    for id in D.findall(r'0时0分.*?mission_id=(.*?)">查看'):
+    for id in D.findall(r'mission_id=(.*?)">查看'):
         # 领取奖励
         D.get(f'cmd=missionassign&subtype=5&mission_id={id}')
         MSG.append(D.search(r'\[任务派遣中心\](.*?)<br />'))
 
-    # 任务派遣中心
-    D.get('cmd=missionassign&subtype=0')
     # 接受任务
     missions_dict = {
         '少女天团': '2',
@@ -1168,8 +1166,10 @@ def 任务派遣中心():
         '湖边垂钓': '27',
         '勤劳园丁': '29'
     }
+    # 任务派遣中心
+    D.get('cmd=missionassign&subtype=0')
     for _ in range(3):
-        mission_id = D.findall(r'小时.*?mission_id=(.*?)">接受')
+        mission_id = D.findall(r'mission_id=(\d+)">接受')
         for _, id in missions_dict.items():
             if id in mission_id:
                 # 快速委派
@@ -1187,6 +1187,11 @@ def 任务派遣中心():
         elif '50斗豆' not in html:
             # 刷新任务
             D.get('cmd=missionassign&subtype=3')
+
+    # 任务派遣中心
+    D.get('cmd=missionassign&subtype=0')
+    for msg in D.findall(r'<br />(.*?)&nbsp;<a.*?查看'):
+        MSG.append(msg)
 
 
 def 武林盟主():
