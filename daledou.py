@@ -129,7 +129,7 @@ class DaLeDou:
             push(f'{getenv("QQ")}.yaml 异常', [error])
 
     @staticmethod
-    def search(mode: str, name=None) -> None:
+    def search(mode: str, name=None):
         '''查找首个'''
         if match := re.search(mode, html, re.S):
             result = match.group(1)
@@ -138,6 +138,7 @@ class DaLeDou:
         if name is None:
             name = getenv("DLD_MISSIONS")
         logger.info(f'{getenv("QQ")} | {name}：{result}')
+        return result
 
     @staticmethod
     def findall(mode: str) -> list:
@@ -214,7 +215,7 @@ def daledou(lunci: str):
             [True, '武林盟主'],
             [True, '全民乱斗'],
             [True, '侠士客栈'],
-            [True, '江湖长梦'],
+            [(WEEK == '4'), '江湖长梦'],
             [True, '任务'],
             [True, '我的帮派'],
             [True, '帮派祭坛'],
@@ -1280,54 +1281,63 @@ def 江湖长梦():
         每天开启柒承的忙碌日常副本
         周四兑换玄铁令*7
     '''
-    if WEEK == '4':
-        # 【江湖长梦】兑换 玄铁令*10
-        for _ in range(7):
-            # 兑换 玄铁令*1
-            D.get('cmd=longdreamexchange&op=exchange&key_id=5&page=1')
-            # 兑换成功
-            MSG.append(D.search(r'侠士碎片</a><br />(.*?)<br />'))
-            if '该物品兑换次数已达上限' in html:
-                MSG.append('玄铁令兑换次数已达上限')
-                break
-            elif '剩余积分或兑换材料不足' in html:
-                MSG.append('商店剩余积分或兑换材料不足')
-                break
-
-    # 柒承的忙碌日常
-    D.get('cmd=jianghudream&op=showCopyInfo&id=1')
-    # 开启副本
-    D.get('cmd=jianghudream&op=beginInstance&ins_id=1')
-    if '开启副本所需追忆香炉不足' in html:
-        MSG.append(D.search(r'【江湖长梦】<br />(.*?)<br /><a'))
-        return
-    # 进入下一天
-    D.get('cmd=jianghudream&op=goNextDay')
-    if '进入下一天异常' in html:
-        # 开启副本
-        D.get('cmd=jianghudream&op=beginInstance&ins_id=1')
+    # 【江湖长梦】兑换 玄铁令*10
     for _ in range(7):
-        msg1 = D.findall(r'event_id=(\d+)">战斗\(等级1\)')
-        msg2 = D.findall(r'event_id=(\d+)">奇遇\(等级1\)')
-        msg3 = D.findall(r'event_id=(\d+)">商店\(等级1\)')
-        if msg1:  # 战斗
-            D.get(f'cmd=jianghudream&op=chooseEvent&event_id={msg1[0]}')
-            # FIGHT!
-            D.get('cmd=jianghudream&op=doPveFight')
-            if '战败' in html:
-                break
-        elif msg2:  # 奇遇
-            D.get(f'cmd=jianghudream&op=chooseEvent&event_id={msg2[0]}')
-            # 视而不见
-            D.get('cmd=jianghudream&op=chooseAdventure&adventure_id=2')
-        elif msg3:  # 商店
-            D.get(f'cmd=jianghudream&op=chooseEvent&event_id={msg3[0]}')
-        # 进入下一天
-        D.get('cmd=jianghudream&op=goNextDay')
+        # 兑换 玄铁令*1
+        D.get('cmd=longdreamexchange&op=exchange&key_id=5&page=1')
+        # 兑换成功
+        MSG.append(D.search(r'侠士碎片</a><br />(.*?)<br />'))
+        if '该物品兑换次数已达上限' in html:
+            MSG.append('玄铁令兑换次数已达上限')
+            break
+        elif '剩余积分或兑换材料不足' in html:
+            MSG.append('商店剩余积分或兑换材料不足')
+            break
 
-    # 结束回忆
-    D.get('cmd=jianghudream&op=endInstance')
-    MSG.append(D.search(r'【江湖长梦】<br />(.*?)<br /><a'))
+    for id, num in D.read_yaml('江湖长梦'):
+        if id != 1:
+            MSG.append('目前仅支持柒承的忙碌日常')
+            break
+        for _ in range(num):
+            # 柒承的忙碌日常
+            D.get('cmd=jianghudream&op=showCopyInfo&id=1')
+            # 开启副本
+            D.get(f'cmd=jianghudream&op=beginInstance&ins_id={id}')
+            if '开启副本所需追忆香炉不足' in html:
+                MSG.append(D.search(r'【江湖长梦】<br />(.*?)<br /><a'))
+                return
+            # 进入下一天
+            D.get('cmd=jianghudream&op=goNextDay')
+            if '进入下一天异常' in html:
+                # 开启副本
+                D.get(f'cmd=jianghudream&op=beginInstance&ins_id={id}')
+            for _ in range(7):
+                msg1 = D.search(r'event_id=(\d+)">战斗\(等级1\)')
+                msg2 = D.search(r'event_id=(\d+)">奇遇\(等级1\)')
+                msg3 = D.search(r'event_id=(\d+)">商店\(等级1\)')
+                if msg1:
+                    # 战斗
+                    D.get(f'cmd=jianghudream&op=chooseEvent&event_id={msg1}')
+                    # FIGHT!
+                    D.get('cmd=jianghudream&op=doPveFight')
+                    D.search(r'<p>(.*?)<br />')
+                    if '战败' in html:
+                        break
+                elif msg2:
+                    # 奇遇
+                    D.get(f'cmd=jianghudream&op=chooseEvent&event_id={msg2}')
+                    # 视而不见
+                    D.get('cmd=jianghudream&op=chooseAdventure&adventure_id=2')
+                    D.search(r'获得金币：\d+<br />(.*?)<br />')
+                elif msg3:
+                    # 商店
+                    D.get(f'cmd=jianghudream&op=chooseEvent&event_id={msg3}')
+                # 进入下一天
+                D.get('cmd=jianghudream&op=goNextDay')
+
+            # 结束回忆
+            D.get('cmd=jianghudream&op=endInstance')
+            MSG.append(D.search(r'【江湖长梦】<br />(.*?)<br /><a'))
 
 
 def 增强经脉():
