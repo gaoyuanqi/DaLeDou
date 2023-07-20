@@ -391,15 +391,15 @@ def 分享():
         if '结束挑战' in HTML:
             # 结束挑战
             get('cmd=towerfight&type=7')
-            find(r'】<br />(.*?)。<br />')
+            find(r'】<br />(.*?)<br />')
         for _ in range(11):
             # 开始挑战 or 挑战下一层
             get('cmd=towerfight&type=0')
-            find(r'】<br />(.*?)。<br />')
+            find(r'】<br />(.*?)<br />')
             if '您败给' in HTML:
                 # 结束挑战
                 get('cmd=towerfight&type=7')
-                find(r'】<br />(.*?)。<br />')
+                find(r'】<br />(.*?)<br />')
                 break
             elif '请购买' in HTML:
                 break
@@ -536,26 +536,25 @@ def 矿洞():
         副本开启第五层简单
         领取通关奖励
     '''
+    # 矿洞
+    get('cmd=factionmine')
     for _ in range(5):
-        # 矿洞
-        get('cmd=factionmine')
         if '领取奖励' in HTML:
             # 领取奖励
             get('cmd=factionmine&op=reward')
-            MSG.append(find(r'】<br /><br />(.*?)<br /><a'))
+            MSG.append(find(r'】<br /><br />(.*?)<br />'))
         elif '开启副本' in HTML:
             # floor   1、2、3、4、5 对应 第一、二、三、四、五层
             # mode    1、2、3 对应 简单、普通、困难
             # 确认开启
-            get(f'cmd=factionmine&op=start&floor=5&mode=1')
+            get('cmd=factionmine&op=start&floor=5&mode=1')
             MSG.append(find(r'矿石商店</a><br />(.*?)<br />'))
-        elif count := findall(r'剩余次数：(\d+)/3<br />'):
-            if count[0] != '0':
-                # 挑战
-                get('cmd=factionmine&op=fight')
-                MSG.append(find(r'商店</a><br />(.*?)<br />'))
-        else:
-            break
+        elif '副本挑战中' in HTML:
+            # 挑战
+            get('cmd=factionmine&op=fight')
+            MSG.append(find(r'商店</a><br />(.*?)<br />'))
+            if '挑战次数不足' in HTML:
+                break
 
 
 def 掠夺():
@@ -1262,13 +1261,10 @@ def 江湖长梦():
     for _ in range(7):
         # 兑换 玄铁令*1
         get('cmd=longdreamexchange&op=exchange&key_id=5&page=1')
-        # 兑换成功
-        MSG.append(find(r'侠士碎片</a><br />(.*?)<br />'))
-        if '该物品兑换次数已达上限' in HTML:
-            MSG.append('玄铁令兑换次数已达上限')
-            break
-        elif '剩余积分或兑换材料不足' in HTML:
-            MSG.append('商店剩余积分或兑换材料不足')
+        if '兑换成功' in HTML:
+            MSG.append(find(r'侠士碎片</a><br />(.*?)<br />'))
+        elif '【江湖长梦-兑换商店】' in HTML:
+            MSG.append(find(r'】<br />(.*?)<br />'))
             break
 
     for id, num in read_yaml('江湖长梦'):
@@ -1276,39 +1272,38 @@ def 江湖长梦():
             MSG.append('目前仅支持柒承的忙碌日常')
             break
         for _ in range(num):
-            # 柒承的忙碌日常
-            get('cmd=jianghudream&op=showCopyInfo&id=1')
+            get(f'cmd=jianghudream&op=showCopyInfo&id={id}')
             # 开启副本
             get(f'cmd=jianghudream&op=beginInstance&ins_id={id}')
+            MSG.append(find(r'【江湖长梦】<br />(.*?)<br />'))
             if '开启副本所需追忆香炉不足' in HTML:
-                MSG.append(find(r'【江湖长梦】<br />(.*?)<br /><a'))
                 return
+            elif '无法开启副本' in HTML:
+                return
+
             # 进入下一天
             get('cmd=jianghudream&op=goNextDay')
             if '进入下一天异常' in HTML:
                 # 开启副本
                 get(f'cmd=jianghudream&op=beginInstance&ins_id={id}')
             for _ in range(7):
-                msg1 = find(r'event_id=(\d+)">战斗\(等级1\)')
-                msg2 = find(r'event_id=(\d+)">奇遇\(等级1\)')
-                msg3 = find(r'event_id=(\d+)">商店\(等级1\)')
-                if msg1:
+                if msg1 := findall(r'event_id=(\d+)">战斗\(等级1\)'):
                     # 战斗
-                    get(f'cmd=jianghudream&op=chooseEvent&event_id={msg1}')
+                    get(f'cmd=jianghudream&op=chooseEvent&event_id={msg1[0]}')
                     # FIGHT!
                     get('cmd=jianghudream&op=doPveFight')
                     find(r'<p>(.*?)<br />')
                     if '战败' in HTML:
                         break
-                elif msg2:
+                elif msg2 := findall(r'event_id=(\d+)">奇遇\(等级1\)'):
                     # 奇遇
-                    get(f'cmd=jianghudream&op=chooseEvent&event_id={msg2}')
+                    get(f'cmd=jianghudream&op=chooseEvent&event_id={msg2[0]}')
                     # 视而不见
                     get('cmd=jianghudream&op=chooseAdventure&adventure_id=2')
                     find(r'获得金币：\d+<br />(.*?)<br />')
-                elif msg3:
+                elif msg3 := findall(r'event_id=(\d+)">商店\(等级1\)'):
                     # 商店
-                    get(f'cmd=jianghudream&op=chooseEvent&event_id={msg3}')
+                    get(f'cmd=jianghudream&op=chooseEvent&event_id={msg3[0]}')
                 # 进入下一天
                 get('cmd=jianghudream&op=goNextDay')
 
@@ -1700,9 +1695,9 @@ def 帮派祭坛():
         每天转动轮盘至多30次
         领取通关奖励
     '''
+    # 帮派祭坛
+    get('cmd=altar')
     for _ in range(30):
-        # 帮派祭坛
-        get('cmd=altar')
         if '转动轮盘' in HTML:
             get('cmd=altar&op=spinwheel')
             MSG.append(find(r'兑换</a><br />(.*?)<br />'))
@@ -1904,18 +1899,20 @@ def 镶嵌():
         zip('3333333', range(4001, 4062, 10)),  # 魂珠1级
         zip('3333333', range(4002, 4063, 10)),  # 魂珠2级
     ]
-    for iter in data:
-        for k, v in iter:
-            for _ in range(50):
-                if k == '6':
-                    # 魂珠碎片 -> 1
-                    get(
-                        f'cmd=upgradepearl&type={k}&exchangetype={v}')
-                else:
-                    # 1 -> 2 -> 3
-                    get(f'cmd=upgradepearl&type={k}&pearl_id={v}')
-                if '抱歉' in HTML:
-                    find(r'魂珠升级</p><>(.*?)。')
+    for t, id in [(t, id) for iter in data for t, id in iter]:
+        for _ in range(50):
+            if t == '6':
+                # 魂珠碎片 -> 1
+                get(f'cmd=upgradepearl&type={t}&exchangetype={id}')
+                find(r'魂珠升级</p><p>(.*?)</p>')
+                if '不能合成该物品' in HTML:
+                    # 抱歉，您的xx魂珠碎片不足，不能合成该物品！
+                    break
+            else:
+                # 1 -> 2 -> 3
+                get(f'cmd=upgradepearl&type={t}&pearl_id={id}')
+                if '您拥有的魂珠数量不够' in HTML:
+                    find(r'魂珠升级</p><p>(.*?)。')
                     break
                 find(r'魂珠升级</p><p>(.*?)</p>')
 
