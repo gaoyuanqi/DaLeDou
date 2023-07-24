@@ -849,7 +849,10 @@ def 门派邀请赛():
     if WEEK == '1':
         # 组队报名
         get('cmd=secttournament&op=signup')
-        MSG.append(find(r'规则</a><br />(.*?)<br />'))
+        if '已加入到某只队伍中' in HTML:
+            MSG.append(find(r'规则</a><br />(.*?)<br />'))
+        elif '邀请好友' in HTML:
+            MSG.append(find(r'】<br />(.*?)<br />'))
         # 领取奖励
         get('cmd=secttournament&op=getrankandrankingreward')
         MSG.append(find(r'规则</a><br />(.*?)<br />'))
@@ -1707,11 +1710,13 @@ def 帮派祭坛():
             for op, id in findall(r'op=(.*?)&amp;id=(\d+)'):
                 # 偷取|选择帮派
                 get(f'cmd=altar&op={op}&id={id}')
+                if '该帮派已解散' in HTML:
+                    continue
+                elif '系统繁忙！' in HTML:
+                    continue
                 if '选择路线' in HTML:
                     # 选择路线
                     get(f'cmd=altar&op=dosteal&id={id}')
-                    if '该帮派已解散' in HTML:
-                        continue
                 MSG.append(find(r'兑换</a><br />(.*?)<br />'))
                 break
         elif '领取奖励' in HTML:
