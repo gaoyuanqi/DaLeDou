@@ -17,39 +17,45 @@ Python 3.11
 
 ## 快速开始
 
-1、下载脚本
+**1、下载脚本**
 ```sh
 git clone https://github.com/gaoyuanqi/DaLeDou.git
 ```
 
-2、在 `settings.py` 文件中添加大乐斗Cookie、pushplus微信通知
+**2、`settings.py` 配置**
 
-3、安装依赖
+添加大乐斗Cookie、pushplus微信通知
+
+**3、安装依赖**
 ```sh
 pip3 install -r requirements.txt
 ```
 
-4、如果你第一次使用，需运行以下命令
+**4、定时运行**
+
+如果你第一次使用，需运行以下命令
 ```sh
-python local.py 0
+python main.py
 ```
 
-输出如下
+输出如下：
 ```sh
-2023-06-24 19:52:51.264 | SUCCESS  | daledou:main:82 -    123456：COOKIE有效
-2023-06-24 19:52:51.264 | SUCCESS  | daledou:copy_yaml:60 - 成功创建配置文件：./config/123456.yaml
+2023-07-27 20:06:08.602 | SUCCESS  | daledou:main:234 - 123456：COOKIE有效
+2023-07-27 20:06:08.610 | SUCCESS  | daledou:create_yaml:200 - 成功创建配置文件：./config/123456.yaml
 ```
 
-5、修改创建的 `./config/123456.yaml` 配置文件（大乐斗Cookie有效才会创建）
+你需要修改上面创建的 `./config/123456.yaml` 配置文件（大乐斗Cookie有效才会创建）
 
-6、**13:05** 之后运行第一轮
+**5、手动运行指定轮次**
+
+`13:05` 之后运行第一轮：
 ```sh
-python local.py 1
+python main.py one
 ```
 
-7、**20:01** 之后运行第二轮
+`20:01` 之后运行第二轮：
 ```sh
-python local.py 2
+python main.py two
 ```
 
 第一轮和第二轮时间间隔尽量长一些；时间不够优先运行第一轮，第一轮包括了绝大部分任务

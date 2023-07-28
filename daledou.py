@@ -1,155 +1,167 @@
 # -*- coding: utf-8 -*-
 import re
+import sys
 import time
 import random
 import traceback
 from shutil import copy
+from importlib import reload
 from os import environ, path, getenv
 
 import yaml
 import requests
 from loguru import logger
 
+import settings
+
 
 MSG = []
-YAML_PATH = './config'
 WEEK: str = time.strftime('%w')
 DATE: str = time.strftime('%d', time.localtime())
+MISSION = {
+    'one': [
+        [True, '邪神秘宝'],
+        [(int(DATE) <= 26), '华山论剑'],
+        [(DATE == '20'), '每日宝箱'],
+        [True, '分享'],
+        [True, '乐斗'],
+        [True, '报名'],
+        [(WEEK != '2'), '巅峰之战进行中'],
+        [True, '矿洞'],
+        [(WEEK in ['2', '3']), '掠夺'],
+        [(WEEK in ['5', '6']), '踢馆'],
+        [(int(DATE) <= 25), '竞技场'],
+        [True, '十二宫'],
+        [True, '许愿'],
+        [True, '抢地盘'],
+        [True, '历练'],
+        [True, '镖行天下'],
+        [True, '幻境'],
+        [(WEEK == '6'), '群雄逐鹿'],
+        [True, '画卷迷踪'],
+        [True, '门派'],
+        [(WEEK != '2'), '门派邀请赛'],
+        [(WEEK not in ['5', '0']), '会武'],
+        [True, '梦想之旅'],
+        [True, '问鼎天下'],
+        [True, '帮派商会'],
+        [True, '帮派远征军'],
+        [True, '帮派黄金联赛'],
+        [True, '任务派遣中心'],
+        [True, '武林盟主'],
+        [True, '全民乱斗'],
+        [True, '侠士客栈'],
+        [(WEEK == '4'), '江湖长梦'],
+        [True, '任务'],
+        [True, '我的帮派'],
+        [True, '帮派祭坛'],
+        [True, '飞升大作战'],
+        [True, '深渊之潮'],
+        [True, '每日奖励'],
+        [True, '今日活跃度'],
+        [True, '仙武修真'],
+        [(WEEK == '4'), '大侠回归三重好礼'],
+        [True, '乐斗黄历'],
+        [True, '器魂附魔'],
+        [(WEEK == '4'), '镶嵌'],
+        [(WEEK in ['4', '6']), '兵法'],
+        [(WEEK == '4'), '神匠坊'],
+        [True, '背包'],
+        [True, '商店'],
+        [True, '猜单双'],
+        [True, '煮元宵'],
+        [(WEEK == '4'), '元宵节'],
+        [True, '万圣节'],
+        [True, '神魔转盘'],
+        [True, '乐斗驿站'],
+        [True, '浩劫宝箱'],
+        [True, '幸运转盘'],
+        [True, '喜从天降'],
+        [True, '冰雪企缘'],
+        [True, '甜蜜夫妻'],
+        [True, '幸运金蛋'],
+        [True, '乐斗菜单'],
+        [True, '客栈同福'],
+        [True, '周周礼包'],
+        [True, '登录有礼'],
+        [True, '活跃礼包'],
+        [True, '上香活动'],
+        [True, '徽章战令'],
+        [True, '生肖福卡'],
+        [True, '长安盛会'],
+        [True, '深渊秘宝'],
+        [(WEEK == '4'), '登录商店'],
+        [(WEEK == '4'), '盛世巡礼'],
+        [True, '中秋礼盒'],
+        [True, '双节签到'],
+        [(WEEK == '4'), '圣诞有礼'],
+        [(WEEK == '4'), '5.1礼包', '五一礼包'],
+        [(WEEK == '4'), '新春礼包'],
+        [True, '新春拜年'],
+        [True, '春联大赛'],
+        [True, '乐斗游记'],
+        [True, '新春登录礼'],
+        [True, '年兽大作战'],
+        [True, '惊喜刮刮卡'],
+        [True, '开心娃娃机'],
+        [True, '好礼步步升'],
+        [True, '企鹅吉利兑'],
+        [(WEEK == '4'), '乐斗回忆录'],
+        [True, '乐斗大笨钟'],
+        [(WEEK == '4'), '周年生日祝福'],
+    ],
+    'two': [
+        [True, '邪神秘宝'],
+        [(WEEK not in ['6', '0']), '问鼎天下'],
+        [True, '任务派遣中心'],
+        [True, '侠士客栈'],
+        [True, '深渊之潮'],
+        [True, '幸运金蛋'],
+        [True, '新春拜年'],
+        [True, '乐斗大笨钟'],
+    ]
+}
 
-ONE = [
-    [True, '邪神秘宝'],
-    [(int(DATE) <= 26), '华山论剑'],
-    [(DATE == '20'), '每日宝箱'],
-    [True, '分享'],
-    [True, '乐斗'],
-    [True, '报名'],
-    [(WEEK != '2'), '巅峰之战进行中'],
-    [True, '矿洞'],
-    [(WEEK in ['2', '3']), '掠夺'],
-    [(WEEK in ['5', '6']), '踢馆'],
-    [(int(DATE) <= 25), '竞技场'],
-    [True, '十二宫'],
-    [True, '许愿'],
-    [True, '抢地盘'],
-    [True, '历练'],
-    [True, '镖行天下'],
-    [True, '幻境'],
-    [(WEEK == '6'), '群雄逐鹿'],
-    [True, '画卷迷踪'],
-    [True, '门派'],
-    [(WEEK != '2'), '门派邀请赛'],
-    [(WEEK not in ['5', '0']), '会武'],
-    [True, '梦想之旅'],
-    [True, '问鼎天下'],
-    [True, '帮派商会'],
-    [True, '帮派远征军'],
-    [True, '帮派黄金联赛'],
-    [True, '任务派遣中心'],
-    [True, '武林盟主'],
-    [True, '全民乱斗'],
-    [True, '侠士客栈'],
-    [(WEEK == '4'), '江湖长梦'],
-    [True, '任务'],
-    [True, '我的帮派'],
-    [True, '帮派祭坛'],
-    [True, '飞升大作战'],
-    [True, '深渊之潮'],
-    [True, '每日奖励'],
-    [True, '今日活跃度'],
-    [True, '仙武修真'],
-    [(WEEK == '4'), '大侠回归三重好礼'],
-    [True, '乐斗黄历'],
-    [True, '器魂附魔'],
-    [(WEEK == '4'), '镶嵌'],
-    [(WEEK in ['4', '6']), '兵法'],
-    [(WEEK == '4'), '神匠坊'],
-    [True, '背包'],
-    [True, '商店'],
-    [True, '猜单双'],
-    [True, '煮元宵'],
-    [(WEEK == '4'), '元宵节'],
-    [True, '万圣节'],
-    [True, '神魔转盘'],
-    [True, '乐斗驿站'],
-    [True, '浩劫宝箱'],
-    [True, '幸运转盘'],
-    [True, '喜从天降'],
-    [True, '冰雪企缘'],
-    [True, '甜蜜夫妻'],
-    [True, '幸运金蛋'],
-    [True, '乐斗菜单'],
-    [True, '客栈同福'],
-    [True, '周周礼包'],
-    [True, '登录有礼'],
-    [True, '活跃礼包'],
-    [True, '上香活动'],
-    [True, '徽章战令'],
-    [True, '生肖福卡'],
-    [True, '长安盛会'],
-    [True, '深渊秘宝'],
-    [(WEEK == '4'), '登录商店'],
-    [(WEEK == '4'), '盛世巡礼'],
-    [True, '中秋礼盒'],
-    [True, '双节签到'],
-    [(WEEK == '4'), '圣诞有礼'],
-    [(WEEK == '4'), '5.1礼包', '五一礼包'],
-    [(WEEK == '4'), '新春礼包'],
-    [True, '新春拜年'],
-    [True, '春联大赛'],
-    [True, '乐斗游记'],
-    [True, '新春登录礼'],
-    [True, '年兽大作战'],
-    [True, '惊喜刮刮卡'],
-    [True, '开心娃娃机'],
-    [True, '好礼步步升'],
-    [True, '企鹅吉利兑'],
-    [(WEEK == '4'), '乐斗回忆录'],
-    [True, '乐斗大笨钟'],
-    [(WEEK == '4'), '周年生日祝福'],
-]
 
-TWO = [
-    [True, '邪神秘宝'],
-    [(WEEK not in ['6', '0']), '问鼎天下'],
-    [True, '任务派遣中心'],
-    [True, '侠士客栈'],
-    [True, '深渊之潮'],
-    [True, '幸运金蛋'],
-    [True, '新春拜年'],
-    [True, '乐斗大笨钟'],
-]
-
-
-def daledou(lunci: str):
-    global MSG
+def daledou(tasks: str):
+    global MSG, MISSION_NAME
 
     start = time.time()
-    if lunci == '第一轮':
-        missions = ONE
-    elif lunci == '第二轮':
-        missions = TWO
-
     for _ in range(3):
         get('cmd=index')
         if '退出' in HTML:
             html = HTML.split('【退出】')[0]
-            for bool, *data in missions:
-                missions_name = data[0]
-                if bool and (missions_name in html):
-                    if missions_name not in ['乐斗', '历练', '镶嵌', '神匠坊', '背包']:
-                        MSG.append(f'\n【{missions_name}】')
+            for bool, *data in MISSION.get(tasks, []):
+                MISSION_NAME = data[0]
+                if bool and (MISSION_NAME in html):
+                    if MISSION_NAME not in ['乐斗', '历练', '镶嵌', '神匠坊', '背包']:
+                        MSG.append(f'\n【{MISSION_NAME}】')
                     if len(data) == 1:
                         func_name = data[0]
                     elif len(data) == 2:
                         func_name = data[1]
-                    environ['DLD_MISSIONS'] = missions_name
                     globals()[func_name]()
             break
 
     end = time.time()
     MSG.append(f'\n【运行时长】\n时长：{int(end - start)} s')
-    push(f'{QQ} {lunci}', MSG)
+    push(f'{QQ} {tasks}', MSG)
     MSG = []
+
+
+def run(tasks: str = 'check'):
+    global QQ, SESSION
+
+    reload(settings)
+    if len(input := sys.argv) == 2:
+        tasks = input[1]
+    for ck in settings.DALEDOU_ACCOUNT:
+        if data := DaLeDouInit(ck).main():
+            if tasks == 'check':
+                continue
+            QQ, SESSION, trace = data
+            daledou(tasks)
+            logger.remove(trace)
 
 
 class CookieError(Exception):
@@ -182,10 +194,10 @@ class DaLeDouInit:
     @staticmethod
     def create_yaml(qq: str):
         '''从 daledou.yaml 复制一份并命名为 qq.yaml 文件'''
-        srcpath = f'{YAML_PATH}/daledou.yaml'
-        yamlpath = f'{YAML_PATH}/{qq}.yaml'
+        srcpath = f'./config/daledou.yaml'
+        yamlpath = f'./config/{qq}.yaml'
         if not path.isfile(yamlpath):
-            logger.success(f'成功创建配置文件：{YAML_PATH}/{qq}.yaml')
+            logger.success(f'成功创建配置文件：./config/{qq}.yaml')
             copy(srcpath, yamlpath)
 
     @staticmethod
@@ -202,14 +214,13 @@ class DaLeDouInit:
 
     @staticmethod
     def session(cookie: str):
-        global SESSION
         url = 'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index'
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
         }
         with requests.session() as SESSION:
             requests.utils.add_dict_to_cookiejar(
-                SESSION.cookies, {'DLD': cookie})
+                SESSION.cookies, {'Cookie': cookie})
         for _ in range(3):
             res = SESSION.get(url, headers=headers)
             res.encoding = 'utf-8'
@@ -217,25 +228,24 @@ class DaLeDouInit:
                 return SESSION
 
     def main(self):
-        global QQ
         cookie = DaLeDouInit.clean_cookie(self.cookie)
-        QQ = re.search(r'uin=o(\d+); ', cookie, re.S).group(1)
-        if DaLeDouInit.session(cookie):
-            logger.success(f'{QQ}：COOKIE有效')
-            if cookie != getenv(f'DLD_COOKIE_VALID_{QQ}'):
-                environ[f'DLD_COOKIE_VALID_{QQ}'] = cookie
-                DaLeDouInit.create_yaml(QQ)
-            return DaLeDouInit.create_log(QQ)
+        qq = re.search(r'uin=o(\d+); ', cookie, re.S).group(1)
+        if session := DaLeDouInit.session(cookie):
+            logger.success(f'{qq}：COOKIE有效')
+            if cookie != getenv(f'DLD_COOKIE_VALID_{qq}'):
+                environ[f'DLD_COOKIE_VALID_{qq}'] = cookie
+                DaLeDouInit.create_yaml(qq)
+            return qq, session, DaLeDouInit.create_log(qq)
 
-        logger.warning(f'{QQ}：COOKIE无效或者系统维护！！!')
-        if cookie != getenv(f'DLD_COOKIE_NULL_{QQ}'):
-            environ[f'DLD_COOKIE_NULL_{QQ}'] = cookie
-            push(f'cookie失效或者系统维护：{QQ}', [f'{cookie}'])
+        logger.warning(f'{qq}：COOKIE无效或者系统维护！！!')
+        if cookie != getenv(f'DLD_COOKIE_NULL_{qq}'):
+            environ[f'DLD_COOKIE_NULL_{qq}'] = cookie
+            push(f'cookie失效或者系统维护：{qq}', [cookie])
 
 
 def push(title: str, message: list) -> None:
     '''pushplus微信通知'''
-    if token := getenv('PUSHPLUS_TOKEN'):
+    if token := settings.PUSHPLUS_TOKEN:
         url = 'http://www.pushplus.plus/send/'
         content = '\n'.join(list(filter(lambda x:  x, message)))
         data = {
@@ -270,7 +280,7 @@ def get(params: str) -> str:
 def read_yaml(key: str):
     '''读取config目录下的yaml配置文件'''
     try:
-        with open(f'{YAML_PATH}/{QQ}.yaml', 'r', encoding='utf-8') as fp:
+        with open(f'./config/{QQ}.yaml', 'r', encoding='utf-8') as fp:
             users = yaml.safe_load(fp)
             data = users[key]
         return data
@@ -287,7 +297,7 @@ def find(mode: str, name=None):
     else:
         result = None
     if name is None:
-        name = getenv("DLD_MISSIONS")
+        name = MISSION_NAME
     logger.info(f'{QQ} | {name}：{result}')
     return result
 

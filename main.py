@@ -1,32 +1,14 @@
 import time
-from os import environ
-from importlib import reload
 
-from loguru import logger
 from schedule import every, repeat, run_pending
 
-import settings
-from daledou import DaLeDouInit, daledou
-
-
-def run(job: str):
-    reload(settings)
-    environ['PUSHPLUS_TOKEN'] = settings.PUSHPLUS_TOKEN
-    for ck in settings.DALEDOU_ACCOUNT:
-        if trace := DaLeDouInit(ck).main():
-            if job == 'timing':
-                ...
-            elif job == 'one':
-                daledou('第一轮')
-            elif job == 'two':
-                daledou('第二轮')
-            logger.remove(trace)
+from daledou import run
 
 
 @repeat(every(30).minutes)
 def job_timing():
     # 每隔 30 分钟检测cookie有效期
-    run('timing')
+    run('check')
 
 
 @repeat(every().day.at('13:05'))
@@ -42,7 +24,7 @@ def job_two():
 
 
 if __name__ == '__main__':
-    run('timing')
+    run()
     while True:
         run_pending()
         time.sleep(1)
