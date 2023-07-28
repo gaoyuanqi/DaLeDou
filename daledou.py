@@ -152,9 +152,13 @@ def daledou(tasks: str):
 def run(tasks: str = 'check'):
     global QQ, SESSION
 
-    reload(settings)
     if len(input := sys.argv) == 2:
         tasks = input[1]
+
+    if tasks not in ['check', 'one', 'two']:
+        assert False, '只支持 check|one|two 三个参数'
+
+    reload(settings)
     for ck in settings.DALEDOU_ACCOUNT:
         if data := DaLeDouInit(ck).main():
             if tasks == 'check':
@@ -1273,7 +1277,6 @@ def 江湖长梦():
 
         周四兑换玄铁令*7、开启柒承的忙碌日常副本
     '''
-    # 【江湖长梦】兑换 玄铁令*10
     for _ in range(7):
         # 兑换 玄铁令*1
         get('cmd=longdreamexchange&op=exchange&key_id=5&page=1')
@@ -2022,43 +2025,37 @@ def 神匠坊():
 def 背包():
     '''背包
 
-        每天消耗掉锦囊、属性（xx洗刷刷除外）物品
-        周四消耗掉所有带宝箱的物品、yaml文件指定的物品至多消耗掉70次
+        yaml文件指定的物品、所有带宝箱的物品、锦囊、属性（xx洗刷刷除外）被使用至多10次
     '''
-    for t in [2, 5]:
-        # 属性、锦囊
+    data: list = read_yaml('背包')
+    # 背包
+    get('cmd=store&store_type=0')
+    if page := findall(r'第1/(\d+)'):
+        for p in range(1, int(page[0]) + 1):
+            # 下页
+            get(f'cmd=store&store_type=0&page={p}')
+            data += findall(r'宝箱</a>数量：.*?id=(\d+).*?使用')
+
+    # 锦囊、属性
+    for t in [5, 2]:
         get(f'cmd=store&store_type={t}&page=1')
-        for number, id in findall(r'数量：(\d+).*?id=(\d+).*?使用'):
-            if id in ['3023', '3024', '3025', '3103']:
-                # xx洗刷刷
-                continue
-            for _ in range(int(number)):
-                # 使用
-                get(f'cmd=use&id={id}&store_type=2&page=1')
-                find(r'<br />(.*?)<br />斗豆')
+        data += findall(r'数量：.*?id=(\d+).*?使用')
 
-    if WEEK == '4':
-        data = []
-        # 背包
-        get('cmd=store')
-        if page := findall(r'第1/(\d+)'):
-            for p in range(1, int(page[0]) + 1):
-                # 下页
-                get(f'cmd=store&store_type=0&page={p}')
-                data += findall(r'宝箱</a>数量：(\d+).*?id=(\d+).*?使用')
-
+    for id in data:
+        if id in ['3023', '3024', '3025', '3103']:
+            # xx洗刷刷
+            continue
+        for _ in range(10):
             # 使用
-            for k, v in data:
-                for _ in range(int(k)):
-                    get(f'cmd=use&id={v}&store_type=0')
-                    find(r'<br />(.*?)<br />斗豆')
-
-            for id in read_yaml('背包'):
-                for _ in range(70):
-                    get(f'cmd=use&id={id}')
-                    if '您使用了' not in HTML:
-                        break
-                    find(r'<br />(.*?)<br />斗豆')
+            get(f'cmd=use&id={id}')
+            if '您使用了' in HTML:
+                find(r'<br />(.*?)<br />斗豆')
+            elif '你打开' in HTML:
+                find(r'<br />(.*?)<br />斗豆')
+            else:
+                if '使用规则' in HTML:
+                    find(r'】</p><p>(.*?)<br />')
+                break
 
 
 def 商店():
