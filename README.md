@@ -31,9 +31,7 @@ git clone https://github.com/gaoyuanqi/DaLeDou.git
 pip3 install -r requirements.txt
 ```
 
-**4、定时运行**
-
-如果你第一次使用，需运行以下命令
+**4、如果你第一次使用，需运行以下命令**
 ```sh
 python main.py
 ```
@@ -43,6 +41,8 @@ python main.py
 2023-07-27 20:06:08.602 | SUCCESS  | daledou:main:234 - 123456：COOKIE有效
 2023-07-27 20:06:08.610 | SUCCESS  | daledou:create_yaml:200 - 成功创建配置文件：./config/123456.yaml
 ```
+
+此命令会定时运行，默认 `13:05` 运行第一轮、`20:01` 运行第二轮
 
 你需要修改上面创建的 `./config/123456.yaml` 配置文件（大乐斗Cookie有效才会创建）
 
