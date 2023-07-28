@@ -1259,10 +1259,13 @@ def 侠士客栈():
         if '前来捣乱的' in HTML:
             # 前来捣乱的xx -> 与TA理论 -> 确认
             get(f'cmd=warriorinn&op=exceptadventure&pos={p}')
+            if '战斗胜利' in HTML:
+                MSG.append(find(r'侠士客栈<br />(.*?) ，'))
+                continue
+            MSG.append(find(r'侠士客栈<br />(.*?)<br />'))
         else:
             # 黑市商人、老乞丐 -> 你去别人家问问吧、拯救世界的任务还是交给别人把 -> 确认
             get(f'cmd=warriorinn&op=rejectadventure&pos={p}')
-        MSG.append(find(r'侠士客栈<br />(.*?)<br />'))
 
 
 def 江湖长梦():
