@@ -1070,11 +1070,21 @@ def 帮派远征军():
         # 领取奖励
         for id in range(15):
             get(f'cmd=factionarmy&op=getPointAward&point_id={id}')
-            MSG.append(find(r'领取奖励】<br />(.*?)<br />'))
+            if '【帮派远征军】' in HTML:
+                find(r'】<br /><br />(.*?)</p>')
+                if '点尚未攻占下来' in HTML:
+                    break
+            elif '恭喜您' in HTML:
+                MSG.append(find(r'】<br />(.*?)<br />'))
         # 领取岛屿宝箱
         for id in range(5):
             get(f'cmd=factionarmy&op=getIslandAward&island_id={id}')
-            MSG.append(find(r'领取奖励】<br />(.*?)<br />'))
+            if '【帮派远征军】' in HTML:
+                find(r'】<br /><br />(.*?)</p>')
+                if '岛尚未攻占下来' in HTML:
+                    break
+            elif '恭喜您' in HTML:
+                MSG.append(find(r'】<br />(.*?)<br />'))
 
 
 def 帮派黄金联赛():
