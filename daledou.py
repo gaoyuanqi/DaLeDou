@@ -146,7 +146,7 @@ def daledou(tasks: str):
     end = time.time()
     MSG.append(f'\n【运行时长】\n时长：{int(end - start)} s')
     push(f'{QQ} {tasks}', MSG)
-    MSG = []
+    MSG.clear()
 
 
 def run(tasks: str = 'check'):
