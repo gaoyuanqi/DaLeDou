@@ -1273,7 +1273,7 @@ def 侠士客栈():
         if '前来捣乱的' in HTML:
             # 前来捣乱的xx -> 与TA理论 -> 确认
             get(f'cmd=warriorinn&op=exceptadventure&pos={p}')
-            if '战斗胜利' in HTML:
+            if '战斗' in HTML:
                 MSG.append(find(r'侠士客栈<br />(.*?) ，'))
                 continue
             MSG.append(find(r'侠士客栈<br />(.*?)<br />'))
