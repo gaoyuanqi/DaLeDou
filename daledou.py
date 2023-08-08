@@ -106,6 +106,8 @@ MISSION = {
         [True, '开心娃娃机'],
         [True, '好礼步步升'],
         [True, '企鹅吉利兑'],
+        [True, '领取徒弟经验'],
+        [True, '月卡'],
         [(WEEK == '4'), '乐斗回忆录'],
         [True, '乐斗大笨钟'],
         [(WEEK == '4'), '周年生日祝福'],
@@ -295,7 +297,7 @@ def read_yaml(key: str):
 
 
 def find(mode: str, name=None):
-    '''查找首个'''
+    """查找首个"""
     if match := re.search(mode, HTML, re.S):
         result = match.group(1)
     else:
@@ -1908,10 +1910,6 @@ def 乐斗黄历():
 
 
 def 器魂附魔():
-    '''器魂附魔
-
-        每天领取日活跃度达到50、80、110礼包
-    '''
     # 器魂附魔
     get('cmd=enchant')
     for id in range(1, 4):
@@ -2793,6 +2791,13 @@ def 乐斗大笨钟():
     get('cmd=newAct&subtype=18')
     MSG.append(find(r'<br /><br /><br />(.*?)<br />'))
 
+def 领取徒弟经验():
+    get('cmd=exp&B_UID=0&g_ut=1&channel=0')
+    MSG.append(find(r"每日奖励</a><br />(.*?)<br /><br />"))
+
+def 月卡():
+    get('cmd=monthcard&sub=1&g_ut=1&channel=0')
+    MSG.append(find(r'<div id="id"><p>(.*?)<br />'))
 
 def 周年生日祝福():
     '''周年生日祝福
