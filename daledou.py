@@ -534,7 +534,10 @@ def 巅峰之战进行中():
                 MSG.append(find(r'】</p>(.*?)<br />'))
                 break
             elif '撒花祝贺' in HTML:
-                MSG.append(find(r'】</p>(.*?)<br />'))
+                if '战线告急' in HTML:
+                    MSG.append(find(r'支援！<br />(.*?)<br />'))
+                else:
+                    MSG.append(find(r'】</p>(.*?)<br />'))
                 break
 
             if '战线告急' in HTML:
