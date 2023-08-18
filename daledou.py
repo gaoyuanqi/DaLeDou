@@ -2269,11 +2269,15 @@ def 冰雪企缘():
 def 甜蜜夫妻():
     '''甜蜜夫妻
 
-        夫妻好礼或单身好礼领取3次
+        夫妻甜蜜好礼      至多领取3次
+        单身鹅鼓励好礼    至多领取3次
     '''
-    for i in range(1, 4):
+    # 甜蜜夫妻
+    get('cmd=newAct&subtype=129')
+    for i in findall(r'flag=(\d+)'):
         # 领取
         get(f'cmd=newAct&subtype=129&op=1&flag={i}')
+        MSG.append(find(r'】</p>(.*?)<br />'))
 
 
 def 幸运金蛋():
