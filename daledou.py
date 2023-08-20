@@ -380,6 +380,8 @@ def 每日宝箱():
         # 打开
         get(f'cmd=dailychest&op=open&type={type_list[0]}')
         MSG.append(find(r'规则说明</a><br />(.*?)<br />'))
+        if '今日开宝箱次数已达上限' in HTML:
+            break
 
 
 def 分享():
