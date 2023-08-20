@@ -22,6 +22,7 @@ MISSION = {
     'one': [
         [True, '邪神秘宝'],
         [(int(DATE) <= 26), '华山论剑'],
+        [True, '斗豆月卡'],
         [(DATE == '20'), '每日宝箱'],
         [True, '分享'],
         [True, '乐斗'],
@@ -367,6 +368,16 @@ def 华山论剑():
     elif DATE == '26':
         get(r'cmd=knightarena&op=drawranking')
         MSG.append(find(r'【赛季段位奖励】<br />(.*?)<br />'))
+
+
+def 斗豆月卡():
+    '''斗豆月卡
+
+        每天领取150斗豆
+    '''
+    # 领取150斗豆
+    get('cmd=monthcard&sub=1')
+    MSG.append(find(r'<p>(.*?)<br />'))
 
 
 def 每日宝箱():
