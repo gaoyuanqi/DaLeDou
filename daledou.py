@@ -59,6 +59,7 @@ MISSION = {
         [True, '飞升大作战'],
         [True, '深渊之潮'],
         [True, '每日奖励'],
+        [True, '领取徒弟经验'],
         [True, '今日活跃度'],
         [True, '仙武修真'],
         [(WEEK == '4'), '大侠回归三重好礼'],
@@ -1846,6 +1847,16 @@ def 每日奖励():
         # 每日奖励
         get(f'cmd=dailygift&op=draw&key={key}')
         MSG.append(find(r'】<br />(.*?)<br />'))
+
+
+def 领取徒弟经验():
+    '''领取徒弟经验
+
+        每天一次
+    '''
+    # 领取徒弟经验
+    get('cmd=exp')
+    MSG.append(find(r'每日奖励</a><br />(.*?)<br />'))
 
 
 def 今日活跃度():
