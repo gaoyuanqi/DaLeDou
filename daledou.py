@@ -110,6 +110,7 @@ MISSION = {
         [True, '企鹅吉利兑'],
         [(WEEK == '4'), '乐斗回忆录'],
         [True, '乐斗大笨钟'],
+        [(WEEK == '4'), '爱的同心结'],
         [(WEEK == '4'), '周年生日祝福'],
     ],
     'two': [
@@ -2823,6 +2824,27 @@ def 乐斗大笨钟():
     # 领取
     get('cmd=newAct&subtype=18')
     MSG.append(find(r'<br /><br /><br />(.*?)<br />'))
+
+
+def 爱的同心结():
+    '''爱的同心结
+
+        依次兑换礼包5、4、3、2、1
+    '''
+    duihuan = {
+        4016: 20,
+        4015: 16,
+        4014: 10,
+        4013: 4,
+        4012: 2,
+    }
+    for id, count in duihuan.items():
+        for _ in range(count):
+            # 兑换
+            get(f'cmd=loveknot&sub=2&id={id}')
+            MSG.append(find(r'】<br />(.*?)<br />'))
+            if '恭喜您兑换成功' not in HTML:
+                break
 
 
 def 周年生日祝福():
