@@ -22,6 +22,7 @@ MISSION = {
     'one': [
         [True, '邪神秘宝'],
         [(int(DATE) <= 26), '华山论剑'],
+        [True, '斗豆月卡'],
         [(DATE == '20'), '每日宝箱'],
         [True, '分享'],
         [True, '乐斗'],
@@ -58,6 +59,7 @@ MISSION = {
         [True, '飞升大作战'],
         [True, '深渊之潮'],
         [True, '每日奖励'],
+        [True, '领取徒弟经验'],
         [True, '今日活跃度'],
         [True, '仙武修真'],
         [(WEEK == '4'), '大侠回归三重好礼'],
@@ -371,6 +373,16 @@ def 华山论剑():
         MSG.append(find(r'【赛季段位奖励】<br />(.*?)<br />'))
 
 
+def 斗豆月卡():
+    '''斗豆月卡
+
+        每天领取150斗豆
+    '''
+    # 领取150斗豆
+    get('cmd=monthcard&sub=1')
+    MSG.append(find(r'<p>(.*?)<br />'))
+
+
 def 每日宝箱():
     '''每日宝箱
 
@@ -382,6 +394,8 @@ def 每日宝箱():
         # 打开
         get(f'cmd=dailychest&op=open&type={type_list[0]}')
         MSG.append(find(r'规则说明</a><br />(.*?)<br />'))
+        if '今日开宝箱次数已达上限' in HTML:
+            break
 
 
 def 分享():
@@ -536,7 +550,10 @@ def 巅峰之战进行中():
                 MSG.append(find(r'】</p>(.*?)<br />'))
                 break
             elif '撒花祝贺' in HTML:
-                MSG.append(find(r'】</p>(.*?)<br />'))
+                if '战线告急' in HTML:
+                    MSG.append(find(r'支援！<br />(.*?)<br />'))
+                else:
+                    MSG.append(find(r'】</p>(.*?)<br />'))
                 break
 
             if '战线告急' in HTML:
@@ -1834,6 +1851,16 @@ def 每日奖励():
         MSG.append(find(r'】<br />(.*?)<br />'))
 
 
+def 领取徒弟经验():
+    '''领取徒弟经验
+
+        每天一次
+    '''
+    # 领取徒弟经验
+    get('cmd=exp')
+    MSG.append(find(r'每日奖励</a><br />(.*?)<br />'))
+
+
 def 今日活跃度():
     '''今日活跃度
 
@@ -2264,11 +2291,15 @@ def 冰雪企缘():
 def 甜蜜夫妻():
     '''甜蜜夫妻
 
-        夫妻好礼或单身好礼领取3次
+        夫妻甜蜜好礼      至多领取3次
+        单身鹅鼓励好礼    至多领取3次
     '''
-    for i in range(1, 4):
+    # 甜蜜夫妻
+    get('cmd=newAct&subtype=129')
+    for i in findall(r'flag=(\d+)'):
         # 领取
         get(f'cmd=newAct&subtype=129&op=1&flag={i}')
+        MSG.append(find(r'】</p>(.*?)<br />'))
 
 
 def 幸运金蛋():
