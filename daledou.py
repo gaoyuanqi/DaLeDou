@@ -112,6 +112,7 @@ MISSION = {
         [True, '月卡'],
         [(WEEK == '4'), '乐斗回忆录'],
         [True, '乐斗大笨钟'],
+        [(WEEK == '4'), '爱的同心结'],
         [(WEEK == '4'), '周年生日祝福'],
     ],
     'two': [
@@ -2829,6 +2830,27 @@ def 领取徒弟经验():
 def 月卡():
     get('cmd=monthcard&sub=1&g_ut=1&channel=0')
     MSG.append(find(r'<div id="id"><p>(.*?)<br />'))
+
+def 爱的同心结():
+    '''爱的同心结
+
+        依次兑换礼包5、4、3、2、1
+    '''
+    duihuan = {
+        4016: 20,
+        4015: 16,
+        4014: 10,
+        4013: 4,
+        4012: 2,
+    }
+    for id, count in duihuan.items():
+        for _ in range(count):
+            # 兑换
+            get(f'cmd=loveknot&sub=2&id={id}')
+            MSG.append(find(r'】<br />(.*?)<br />'))
+            if '恭喜您兑换成功' not in HTML:
+                break
+
 
 def 周年生日祝福():
     '''周年生日祝福
