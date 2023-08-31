@@ -191,15 +191,16 @@ class DaLeDou:
 
     def session(self):
         '''若cookie有效返回Session对象，否则返回None'''
+        global SESSION
         url = 'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index'
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
         }
-        with requests.session() as session:
+        with requests.session() as SESSION:
             requests.utils.add_dict_to_cookiejar(
-                session.cookies, {'Cookie': self._cookie})
+                SESSION.cookies, {'Cookie': self._cookie})
         for _ in range(3):
-            res = session.get(url, headers=headers)
+            res = SESSION.get(url, headers=headers)
             res.encoding = 'utf-8'
             html = res.text
             if '商店' in html:
@@ -207,7 +208,7 @@ class DaLeDou:
                 if self._cookie != getenv(f'DLD_COOKIE_VALID_{self._qq}'):
                     environ[f'DLD_COOKIE_VALID_{self._qq}'] = self._cookie
                     self._create_yaml()
-                return session
+                return SESSION
             elif '一键登录' in html:
                 logger.warning(f'{self._qq}：COOKIE无效！！!')
                 break
@@ -232,6 +233,7 @@ class DaLeDou:
 
     def get(self, params: str) -> str:
         '''发送get请求获取html响应内容'''
+        global HTML
         url = f'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?{params}'
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
@@ -239,11 +241,11 @@ class DaLeDou:
         for _ in range(3):
             res = SESSION.get(url, headers=headers)
             res.encoding = 'utf-8'
-            html = res.text
+            HTML = res.text
             time.sleep(0.2)
-            if '系统繁忙' not in html:
+            if '系统繁忙' not in HTML:
                 break
-        return html
+        return HTML
 
     def find(self, mode: str, name: str = '') -> str | None:
         '''匹配首个'''
@@ -303,7 +305,6 @@ class DaLeDou:
 
 def get(params: str) -> str:
     '''发送get请求获取html响应内容'''
-    global HTML
     HTML = DALEDOU.get(params)
     return HTML
 
@@ -324,7 +325,7 @@ def read_yaml(key: str):
 
 
 def run(tasks: str = 'check') -> None:
-    global DALEDOU, SESSION
+    global DALEDOU
 
     if len(input := sys.argv) == 2:
         tasks = input[1]
@@ -335,7 +336,7 @@ def run(tasks: str = 'check') -> None:
     for ck in settings.DALEDOU_ACCOUNT:
         print('\n')
         DALEDOU = DaLeDou(ck)
-        if SESSION := DALEDOU.session():
+        if DALEDOU.session():
             if tasks == 'check':
                 continue
             trace = DALEDOU.create_log()
@@ -441,7 +442,7 @@ def 分享():
             MSG.append(find(r'</p><p>(.*?)<br />.*?开通达人', '分享次数'))
             # 自动挑战
             get('cmd=towerfight&type=11')
-            find(r'】<br />(.*?)<br />', '斗神塔')
+            find(r'】<br />(.*?)<', '斗神塔')
             # 结束挑战
             get('cmd=towerfight&type=7')
             find(r'】<br />(.*?)<br />', '斗神塔')
@@ -579,22 +580,21 @@ def 巅峰之战进行中():
         for _ in range(14):
             # 征战
             get('cmd=gvg&sub=5')
-            if '您今天' in HTML:
-                break
-            elif '请您先报名再挑战' in HTML:
-                MSG.append(find(r'】</p>(.*?)<br />'))
-                break
-            elif '撒花祝贺' in HTML:
+            if '你在巅峰之战中' in HTML:
+                if '战线告急' in HTML:
+                    MSG.append(find(r'支援！<br />(.*?)。'))
+                else:
+                    MSG.append(find(r'】</p>(.*?)。'))
+            else:
+                # 冷却时间
+                # 撒花祝贺
+                # 请您先报名再挑战
+                # 您今天已经用完复活次数了
                 if '战线告急' in HTML:
                     MSG.append(find(r'支援！<br />(.*?)<br />'))
                 else:
                     MSG.append(find(r'】</p>(.*?)<br />'))
                 break
-
-            if '战线告急' in HTML:
-                MSG.append(find(r'支援！<br />(.*?)。'))
-            else:
-                MSG.append(find(r'】</p>(.*?)。'))
 
 
 def 矿洞():
@@ -720,6 +720,9 @@ def 十二宫():
         get(f'cmd=zodiacdungeon&op=autofight&scene_id={yaml}')
         if '恭喜你' in HTML:
             MSG.append(find(r'恭喜你，(.*?)！'))
+            return
+        elif '是否复活再战' in HTML:
+            MSG.append(find(r'<br.*>(.*?)，'))
             return
         # 你已经不幸阵亡，请复活再战！
         # 挑战次数不足
@@ -1778,28 +1781,27 @@ def 我的帮派():
 def 帮派祭坛():
     '''帮派祭坛
 
-    每天转动轮盘至多30次
-    领取通关奖励
+    每天转动轮盘至多30次、领取通关奖励
     '''
     # 帮派祭坛
     get('cmd=altar')
     for _ in range(30):
         if '转动轮盘' in HTML:
             get('cmd=altar&op=spinwheel')
-            MSG.append(find(r'兑换</a><br />(.*?)<br />'))
-            if '转转券不足' in HTML:
-                break
+            if '随机分配' not in HTML:
+                MSG.append(find(r'兑换</a><br />(.*?)<br />'))
+                if '转转券不足' in HTML:
+                    break
         elif '随机分配' in HTML:
             for op, id in findall(r'op=(.*?)&amp;id=(\d+)'):
                 # 偷取|选择帮派
                 get(f'cmd=altar&op={op}&id={id}')
-                if '该帮派已解散' in HTML:
-                    continue
-                elif '系统繁忙！' in HTML:
-                    continue
                 if '选择路线' in HTML:
                     # 选择路线
                     get(f'cmd=altar&op=dosteal&id={id}')
+                    if '该帮派已解散' in HTML:
+                        find(r'】<br /><br />(.*?)<br />')
+                        continue
                 MSG.append(find(r'兑换</a><br />(.*?)<br />'))
                 break
         elif '领取奖励' in HTML:
@@ -1902,22 +1904,23 @@ def 领取徒弟经验():
 def 今日活跃度():
     '''今日活跃度
 
-    每天活跃度礼包、帮派总活跃礼包
+    领取每天活跃度礼包、帮派总活跃礼包
     '''
     # 今日活跃度
     get('cmd=liveness')
     MSG.append(find(r'【(.*?)】'))
-    if 'factionop' in HTML:
-        MSG.append(find(r'礼包</a><br />(.*?)<a'))
-    else:
-        MSG.append(find(r'礼包</a><br />(.*?)<br />'))
+    if '帮派总活跃' in HTML:
+        MSG.append(find(r'礼包</a><br />(.*?)<'))
     # 领取今日活跃度礼包
     for id in range(1, 5):
         get(f'cmd=liveness_getgiftbag&giftbagid={id}&action=1')
-        MSG.append(find(r'】<br />(.*?)<p>1.'))
+        MSG.append(find(r'】<br />(.*?)<p>'))
     # 领取帮派总活跃奖励
     get('cmd=factionop&subtype=18')
-    MSG.append(find(r'<br />(.*?)</p><p>你的职位:'))
+    if '创建帮派' in HTML:
+        MSG.append(find(r'帮派</a><br />(.*?)<br />'))
+    else:
+        MSG.append(find(r'<br />(.*?)</p>'))
 
 
 def 仙武修真():
