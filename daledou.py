@@ -1796,16 +1796,19 @@ def 帮派祭坛():
                     break
         elif '随机分配' in HTML:
             for op, id in findall(r'op=(.*?)&amp;id=(\d+)'):
-                # 偷取|选择帮派
+                # 首次【随机分配】选择，后续【复仇列表】选择
                 get(f'cmd=altar&op={op}&id={id}')
                 if '选择路线' in HTML:
                     # 选择路线
                     get(f'cmd=altar&op=dosteal&id={id}')
-                    if '该帮派已解散' in HTML:
+                    if '随机分配' in HTML:
+                        # 系统繁忙！
+                        # 该帮派已解散
                         find(r'】<br /><br />(.*?)<br />')
                         continue
-                MSG.append(find(r'兑换</a><br />(.*?)<br />'))
-                break
+                if '【帮派祭坛】' in HTML:
+                    MSG.append(find(r'兑换</a><br />(.*?)<br />'))
+                    break
         elif '领取奖励' in HTML:
             get('cmd=altar&op=drawreward')
             if '当前没有累积奖励可以领取' in HTML:
