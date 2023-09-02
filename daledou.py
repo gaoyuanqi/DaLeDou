@@ -1406,13 +1406,13 @@ def 增强经脉():
 
     每天至多传功12次
     '''
-    # 经脉
-    get('cmd=intfmerid&sub=1')
+    # 关闭传功符不足用斗豆代替
+    get('cmd=intfmerid&sub=21&doudou=0')
+    if '关闭' in HTML:
+        # 关闭合成两次确认
+        get('cmd=intfmerid&sub=19')
     for _ in range(12):
         for id in findall(r'master_id=(\d+)">传功</a>'):
-            if '关闭' in HTML:
-                # 关闭合成两次确认
-                get('cmd=intfmerid&sub=19')
             url = [
                 'cmd=intfmerid&sub=10&op=4',   # 一键合成
                 'cmd=intfmerid&sub=5',  # 一键拾取
@@ -1421,6 +1421,8 @@ def 增强经脉():
             for u in url:
                 get(u)
                 find(r'</p>(.*?)<p>', '任务-增强经脉')
+                if '传功符不足！' in HTML:
+                    return
 
 
 def 助阵():
