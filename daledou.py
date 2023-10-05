@@ -2538,19 +2538,18 @@ def 中秋礼盒():
 
     领取
     '''
-    for _ in range(3):
-        # 中秋礼盒
-        get('cmd=midautumngiftbag&sub=0')
-        ids = findall(r'amp;id=(\d+)')
-        if not ids:
-            MSG.append('没有可领取的了')
-            break
-        for id in ids:
-            # 领取
-            get(f'cmd=midautumngiftbag&sub=1&id={id}')
-            MSG.append(find(r'】<br />(.*?)<br />'))
-            if '已领取完该系列任务所有奖励' in HTML:
-                continue
+    # 中秋礼盒
+    get('cmd=midautumngiftbag&sub=0')
+    ids = findall(r'amp;id=(\d+)')
+    if not ids:
+        MSG.append('没有可领取的')
+        return
+    for id in ids:
+        # 领取
+        get(f'cmd=midautumngiftbag&sub=1&id={id}')
+        MSG.append(find(r'】<br />(.*?)<br />'))
+        if '已领取完该系列任务所有奖励' in HTML:
+            continue
 
 
 def 双节签到():
