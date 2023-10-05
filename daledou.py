@@ -2794,10 +2794,13 @@ def 年兽大作战():
 def 惊喜刮刮卡():
     '''惊喜刮刮卡
 
-    每天至多领取五十次
+    每天至多领取三次、点击刮卡二十次
     '''
-    for i in range(50):
+    for i in range(3):
         get(f'cmd=newAct&subtype=148&op=2&id={i}')
+        MSG.append(find(r'奖池预览</a><br /><br />(.*?)<br />'))
+    for _ in range(20):
+        get('cmd=newAct&subtype=148&op=1')
         MSG.append(find(r'奖池预览</a><br /><br />(.*?)<br />'))
         if '您没有刮刮卡了' in HTML:
             break
