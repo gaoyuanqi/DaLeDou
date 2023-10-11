@@ -24,7 +24,7 @@ def job_two():
 
 
 if __name__ == '__main__':
-    run()
+    run('one')
     while True:
         run_pending()
         time.sleep(1)
