@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import re
 import sys
 import time
@@ -18,171 +17,129 @@ import settings
 MSG = []
 WEEK: str = time.strftime('%w')
 DATE: str = time.strftime('%d', time.localtime())
+
+# 不支持的通知
+DISABLE_PUSH = ['乐斗', '历练', '镶嵌', '神匠坊', '背包']
+
 MISSION = {
     'one': [
-        [True, '邪神秘宝'],
-        [(int(DATE) <= 26), '华山论剑'],
-        [True, '斗豆月卡'],
-        [(DATE == '20'), '每日宝箱'],
-        [True, '分享'],
-        [True, '乐斗'],
-        [True, '报名'],
-        [(WEEK != '2'), '巅峰之战进行中'],
-        [True, '矿洞'],
-        [(WEEK in ['2', '3']), '掠夺'],
-        [(WEEK in ['5', '6']), '踢馆'],
-        [(int(DATE) <= 25), '竞技场'],
-        [True, '十二宫'],
-        [True, '许愿'],
-        [True, '抢地盘'],
-        [True, '历练'],
-        [True, '镖行天下'],
-        [True, '幻境'],
-        [(WEEK == '6'), '群雄逐鹿'],
-        [True, '画卷迷踪'],
-        [True, '门派'],
-        [(WEEK != '2'), '门派邀请赛'],
-        [(WEEK not in ['5', '0']), '会武'],
-        [True, '梦想之旅'],
-        [True, '问鼎天下'],
-        [True, '帮派商会'],
-        [True, '帮派远征军'],
-        [True, '帮派黄金联赛'],
-        [True, '任务派遣中心'],
-        [True, '武林盟主'],
-        [True, '全民乱斗'],
-        [True, '侠士客栈'],
-        [(WEEK == '4'), '江湖长梦'],
-        [True, '任务'],
-        [True, '我的帮派'],
-        [True, '帮派祭坛'],
-        [True, '飞升大作战'],
-        [True, '深渊之潮'],
-        [True, '每日奖励'],
-        [True, '领取徒弟经验'],
-        [True, '今日活跃度'],
-        [True, '仙武修真'],
-        [(WEEK == '4'), '大侠回归三重好礼'],
-        [True, '乐斗黄历'],
-        [True, '器魂附魔'],
-        [(WEEK == '4'), '镶嵌'],
-        [(WEEK in ['4', '6']), '兵法'],
-        [(WEEK == '4'), '神匠坊'],
-        [True, '背包'],
-        [True, '商店'],
-        [True, '猜单双'],
-        [True, '煮元宵'],
-        [(WEEK == '4'), '元宵节'],
-        [True, '万圣节'],
-        [True, '神魔转盘'],
-        [True, '乐斗驿站'],
-        [True, '浩劫宝箱'],
-        [True, '幸运转盘'],
-        [True, '喜从天降'],
-        [True, '冰雪企缘'],
-        [True, '甜蜜夫妻'],
-        [True, '幸运金蛋'],
-        [True, '乐斗菜单'],
-        [True, '客栈同福'],
-        [True, '周周礼包'],
-        [True, '登录有礼'],
-        [True, '活跃礼包'],
-        [True, '上香活动'],
-        [True, '徽章战令'],
-        [True, '生肖福卡'],
-        [True, '长安盛会'],
-        [True, '深渊秘宝'],
-        [(WEEK == '4'), '登录商店'],
-        [(WEEK == '4'), '盛世巡礼'],
-        [True, '中秋礼盒'],
-        [True, '双节签到'],
-        [(WEEK == '4'), '圣诞有礼'],
-        [(WEEK == '4'), '5.1礼包', '五一礼包'],
-        [(WEEK == '4'), '新春礼包'],
-        [True, '新春拜年'],
-        [True, '春联大赛'],
-        [True, '乐斗游记'],
-        [True, '新春登录礼'],
-        [True, '年兽大作战'],
-        [True, '惊喜刮刮卡'],
-        [True, '开心娃娃机'],
-        [True, '好礼步步升'],
-        [True, '企鹅吉利兑'],
-        [True, '领取徒弟经验'],
-        [True, '月卡'],
-        [(WEEK == '4'), '乐斗回忆录'],
-        [True, '乐斗大笨钟'],
-        [(WEEK == '4'), '爱的同心结'],
-        [(WEEK == '4'), '周年生日祝福'],
+        [('邪神秘宝',), True],
+        [('华山论剑',), (int(DATE) <= 26)],
+        [('斗豆月卡',), True],
+        [('每日宝箱',), (DATE == '20')],
+        [('分享',), True],
+        [('乐斗',), True],
+        [('报名',), True],
+        [('巅峰之战进行中',), (WEEK != '2')],
+        [('矿洞',), True],
+        [('掠夺',), (WEEK in ['2', '3'])],
+        [('踢馆',), (WEEK in ['5', '6'])],
+        [('竞技场',), (int(DATE) <= 25)],
+        [('十二宫',), True],
+        [('许愿',), True],
+        [('抢地盘',), True],
+        [('历练',), True],
+        [('镖行天下',), True],
+        [('幻境',), True],
+        [('群雄逐鹿',), (WEEK == '6')],
+        [('画卷迷踪',), True],
+        [('门派',), True],
+        [('门派邀请赛',), (WEEK != '2')],
+        [('会武',), (WEEK not in ['5', '0'])],
+        [('梦想之旅',), True],
+        [('问鼎天下',), True],
+        [('帮派商会',), True],
+        [('帮派远征军',), True],
+        [('帮派黄金联赛',), True],
+        [('任务派遣中心',), True],
+        [('武林盟主',), True],
+        [('全民乱斗',), True],
+        [('侠士客栈',), True],
+        [('江湖长梦',), (WEEK == '4')],
+        [('任务',), True],
+        [('我的帮派',), True],
+        [('帮派祭坛',), True],
+        [('飞升大作战',), True],
+        [('深渊之潮',), True],
+        [('每日奖励',), True],
+        [('领取徒弟经验',), True],
+        [('今日活跃度',), True],
+        [('仙武修真',), True],
+        [('大侠回归三重好礼',), (WEEK == '4')],
+        [('乐斗黄历',), True],
+        [('器魂附魔',), True],
+        [('镶嵌',), (WEEK == '4')],
+        [('兵法',), (WEEK in ['4', '6'])],
+        [('神匠坊',), (WEEK == '4')],
+        [('背包',), True],
+        [('商店',), True],
+        [('猜单双',), True],
+        [('煮元宵',), True],
+        [('元宵节',), (WEEK == '4')],
+        [('万圣节',), True],
+        [('神魔转盘',), True],
+        [('乐斗驿站',), True],
+        [('浩劫宝箱',), True],
+        [('幸运转盘',), True],
+        [('喜从天降',), True],
+        [('冰雪企缘',), True],
+        [('甜蜜夫妻',), True],
+        [('幸运金蛋',), True],
+        [('乐斗菜单',), True],
+        [('客栈同福',), True],
+        [('周周礼包',), True],
+        [('登录有礼',), True],
+        [('活跃礼包',), True],
+        [('上香活动',), True],
+        [('徽章战令',), True],
+        [('生肖福卡',), True],
+        [('长安盛会',), True],
+        [('深渊秘宝',), True],
+        [('登录商店',), (WEEK == '4')],
+        [('盛世巡礼',), (WEEK == '4')],
+        [('中秋礼盒',), True],
+        [('双节签到',), True],
+        [('圣诞有礼',), (WEEK == '4')],
+        [('5.1礼包', '五一礼包'), (WEEK == '4')],
+        [('新春礼包',), (WEEK == '4')],
+        [('新春拜年',), True],
+        [('春联大赛',), True],
+        [('乐斗游记',), True],
+        [('新春登录礼',), True],
+        [('年兽大作战',), True],
+        [('惊喜刮刮卡',), True],
+        [('开心娃娃机',), True],
+        [('好礼步步升',), True],
+        [('企鹅吉利兑',), True],
+        [('乐斗回忆录',), (WEEK == '4')],
+        [('乐斗大笨钟',), True],
+        [('爱的同心结',), (WEEK == '4')],
+        [('周年生日祝福',), (WEEK == '4')],
     ],
     'two': [
-        [True, '邪神秘宝'],
-        [(WEEK not in ['6', '0']), '问鼎天下'],
-        [True, '任务派遣中心'],
-        [True, '侠士客栈'],
-        [True, '深渊之潮'],
-        [True, '幸运金蛋'],
-        [True, '新春拜年'],
-        [True, '乐斗大笨钟'],
-    ]
+        [('邪神秘宝',), True],
+        [('问鼎天下',), (WEEK not in ['6', '0'])],
+        [('任务派遣中心',), True],
+        [('侠士客栈',), True],
+        [('深渊之潮',), True],
+        [('幸运金蛋',), True],
+        [('新春拜年',), True],
+        [('乐斗大笨钟',), True],
+    ],
 }
-
-
-def daledou(tasks: str):
-    global MSG, MISSION_NAME
-
-    start = time.time()
-    for _ in range(3):
-        get('cmd=index')
-        if '退出' in HTML:
-            html = HTML.split('【退出】')[0]
-            for bool, *data in MISSION.get(tasks, []):
-                MISSION_NAME = data[0]
-                if bool and (MISSION_NAME in html):
-                    if MISSION_NAME not in ['乐斗', '历练', '镶嵌', '神匠坊', '背包']:
-                        MSG.append(f'\n【{MISSION_NAME}】')
-                    if len(data) == 1:
-                        func_name = data[0]
-                    elif len(data) == 2:
-                        func_name = data[1]
-                    globals()[func_name]()
-            break
-
-    end = time.time()
-    MSG.append(f'\n【运行时长】\n时长：{int(end - start)} s')
-    push(f'{QQ} {tasks}', MSG)
-    MSG.clear()
-
-
-def run(tasks: str = 'check'):
-    global QQ, SESSION
-
-    if len(input := sys.argv) == 2:
-        tasks = input[1]
-
-    if tasks not in ['check', 'one', 'two']:
-        assert False, '只支持 check|one|two 三个参数'
-
-    reload(settings)
-    for ck in settings.DALEDOU_ACCOUNT:
-        if data := DaLeDouInit(ck).main():
-            if tasks == 'check':
-                continue
-            QQ, SESSION, trace = data
-            daledou(tasks)
-            logger.remove(trace)
 
 
 class CookieError(Exception):
     ...
 
 
-class DaLeDouInit:
+class DaLeDou:
     def __init__(self, cookie: str) -> None:
-        self.cookie = cookie
+        assert type(cookie) is str, '传入的cookie只能是str类型'
+        self._cookie = self._clean_cookie(cookie)
+        self._qq = self._match_qq()
 
-    @staticmethod
-    def clean_cookie(cookie) -> str:
+    def _clean_cookie(self, cookie: str) -> str:
         '''清洁大乐斗cookie
 
         :return: 'RK=xxx; ptcz=xxx; uin=xxx; skey=xxx'
@@ -200,139 +157,211 @@ class DaLeDouInit:
             ck += f'{result}'
         return ck[:-2]
 
-    @staticmethod
-    def create_yaml(qq: str):
-        '''从 daledou.yaml 复制一份并命名为 qq.yaml 文件'''
+    def _match_qq(self) -> str:
+        '''从cookie中提取出qq'''
+        return re.search(r'uin=o(\d+); ', self._cookie, re.S).group(1)
+
+    def _create_yaml(self):
+        '''基于 daledou.yaml 创建一份以qq命名的 yaml 配置文件
+
+        如果以qq命名的yaml配置文件已存在则不做任何操作
+        '''
         srcpath = f'./config/daledou.yaml'
-        yamlpath = f'./config/{qq}.yaml'
+        yamlpath = f'./config/{self._qq}.yaml'
         if not path.isfile(yamlpath):
-            logger.success(f'成功创建配置文件：./config/{qq}.yaml')
+            logger.success(f'成功创建配置文件：./config/{self._qq}.yaml')
             copy(srcpath, yamlpath)
 
-    @staticmethod
-    def create_log(qq: str) -> int:
-        '''创建当天日志文件'''
-        date = time.strftime("%Y-%m-%d", time.localtime())
-        return logger.add(
-            f'./log/{qq}/{date}.log',
-            format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <4}</level> | <level>{message}</level>',
-            enqueue=True,
-            encoding='utf-8',
-            retention='30 days'
-        )
+    def _push(self, title: str, message: list) -> None:
+        '''pushplus微信通知'''
+        if token := settings.PUSHPLUS_TOKEN:
+            url = 'http://www.pushplus.plus/send/'
+            content = '\n'.join(list(filter(lambda x:  x, message)))
+            data = {
+                'token': token,
+                'title': title,
+                'content': content,
+            }
+            res = requests.post(url, data=data)
+            json: dict = res.json()
+            if json.get('code') == 200:
+                return logger.success(f'pushplus推送成功：{json}')
+            return logger.warning(f'pushplus推送失败：{json}')
+        logger.warning('pushplus没有配置token，取消微信推送')
 
-    @staticmethod
-    def session(cookie: str):
+    def session(self):
+        '''若cookie有效返回Session对象，否则返回None'''
+        global SESSION
         url = 'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index'
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
         }
         with requests.session() as SESSION:
             requests.utils.add_dict_to_cookiejar(
-                SESSION.cookies, {'Cookie': cookie})
+                SESSION.cookies, {'Cookie': self._cookie})
         for _ in range(3):
             res = SESSION.get(url, headers=headers)
             res.encoding = 'utf-8'
-            if '商店' in res.text:
+            html = res.text
+            if '商店' in html:
+                logger.success(f'{self._qq}：COOKIE有效')
+                if self._cookie != getenv(f'DLD_COOKIE_VALID_{self._qq}'):
+                    environ[f'DLD_COOKIE_VALID_{self._qq}'] = self._cookie
+                    self._create_yaml()
                 return SESSION
+            elif '一键登录' in html:
+                logger.warning(f'{self._qq}：COOKIE无效！！!')
+                break
 
-    def main(self):
-        cookie = DaLeDouInit.clean_cookie(self.cookie)
-        qq = re.search(r'uin=o(\d+); ', cookie, re.S).group(1)
-        if session := DaLeDouInit.session(cookie):
-            logger.success(f'{qq}：COOKIE有效')
-            if cookie != getenv(f'DLD_COOKIE_VALID_{qq}'):
-                environ[f'DLD_COOKIE_VALID_{qq}'] = cookie
-                DaLeDouInit.create_yaml(qq)
-            return qq, session, DaLeDouInit.create_log(qq)
+        if self._cookie != getenv(f'DLD_COOKIE_NULL_{self._qq}'):
+            environ[f'DLD_COOKIE_NULL_{self._qq}'] = self._cookie
+            self._push(f'cookie失效或者系统维护：{self._qq}', [self._cookie])
 
-        logger.warning(f'{qq}：COOKIE无效或者系统维护！！!')
-        if cookie != getenv(f'DLD_COOKIE_NULL_{qq}'):
-            environ[f'DLD_COOKIE_NULL_{qq}'] = cookie
-            push(f'cookie失效或者系统维护：{qq}', [cookie])
+    def create_log(self) -> int:
+        '''创建当天日志文件
 
+        文件夹以qq命名，日志文件以日期命名
+        '''
+        date = time.strftime('%Y-%m-%d', time.localtime())
+        return logger.add(
+            f'./log/{self._qq}/{date}.log',
+            format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <4}</level> | <level>{message}</level>',
+            enqueue=True,
+            encoding='utf-8',
+            retention='30 days'
+        )
 
-def push(title: str, message: list) -> None:
-    '''pushplus微信通知'''
-    if token := settings.PUSHPLUS_TOKEN:
-        url = 'http://www.pushplus.plus/send/'
-        content = '\n'.join(list(filter(lambda x:  x, message)))
-        data = {
-            'token': token,
-            'title': title,
-            'content': content,
+    def get(self, params: str) -> str:
+        '''发送get请求获取html响应内容'''
+        global HTML
+        url = f'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?{params}'
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
         }
-        res = requests.post(url, data=data)
-        json: dict = res.json()
-        if json.get('code') == 200:
-            return logger.success(f'pushplus推送成功：{json}')
-        return logger.warning(f'pushplus推送失败：{json}')
-    logger.warning('pushplus没有配置token，取消微信推送')
+        for _ in range(3):
+            res = SESSION.get(url, headers=headers)
+            res.encoding = 'utf-8'
+            HTML = res.text
+            time.sleep(0.2)
+            if '系统繁忙' not in HTML:
+                break
+        return HTML
+
+    def find(self, mode: str, name: str = '') -> str | None:
+        '''匹配首个'''
+        if match := re.search(mode, HTML, re.S):
+            result: str = match.group(1)
+        else:
+            result = None
+        if not name:
+            name = MISSION_NAME
+        logger.info(f'{self._qq} | {name}：{result}')
+        return result
+
+    def findall(self, mode: str) -> list:
+        '''匹配所有'''
+        return re.findall(mode, HTML, re.S)
+
+    def read_yaml(self, key: str):
+        '''读取config目录下的yaml配置文件'''
+        try:
+            with open(f'./config/{self._qq}.yaml', 'r', encoding='utf-8') as fp:
+                users = yaml.safe_load(fp)
+                data = users[key]
+            return data
+        except Exception:
+            error = traceback.format_exc()
+            logger.error(f'{self._qq}.yaml 配置不正确：\n{error}')
+            self._push(f'{self._qq}.yaml 配置不正确', [error])
+
+    def run(self, tasks: str) -> None:
+        global MISSION_NAME
+        start = time.time()
+        for _ in range(3):
+            # 大乐斗首页
+            get('cmd=index')
+            if '退出' in HTML:
+                html = HTML.split('【退出】')[0]
+                for misssion in MISSION.get(tasks, []):
+                    is_mission: tuple = misssion[0]
+                    is_run: bool = misssion[-1]
+                    if len(is_mission) == 2:
+                        mission_name, func_name = is_mission
+                    else:
+                        mission_name = is_mission[0]
+                        func_name = is_mission[0]
+                    MISSION_NAME = mission_name
+                    if is_run and (mission_name in html):
+                        if mission_name not in DISABLE_PUSH:
+                            MSG.append(f'\n【{mission_name}】')
+                        globals()[func_name]()
+                break
+
+        end = time.time()
+        MSG.append(f'\n【运行时长】\n时长：{int(end - start)} s')
+        self._push(f'{self._qq} {tasks}', MSG)
+        MSG.clear()
 
 
 def get(params: str) -> str:
-    global HTML
-    url = f'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?{params}'
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-    }
-    for _ in range(3):
-        res = SESSION.get(url, headers=headers)
-        res.encoding = 'utf-8'
-        HTML = res.text
-        time.sleep(0.2)
-        if '系统繁忙' not in HTML:
-            break
+    '''发送get请求获取html响应内容'''
+    HTML = DALEDOU.get(params)
     return HTML
 
 
-def read_yaml(key: str):
-    '''读取config目录下的yaml配置文件'''
-    try:
-        with open(f'./config/{QQ}.yaml', 'r', encoding='utf-8') as fp:
-            users = yaml.safe_load(fp)
-            data = users[key]
-        return data
-    except Exception:
-        error = traceback.format_exc()
-        logger.error(f'{QQ}.yaml 配置不正确：\n{error}')
-        push(f'{QQ}.yaml 配置不正确', [error])
-
-
-def find(mode: str, name=None):
-    """查找首个"""
-    if match := re.search(mode, HTML, re.S):
-        result = match.group(1)
-    else:
-        result = None
-    if name is None:
-        name = MISSION_NAME
-    logger.info(f'{QQ} | {name}：{result}')
-    return result
+def find(mode: str, name: str = '') -> str | None:
+    '''匹配首个'''
+    return DALEDOU.find(mode, name)
 
 
 def findall(mode: str) -> list:
-    '''查找所有'''
-    return re.findall(mode, HTML, re.S)
+    '''匹配所有'''
+    return DALEDOU.findall(mode)
+
+
+def read_yaml(key: str):
+    '''读取yaml配置文件'''
+    return DALEDOU.read_yaml(key)
+
+
+def run(tasks: str = 'check') -> None:
+    global DALEDOU
+
+    if len(input := sys.argv) == 2:
+        tasks = input[1]
+    if tasks not in ['check', 'one', 'two']:
+        assert False, f'不支持 {tasks} 参数，只支持 check | one | two'
+
+    reload(settings)
+    for ck in settings.DALEDOU_ACCOUNT:
+        print('\n')
+        DALEDOU = DaLeDou(ck)
+        if DALEDOU.session():
+            if tasks == 'check':
+                continue
+            trace = DALEDOU.create_log()
+            DALEDOU.run(tasks)
+            logger.remove(trace)
+        del DALEDOU
 
 
 def 邪神秘宝():
     '''邪神秘宝
 
-        高级秘宝    免费一次 or 抽奖一次
-        极品秘宝    免费一次 or 抽奖一次
+    高级秘宝    免费一次 or 抽奖一次
+    极品秘宝    免费一次 or 抽奖一次
     '''
     for i in [0, 1]:
         # 免费一次 or 抽奖一次
         get(f'cmd=tenlottery&op=2&type={i}')
-        MSG.append(find(r'】</p>(.*?)<br />'))
+        MSG.append(find(r'】</p>(.*?)<br />', '邪神秘宝'))
 
 
 def 华山论剑():
     '''华山论剑
 
-        每月1~25号每天至多挑战10次，耐久不足时自动更换侠士
-        每月26号领取赛季段位奖励
+    每月1~25号每天至多挑战10次，耐久不足时自动更换侠士
+    每月26号领取赛季段位奖励
     '''
     if int(DATE) <= 25:
         for _ in range(10):
@@ -377,7 +406,7 @@ def 华山论剑():
 def 斗豆月卡():
     '''斗豆月卡
 
-        每天领取150斗豆
+    每天领取150斗豆
     '''
     # 领取150斗豆
     get('cmd=monthcard&sub=1')
@@ -387,7 +416,7 @@ def 斗豆月卡():
 def 每日宝箱():
     '''每日宝箱
 
-        每月20号打开所有宝箱
+    每月20号打开所有宝箱
     '''
     # 每日宝箱
     get('cmd=dailychest')
@@ -402,19 +431,21 @@ def 每日宝箱():
 def 分享():
     '''分享
 
-        每天分享直到上限，若次数不足则挑战斗神塔增加次数（每挑战11层增加一次分享）
-        每周四领取分享次数奖励
+    每天分享直到上限，若次数不足则挑战斗神塔增加次数（每挑战11层增加一次分享）
+    每周四领取分享次数奖励
     '''
     for _ in range(9):
         # 一键分享
         get(f'cmd=sharegame&subtype=6')
-        findall(r'】</p>(.*?)<p>')
+        find(r'】</p>(.*?)<p>', '一键分享')
         if '上限' in HTML:
-            MSG.append(find(r'</p><p>(.*?)<br />.*?开通达人'))
+            MSG.append(find(r'</p><p>(.*?)<br />.*?开通达人', '分享次数'))
             # 自动挑战
             get('cmd=towerfight&type=11')
+            find(r'】<br />(.*?)<', '斗神塔')
             # 结束挑战
             get('cmd=towerfight&type=7')
+            find(r'】<br />(.*?)<br />', '斗神塔')
             break
 
         # 斗神塔
@@ -422,18 +453,22 @@ def 分享():
         if '结束挑战' in HTML:
             # 结束挑战
             get('cmd=towerfight&type=7')
-            find(r'】<br />(.*?)<br />')
+            find(r'】<br />(.*?)<br />', '斗神塔')
         for _ in range(11):
             # 开始挑战 or 挑战下一层
             get('cmd=towerfight&type=0')
-            find(r'】<br />(.*?)<br />')
-            if '您败给' in HTML:
+            find(r'】<br />(.*?)<', '斗神塔')
+            if '您需要消耗斗神符才能继续挑战斗神塔' in HTML:
+                # 一键分享
+                get(f'cmd=sharegame&subtype=6')
+                find(r'】</p>(.*?)<p>', '斗神塔')
+                return
+            elif '您败给' in HTML:
                 # 结束挑战
                 get('cmd=towerfight&type=7')
-                find(r'】<br />(.*?)<br />')
+                find(r'】<br />(.*?)<br />', '斗神塔')
                 break
-            elif '请购买' in HTML:
-                break
+
             if cooling := findall(r'战斗剩余时间：(\d+)'):
                 time.sleep(int(cooling[0]))
 
@@ -442,15 +477,15 @@ def 分享():
         for s in findall(r'sharenums=(\d+)'):
             # 领取
             get(f'cmd=sharegame&subtype=4&sharenums={s}')
-            MSG.append(find(r'】</p>(.*?)<p>'))
+            MSG.append(find(r'】</p>(.*?)<p>'), '斗神塔')
 
 
 def 乐斗():
     '''乐斗
 
-        开启自动使用体力药水
-        贡献药水使用4次
-        每天乐斗好友BOSS、帮友BOSS以及侠侣所有
+    开启自动使用体力药水
+    贡献药水使用4次
+    每天乐斗好友BOSS、帮友BOSS以及侠侣所有
     '''
     # 乐斗助手
     get('cmd=view&type=6')
@@ -475,15 +510,6 @@ def 乐斗():
         find(r'删</a><br />(.*?)，')
         if '体力值不足' in HTML:
             break
-
-    if yaml := read_yaml('乐斗'):
-        for i in range(2, yaml):
-            get(f'cmd=friendlist&page={i}')
-            for u in findall(r'：.*?B_UID=(\d+)'):
-                get(f'cmd=fight&B_UID={u}')
-                find(r'删</a><br />(.*?)，')
-                if '体力值不足' in HTML:
-                    break
 
     # 帮友BOSS
     get('cmd=viewmem&page=1')
@@ -513,9 +539,9 @@ def 乐斗():
 def 报名():
     '''报名
 
-        每天报名武林大会
-        周二、五、日报名侠侣争霸
-        周六、日报名笑傲群侠
+    每天报名武林大会
+    周二、五、日报名侠侣争霸
+    周六、日报名笑傲群侠
     '''
     # 武林大会
     get('cmd=fastSignWulin&ifFirstSign=1')
@@ -541,8 +567,8 @@ def 报名():
 def 巅峰之战进行中():
     '''巅峰之战进行中
 
-        周一报名（随机加入）、领奖
-        周三、四、五、六、日征战
+    周一报名（随机加入）、领奖
+    周三、四、五、六、日征战
     '''
     if WEEK == '1':
         for c in ['cmd=gvg&sub=4&group=0&check=1', 'cmd=gvg&sub=1']:
@@ -554,30 +580,29 @@ def 巅峰之战进行中():
         for _ in range(14):
             # 征战
             get('cmd=gvg&sub=5')
-            if '您今天' in HTML:
-                break
-            elif '请您先报名再挑战' in HTML:
-                MSG.append(find(r'】</p>(.*?)<br />'))
-                break
-            elif '撒花祝贺' in HTML:
+            if '你在巅峰之战中' in HTML:
+                if '战线告急' in HTML:
+                    MSG.append(find(r'支援！<br />(.*?)。'))
+                else:
+                    MSG.append(find(r'】</p>(.*?)。'))
+            else:
+                # 冷却时间
+                # 撒花祝贺
+                # 请您先报名再挑战
+                # 您今天已经用完复活次数了
                 if '战线告急' in HTML:
                     MSG.append(find(r'支援！<br />(.*?)<br />'))
                 else:
                     MSG.append(find(r'】</p>(.*?)<br />'))
                 break
 
-            if '战线告急' in HTML:
-                MSG.append(find(r'支援！<br />(.*?)。'))
-            else:
-                MSG.append(find(r'】</p>(.*?)。'))
-
 
 def 矿洞():
     '''矿洞
 
-        每天挑战3次
-        副本开启第五层简单
-        领取通关奖励
+    每天挑战3次
+    副本开启第五层简单
+    领取通关奖励
     '''
     # 矿洞
     get('cmd=factionmine')
@@ -603,8 +628,8 @@ def 矿洞():
 def 掠夺():
     '''掠夺
 
-        周二掠夺一次（选择可掠夺粮仓最低战力）、领奖
-        周三领取胜负奖励
+    周二掠夺一次（选择可掠夺粮仓最低战力）、领奖
+    周三领取胜负奖励
     '''
     if WEEK == '2':
         get('cmd=forage_war')
@@ -636,8 +661,8 @@ def 掠夺():
 def 踢馆():
     '''踢馆
 
-        周五试炼5次、高倍转盘一次、挑战至多31次
-        周六领奖以及报名踢馆
+    周五试炼5次、高倍转盘一次、挑战至多31次
+    周六领奖以及报名踢馆
     '''
     if WEEK == '5':
         for t in [2, 2, 2, 2, 2, 4]:
@@ -666,7 +691,7 @@ def 踢馆():
 def 竞技场():
     '''竞技场
 
-        每月1~25号每天至多挑战10次、领取奖励、默认兑换10个河洛图书
+    每月1~25号每天至多挑战10次、领取奖励、默认兑换10个河洛图书
     '''
     for _ in range(10):
         # 免费挑战 or 开始挑战
@@ -688,23 +713,27 @@ def 竞技场():
 def 十二宫():
     '''十二宫
 
-        每天默认双鱼宫请猴王扫荡
+    每天默认白羊宫请猴王扫荡
     '''
     if yaml := read_yaml('十二宫'):
         # 请猴王扫荡
         get(f'cmd=zodiacdungeon&op=autofight&scene_id={yaml}')
         if '恭喜你' in HTML:
             MSG.append(find(r'恭喜你，(.*?)！'))
-        elif '挑战次数不足' in HTML:
-            MSG.append(find(r'<p>(.*?)<br />'))
-        elif '当前场景进度不足以使用自动挑战功能' in HTML:
-            MSG.append(find(r'<p>(.*?)<br />'))
+            return
+        elif '是否复活再战' in HTML:
+            MSG.append(find(r'<br.*>(.*?)，'))
+            return
+        # 你已经不幸阵亡，请复活再战！
+        # 挑战次数不足
+        # 当前场景进度不足以使用自动挑战功能
+        MSG.append(find(r'<p>(.*?)<br />'))
 
 
 def 许愿():
     '''许愿
 
-        每天领取许愿奖励、上香许愿、领取魂珠碎片宝箱
+    每天领取许愿奖励、上香许愿、领取魂珠碎片宝箱
     '''
     for sub in [5, 1, 6]:
         get(f'cmd=wish&sub={sub}')
@@ -714,10 +743,10 @@ def 许愿():
 def 抢地盘():
     '''抢地盘
 
-        每天无限制区攻占一次第10位
+    每天无限制区攻占一次第10位
 
-        等级  30级以下 40级以下 ... 120级以下 无限制区
-        type  1       2            10        11
+    等级  30级以下 40级以下 ... 120级以下 无限制区
+    type  1       2            10        11
     '''
     get('cmd=recommendmanor&type=11&page=1')
     if id := findall(r'manorid=(\d+)">攻占</a>'):
@@ -732,7 +761,7 @@ def 抢地盘():
 def 历练():
     '''历练
 
-        每天默认掉落佣兵碎片的每个关卡BOSS会被乐斗3次
+    每天默认掉落佣兵碎片的每个关卡BOSS会被乐斗3次
     '''
     for id in read_yaml('历练'):
         for _ in range(3):
@@ -750,7 +779,7 @@ def 历练():
 def 镖行天下():
     '''镖行天下
 
-        每天拦截成功3次、领取奖励、刷新押镖并启程护送
+    每天拦截成功3次、领取奖励、刷新押镖并启程护送
     '''
     for op in [15, 16, 7, 8, 6]:
         # 护送完成 》领取奖励 》护送押镖 》刷新押镖 》启程护送
@@ -778,7 +807,7 @@ def 镖行天下():
 def 幻境():
     '''幻境
 
-        每天默认乐斗鹅王的试炼
+    每天默认乐斗鹅王的试炼
     '''
     if yaml := read_yaml('幻境'):
         get(f'cmd=misty&op=start&stage_id={yaml}')
@@ -795,7 +824,7 @@ def 幻境():
 def 群雄逐鹿():
     '''群雄逐鹿
 
-        每周六报名、领奖
+    每周六报名、领奖
     '''
     for op in ['signup', 'drawreward']:
         get(f'cmd=thronesbattle&op={op}')
@@ -805,7 +834,7 @@ def 群雄逐鹿():
 def 画卷迷踪():
     '''画卷迷踪
 
-        每天至多挑战20次
+    每天至多挑战20次
     '''
     for _ in range(20):
         # 准备完成进入战斗
@@ -820,9 +849,9 @@ def 画卷迷踪():
 def 门派():
     '''门派
 
-        万年寺：点燃 》点燃
-        八叶堂：进入木桩训练 》进入同门切磋
-        五花堂：至多完成任务3次
+    万年寺：点燃 》点燃
+    八叶堂：进入木桩训练 》进入同门切磋
+    五花堂：至多完成任务3次
     '''
     # 点燃 》点燃
     for op in ['fumigatefreeincense', 'fumigatepaidincense']:
@@ -886,8 +915,8 @@ def 门派邀请赛():
     '''门派邀请赛
 
 
-        每周一报名、领取奖励
-        每周三、四、五、六、日挑战6次以及默认兑换10个炼气石
+    每周一报名、领取奖励
+    每周三、四、五、六、日挑战6次以及默认兑换10个炼气石
     '''
     if WEEK == '1':
         # 组队报名
@@ -913,10 +942,10 @@ def 门派邀请赛():
 def 会武():
     '''会武
 
-        周一初级、中级至多挑战5次，高级至多挑战10次
-        周二、三高级至多挑战10次（自动兑换试炼书*10）
-        周四助威丐帮
-        周六领取奖励、兑换真黄金卷轴*10
+    周一初级、中级至多挑战5次，高级至多挑战10次
+    周二、三高级至多挑战10次（自动兑换试炼书*10）
+    周四助威丐帮
+    周六领取奖励、兑换真黄金卷轴*10
     '''
     if WEEK in ['1', '2', '3']:
         for _ in range(21):
@@ -951,8 +980,8 @@ def 会武():
 def 梦想之旅():
     '''梦想之旅
 
-        每天普通旅行一次
-        周四梦幻旅行（如果下一个区域存在 '已去过'）、领取区域、超级礼包
+    每天普通旅行一次
+    周四梦幻旅行（如果下一个区域存在 '已去过'）、领取区域、超级礼包
     '''
     # 普通旅行
     get('cmd=dreamtrip&sub=2')
@@ -1001,10 +1030,10 @@ def 梦想之旅():
 def 问鼎天下():
     '''问鼎天下
 
-        周一领取奖励
-        周一、二、三、四、五领取帮资或放弃资源点、东海攻占倒数第一个至多两次
-        周六淘汰赛助威 神ㄨ阁丶
-        周日排名赛助威 神ㄨ阁丶
+    周一领取奖励
+    周一、二、三、四、五领取帮资或放弃资源点、东海攻占倒数第一个至多两次
+    周六淘汰赛助威 神ㄨ阁丶
+    周日排名赛助威 神ㄨ阁丶
     '''
     if WEEK == '1':
         # 领取奖励
@@ -1031,19 +1060,21 @@ def 问鼎天下():
                 if '大获全胜' in HTML:
                     break
     elif WEEK == '6':
-        # 淘汰赛助威 神ㄨ阁丶
-        get(f'cmd=tbattle&op=cheerregionbattle&id=10215')
+        # 淘汰赛助威
+        id = read_yaml('问鼎天下')['淘汰赛']
+        get(f'cmd=tbattle&op=cheerregionbattle&id={id}')
         MSG.append(find(r'规则</a><br />(.*?)<br />'))
     elif WEEK == '0':
-        # 排名赛助威 神ㄨ阁丶
-        get(f'cmd=tbattle&op=cheerchampionbattle&id=10215')
+        # 排名赛助威
+        id = read_yaml('问鼎天下')['排名赛']
+        get(f'cmd=tbattle&op=cheerchampionbattle&id={id}')
         MSG.append(find(r'规则</a><br />(.*?)<br />'))
 
 
 def 帮派商会():
     '''帮派商会
 
-        每天帮派宝库领取礼包、交易会所交易物品、兑换商店兑换物品
+    每天帮派宝库领取礼包、交易会所交易物品、兑换商店兑换物品
     '''
     # 帮派宝库
     get('cmd=fac_corp&op=0')
@@ -1073,8 +1104,8 @@ def 帮派商会():
 def 帮派远征军():
     '''帮派远征军
 
-        周一、二、三、四、五、六参战攻击
-        周日领取奖励
+    周一、二、三、四、五、六参战攻击
+    周日领取奖励
     '''
     while WEEK != '0':
         # 帮派远征军
@@ -1119,7 +1150,7 @@ def 帮派远征军():
 def 帮派黄金联赛():
     '''帮派黄金联赛
 
-        领取奖励、领取帮派赛季奖励、参与防守、参战攻击
+    领取奖励、领取帮派赛季奖励、参与防守、参战攻击
     '''
     # 帮派黄金联赛
     get('cmd=factionleague&op=0')
@@ -1164,7 +1195,7 @@ def 帮派黄金联赛():
 def 任务派遣中心():
     '''任务派遣中心
 
-        每天领取奖励、接受任务
+    每天领取奖励、接受任务
     '''
     # 任务派遣中心
     get('cmd=missionassign&subtype=0')
@@ -1235,9 +1266,9 @@ def 任务派遣中心():
 def 武林盟主():
     '''武林盟主
 
-        周三、五、日领取排行奖励和竞猜奖励
-        周一、三、五分站赛默认报名黄金，总决赛不需报名
-        周二、四、六竞猜
+    周三、五、日领取排行奖励和竞猜奖励
+    周一、三、五分站赛默认报名黄金，总决赛不需报名
+    周二、四、六竞猜
     '''
     if WEEK in ['3', '5', '0']:
         # 武林盟主
@@ -1269,7 +1300,7 @@ def 武林盟主():
 def 全民乱斗():
     '''全民乱斗
 
-        乱斗竞技、乱斗任务领取
+    乱斗竞技、乱斗任务领取
     '''
     n = True
     for t in [2, 3, 4]:
@@ -1286,7 +1317,7 @@ def 全民乱斗():
 def 侠士客栈():
     '''侠士客栈
 
-        每天领取奖励3次、客栈奇遇
+    每天领取奖励3次、客栈奇遇
     '''
     # 侠士客栈
     get('cmd=warriorinn')
@@ -1314,7 +1345,7 @@ def 侠士客栈():
 def 江湖长梦():
     '''江湖长梦
 
-        周四兑换玄铁令*7、开启柒承的忙碌日常副本
+    周四兑换玄铁令*7、开启柒承的忙碌日常副本
     '''
     for _ in range(7):
         # 兑换 玄铁令*1
@@ -1373,15 +1404,15 @@ def 江湖长梦():
 def 增强经脉():
     '''任务-增强经脉
 
-        每天至多传功12次
+    每天至多传功12次
     '''
-    # 经脉
-    get('cmd=intfmerid&sub=1')
+    # 关闭传功符不足用斗豆代替
+    get('cmd=intfmerid&sub=21&doudou=0')
+    if '关闭' in HTML:
+        # 关闭合成两次确认
+        get('cmd=intfmerid&sub=19')
     for _ in range(12):
         for id in findall(r'master_id=(\d+)">传功</a>'):
-            if '关闭' in HTML:
-                # 关闭合成两次确认
-                get('cmd=intfmerid&sub=19')
             url = [
                 'cmd=intfmerid&sub=10&op=4',   # 一键合成
                 'cmd=intfmerid&sub=5',  # 一键拾取
@@ -1390,21 +1421,23 @@ def 增强经脉():
             for u in url:
                 get(u)
                 find(r'</p>(.*?)<p>', '任务-增强经脉')
+                if '传功符不足！' in HTML:
+                    return
 
 
 def 助阵():
     '''任务-助阵
 
-        助阵组合  id   dex
-        毒光剑影  1    0（生命）
-        正邪两立  2    0、1（投掷减免、投掷伤害）
-        纵剑天下  3    0、1、2（小型减免、速度、小型伤害）
-        致命一击  9    0、1、2（暴击伤害、暴击减免、生命）
-        老谋深算  4    0、1、2、3（大型减免、大型伤害、速度、生命）
-        智勇双全  5    0、1、2、3（中型减免、中型伤害、减暴、暴击）
-        以柔克刚  6    0、1、2、3（技能减免、技能伤害、闪避、命中）
-        雕心鹰爪  7    0、1、2、3（投掷和小型武器穿透、技能穿透、大型穿透、中型穿透）
-        根骨奇特  8    0、1、2、3、4（空手减免、空手伤害、力量、敏捷、生命）
+    助阵组合  id   dex
+    毒光剑影  1    0（生命）
+    正邪两立  2    0、1（投掷减免、投掷伤害）
+    纵剑天下  3    0、1、2（小型减免、速度、小型伤害）
+    致命一击  9    0、1、2（暴击伤害、暴击减免、生命）
+    老谋深算  4    0、1、2、3（大型减免、大型伤害、速度、生命）
+    智勇双全  5    0、1、2、3（中型减免、中型伤害、减暴、暴击）
+    以柔克刚  6    0、1、2、3（技能减免、技能伤害、闪避、命中）
+    雕心鹰爪  7    0、1、2、3（投掷和小型武器穿透、技能穿透、大型穿透、中型穿透）
+    根骨奇特  8    0、1、2、3、4（空手减免、空手伤害、力量、敏捷、生命）
     '''
     tianshu = {
         1: [0],
@@ -1435,7 +1468,7 @@ def 助阵():
 def 查看好友资料():
     '''任务-查看好友资料
 
-        查看好友第二页
+    查看好友第二页
     '''
     # 武林 》设置 》乐斗助手
     get('cmd=view&type=6')
@@ -1451,39 +1484,39 @@ def 查看好友资料():
 def 徽章进阶():
     '''任务-徽章进阶
 
-        勤劳徽章  1
-        好友徽章  2
-        等级徽章  3
-        长者徽章  4
-        时光徽章  5
-        常胜徽章  6
-        财富徽章  7
-        达人徽章  8
-        武林徽章  9
-        分享徽章  10
-        金秋徽章  11
-        武器徽章  12
-        金秋富豪  13
-        佣兵徽章  14
-        斗神徽章  15
-        圣诞徽章  16
-        春节徽章  17
-        春节富豪  18
-        技能徽章  19
-        一掷千金  20
-        劳动徽章  21
-        周年富豪  22
-        国旗徽章  23
-        七周年徽章  24
-        八周年徽章  25
-        九周年徽章  26
-        魅力徽章  27
-        威望徽章  28
-        十周年徽章  29
-        十一周年徽章  30
-        仙武徽章  31
-        荣耀徽章  32
-        十二周年徽章  33
+    勤劳徽章  1
+    好友徽章  2
+    等级徽章  3
+    长者徽章  4
+    时光徽章  5
+    常胜徽章  6
+    财富徽章  7
+    达人徽章  8
+    武林徽章  9
+    分享徽章  10
+    金秋徽章  11
+    武器徽章  12
+    金秋富豪  13
+    佣兵徽章  14
+    斗神徽章  15
+    圣诞徽章  16
+    春节徽章  17
+    春节富豪  18
+    技能徽章  19
+    一掷千金  20
+    劳动徽章  21
+    周年富豪  22
+    国旗徽章  23
+    七周年徽章  24
+    八周年徽章  25
+    九周年徽章  26
+    魅力徽章  27
+    威望徽章  28
+    十周年徽章  29
+    十一周年徽章  30
+    仙武徽章  31
+    荣耀徽章  32
+    十二周年徽章  33
     '''
     for id in range(1, 34):
         get(f'cmd=achievement&op=upgradelevel&achievement_id={id}&times=1')
@@ -1499,11 +1532,11 @@ def 徽章进阶():
 def 兵法研习():
     '''任务-兵法研习
 
-        兵法      消耗     id       功能
-        金兰之泽  孙子兵法  2544     增加生命
-        雷霆一击  孙子兵法  2570     增加伤害
-        残暴攻势  武穆遗书  21001    增加暴击几率
-        不屈意志  武穆遗书  21032    降低受到暴击几率
+    兵法      消耗     id       功能
+    金兰之泽  孙子兵法  2544     增加生命
+    雷霆一击  孙子兵法  2570     增加伤害
+    残暴攻势  武穆遗书  21001    增加暴击几率
+    不屈意志  武穆遗书  21032    降低受到暴击几率
     '''
     for id in [21001, 2570, 21032, 2544]:
         get(f'cmd=brofight&subtype=12&op=practice&baseid={id}')
@@ -1515,7 +1548,7 @@ def 兵法研习():
 def 挑战陌生人():
     '''任务-挑战陌生人
 
-        斗友乐斗四次
+    斗友乐斗四次
     '''
     # 斗友
     get('cmd=friendlist&type=1')
@@ -1529,7 +1562,7 @@ def 挑战陌生人():
 def 强化神装():
     '''任务-强化神装
 
-        神装或技能升级一次（升级成功或失败才算一次）
+    神装或技能升级一次（升级成功或失败才算一次）
     '''
     # 任务
     missions = get('cmd=task&sub=1')
@@ -1578,7 +1611,7 @@ def 强化神装():
 def 武器专精():
     '''任务-武器专精
 
-        专精或武器栏升级一次（升级成功或失败才算一次）
+    专精或武器栏升级一次（升级成功或失败才算一次）
     '''
     # 任务
     missions = get('cmd=task&sub=1')
@@ -1612,7 +1645,7 @@ def 武器专精():
 def 强化铭刻():
     '''任务-强化铭刻
 
-        强化一次（强化成功或失败才算一次）
+    强化一次（强化成功或失败才算一次）
 
     技能      id  材料
     坚韧不拔  0   坚固的砥石
@@ -1642,7 +1675,7 @@ def 强化铭刻():
 def 任务():
     '''任务
 
-        增强经脉、助阵每天必做
+    增强经脉、助阵每天必做
     '''
     增强经脉()
     助阵()
@@ -1673,8 +1706,8 @@ def 任务():
 def 我的帮派():
     '''我的帮派
 
-        每天供奉5次、帮派任务至多领取奖励3次
-        周日领取奖励、报名帮派战争、激活祝福
+    每天供奉5次、帮派任务至多领取奖励3次
+    周日领取奖励、报名帮派战争、激活祝福
     '''
     # 我的帮派
     get('cmd=factionop&subtype=3&facid=0')
@@ -1750,30 +1783,32 @@ def 我的帮派():
 def 帮派祭坛():
     '''帮派祭坛
 
-        每天转动轮盘至多30次
-        领取通关奖励
+    每天转动轮盘至多30次、领取通关奖励
     '''
     # 帮派祭坛
     get('cmd=altar')
     for _ in range(30):
         if '转动轮盘' in HTML:
             get('cmd=altar&op=spinwheel')
-            MSG.append(find(r'兑换</a><br />(.*?)<br />'))
-            if '转转券不足' in HTML:
-                break
+            if '随机分配' not in HTML:
+                MSG.append(find(r'兑换</a><br />(.*?)<br />'))
+                if '转转券不足' in HTML:
+                    break
         elif '随机分配' in HTML:
             for op, id in findall(r'op=(.*?)&amp;id=(\d+)'):
-                # 偷取|选择帮派
+                # 首次【随机分配】选择，后续【复仇列表】选择
                 get(f'cmd=altar&op={op}&id={id}')
-                if '该帮派已解散' in HTML:
-                    continue
-                elif '系统繁忙！' in HTML:
-                    continue
                 if '选择路线' in HTML:
                     # 选择路线
                     get(f'cmd=altar&op=dosteal&id={id}')
-                MSG.append(find(r'兑换</a><br />(.*?)<br />'))
-                break
+                    if '随机分配' in HTML:
+                        # 系统繁忙！
+                        # 该帮派已解散
+                        find(r'】<br /><br />(.*?)<br />')
+                        continue
+                if '【帮派祭坛】' in HTML:
+                    MSG.append(find(r'兑换</a><br />(.*?)<br />'))
+                    break
         elif '领取奖励' in HTML:
             get('cmd=altar&op=drawreward')
             if '当前没有累积奖励可以领取' in HTML:
@@ -1785,8 +1820,8 @@ def 帮派祭坛():
 def 飞升大作战():
     '''飞升大作战
 
-        每天优先报名单排模式，玄铁令不足或者休赛期时选择匹配模式
-        周四领取赛季结束奖励
+    每天优先报名单排模式，玄铁令不足或者休赛期时选择匹配模式
+    周四领取赛季结束奖励
     '''
     # 境界修为
     get('cmd=ascendheaven&op=showrealm')
@@ -1827,7 +1862,7 @@ def 飞升大作战():
 def 深渊之潮():
     '''深渊之潮
 
-        每天帮派巡礼领取巡游赠礼、深渊秘境默认曲镜空洞
+    每天帮派巡礼领取巡游赠礼、深渊秘境默认曲镜空洞
     '''
     # 帮派巡礼 》领取巡游赠礼
     get('cmd=abysstide&op=getfactiongift')
@@ -1853,7 +1888,7 @@ def 深渊之潮():
 def 每日奖励():
     '''每日奖励
 
-        每天领取4次
+    每天领取4次
     '''
     for key in ['login', 'meridian', 'daren', 'wuzitianshu']:
         # 每日奖励
@@ -1864,7 +1899,7 @@ def 每日奖励():
 def 领取徒弟经验():
     '''领取徒弟经验
 
-        每天一次
+    每天一次
     '''
     # 领取徒弟经验
     get('cmd=exp')
@@ -1874,28 +1909,29 @@ def 领取徒弟经验():
 def 今日活跃度():
     '''今日活跃度
 
-        每天活跃度礼包、帮派总活跃礼包
+    领取每天活跃度礼包、帮派总活跃礼包
     '''
     # 今日活跃度
     get('cmd=liveness')
     MSG.append(find(r'【(.*?)】'))
-    if 'factionop' in HTML:
-        MSG.append(find(r'礼包</a><br />(.*?)<a'))
-    else:
-        MSG.append(find(r'礼包</a><br />(.*?)<br />'))
+    if '帮派总活跃' in HTML:
+        MSG.append(find(r'礼包</a><br />(.*?)<'))
     # 领取今日活跃度礼包
     for id in range(1, 5):
         get(f'cmd=liveness_getgiftbag&giftbagid={id}&action=1')
-        MSG.append(find(r'】<br />(.*?)<p>1.'))
+        MSG.append(find(r'】<br />(.*?)<p>'))
     # 领取帮派总活跃奖励
     get('cmd=factionop&subtype=18')
-    MSG.append(find(r'<br />(.*?)</p><p>你的职位:'))
+    if '创建帮派' in HTML:
+        MSG.append(find(r'帮派</a><br />(.*?)<br />'))
+    else:
+        MSG.append(find(r'<br />(.*?)</p>'))
 
 
 def 仙武修真():
     '''仙武修真
 
-        每天领取3次任务、寻访长留山挑战至多5次
+    每天领取3次任务、寻访长留山挑战至多5次
     '''
     for id in range(1, 4):
         # 领取
@@ -1915,7 +1951,7 @@ def 仙武修真():
 def 大侠回归三重好礼():
     '''大侠回归三重好礼
 
-        周四领取奖励
+    周四领取奖励
     '''
     # 大侠回归三重好礼
     get('cmd=newAct&subtype=173&op=1')
@@ -1931,7 +1967,7 @@ def 大侠回归三重好礼():
 def 乐斗黄历():
     '''乐斗黄历
 
-        每天占卜一次
+    每天占卜一次
     '''
     # 乐斗黄历
     get('cmd=calender&op=0')
@@ -1947,6 +1983,10 @@ def 乐斗黄历():
 
 
 def 器魂附魔():
+    '''器魂附魔
+
+    每天领取日活跃度达到50、80、110礼包
+    '''
     # 器魂附魔
     get('cmd=enchant')
     for id in range(1, 4):
@@ -1958,7 +1998,7 @@ def 器魂附魔():
 def 镶嵌():
     '''镶嵌
 
-        周四镶嵌魂珠升级（碎 -> 1 -> 2 -> 3）
+    周四镶嵌魂珠升级（碎 -> 1 -> 2 -> 3）
     '''
     data = [
         zip('6666666', range(2000, 2007)),      # 魂珠碎片
@@ -1986,8 +2026,8 @@ def 镶嵌():
 def 兵法():
     '''兵法
 
-        周四随机助威
-        周六领奖、领取斗币
+    周四随机助威
+    周六领奖、领取斗币
     '''
     if WEEK == '4':
         # 助威
@@ -2017,7 +2057,7 @@ def 兵法():
 def 神匠坊():
     '''神匠坊
 
-        周四普通合成、符石打造、符石分解（仅I类）
+    周四普通合成、符石打造、符石分解（仅I类）
     '''
     data = []
     for p in range(1, 20):
@@ -2070,7 +2110,7 @@ def 神匠坊():
 def 背包():
     '''背包
 
-        yaml文件指定的物品、所有带宝箱的物品、锦囊、属性（xx洗刷刷除外）被使用至多10次
+    yaml文件指定的物品、所有带宝箱的物品、锦囊、属性（xx洗刷刷除外）被使用至多10次
     '''
     data: list = read_yaml('背包')
     # 背包
@@ -2082,7 +2122,7 @@ def 背包():
             data += findall(r'宝箱</a>数量：.*?id=(\d+).*?使用')
 
     # 锦囊、属性
-    for t in [5]:
+    for t in [5, 2]:
         get(f'cmd=store&store_type={t}&page=1')
         data += findall(r'数量：.*?id=(\d+).*?使用')
 
@@ -2106,7 +2146,7 @@ def 背包():
 def 商店():
     '''商店
 
-        每天查询积分，比如矿石商店、粮票商店、功勋商店等中的积分
+    每天查询积分，比如矿石商店、粮票商店、功勋商店等中的积分
     '''
     for type in [1, 2, 3, 4, 9, 10, 11, 12, 13, 14]:
         '''
@@ -2148,7 +2188,7 @@ def 商店():
 def 猜单双():
     '''猜单双
 
-        随机单数、双数
+    随机单数、双数
     '''
     # 猜单双
     get('cmd=oddeven')
@@ -2165,7 +2205,7 @@ def 猜单双():
 def 煮元宵():
     '''煮元宵
 
-        成熟度>=96时赶紧出锅
+    成熟度>=96时赶紧出锅
     '''
     # 煮元宵
     get('cmd=yuanxiao2014')
@@ -2190,7 +2230,7 @@ def 煮元宵():
 def 元宵节():
     '''元宵节
 
-        周四领取、领取月桂兔
+    周四领取、领取月桂兔
     '''
     # 领取
     get('cmd=newAct&subtype=101&op=1')
@@ -2203,8 +2243,8 @@ def 元宵节():
 def 万圣节():
     '''万圣节
 
-        点亮南瓜灯
-        活动截止日的前一天优先兑换礼包B，最后兑换礼包A
+    点亮南瓜灯
+    活动截止日的前一天优先兑换礼包B，最后兑换礼包A
     '''
     # 点亮南瓜灯
     get('cmd=hallowmas&gb_id=1')
@@ -2243,7 +2283,7 @@ def 万圣节():
 def 神魔转盘():
     '''神魔转盘
 
-        幸运抽奖一次
+    幸运抽奖一次
     '''
     get('cmd=newAct&subtype=88&op=1')
     MSG.append(find(r'】<br />(.*?)<br />'))
@@ -2252,7 +2292,7 @@ def 神魔转盘():
 def 乐斗驿站():
     '''乐斗驿站
 
-        免费领取淬火结晶*1
+    免费领取淬火结晶*1
     '''
     get('cmd=newAct&subtype=167&op=2')
     MSG.append(find(r'】<br />(.*?)<br />'))
@@ -2261,7 +2301,7 @@ def 乐斗驿站():
 def 浩劫宝箱():
     '''浩劫宝箱
 
-        领取
+    领取一次
     '''
     get('cmd=newAct&subtype=152')
     MSG.append(find(r'浩劫宝箱<br />(.*?)<br />'))
@@ -2270,7 +2310,7 @@ def 浩劫宝箱():
 def 幸运转盘():
     '''幸运转盘
 
-        转动轮盘
+    转动轮盘一次
     '''
     get('cmd=newAct&subtype=57&op=roll')
     MSG.append(find(r'0<br /><br />(.*?)<br />'))
@@ -2279,7 +2319,7 @@ def 幸运转盘():
 def 喜从天降():
     '''喜从天降
 
-        点燃烟花
+    点燃烟花
     '''
     get('cmd=newAct&subtype=137&op=1')
     MSG.append(find(r'】<br />(.*?)<br />'))
@@ -2288,7 +2328,7 @@ def 喜从天降():
 def 冰雪企缘():
     '''冰雪企缘
 
-        至多领取两次
+    至多领取两次
     '''
     # 冰雪企缘
     get('cmd=newAct&subtype=158&op=0')
@@ -2301,8 +2341,8 @@ def 冰雪企缘():
 def 甜蜜夫妻():
     '''甜蜜夫妻
 
-        夫妻甜蜜好礼      至多领取3次
-        单身鹅鼓励好礼    至多领取3次
+    夫妻甜蜜好礼      至多领取3次
+    单身鹅鼓励好礼    至多领取3次
     '''
     # 甜蜜夫妻
     get('cmd=newAct&subtype=129')
@@ -2315,7 +2355,7 @@ def 甜蜜夫妻():
 def 幸运金蛋():
     '''幸运金蛋
 
-        砸金蛋
+    砸金蛋
     '''
     # 幸运金蛋
     get('cmd=newAct&subtype=110&op=0')
@@ -2328,7 +2368,7 @@ def 幸运金蛋():
 def 乐斗菜单():
     '''乐斗菜单
 
-        点单
+    点单
     '''
     # 乐斗菜单
     get('cmd=menuact')
@@ -2343,7 +2383,7 @@ def 乐斗菜单():
 def 客栈同福():
     '''客栈同福
 
-        献酒三次
+    献酒三次
     '''
     for _ in range(3):
         # 献酒
@@ -2356,7 +2396,7 @@ def 客栈同福():
 def 周周礼包():
     '''周周礼包
 
-        领取一次
+    领取一次
     '''
     # 周周礼包
     get('cmd=weekgiftbag&sub=0')
@@ -2369,7 +2409,7 @@ def 周周礼包():
 def 登录有礼():
     '''登录有礼
 
-        领取一次
+    领取一次
     '''
     # 登录有礼
     get('cmd=newAct&subtype=56')
@@ -2383,7 +2423,7 @@ def 登录有礼():
 def 活跃礼包():
     '''活跃礼包
 
-        领取两次
+    领取两次
     '''
     for p in ['1', '2']:
         get(f'cmd=newAct&subtype=94&op={p}')
@@ -2393,7 +2433,7 @@ def 活跃礼包():
 def 上香活动():
     '''上香活动
 
-        领取檀木香、龙涎香各两次
+    领取檀木香、龙涎香各两次
     '''
     for _ in range(2):
         # 檀木香
@@ -2407,7 +2447,7 @@ def 上香活动():
 def 徽章战令():
     '''徽章战令
 
-        领取每日礼包
+    领取每日礼包
     '''
     # 每日礼包
     get('cmd=badge&op=1')
@@ -2417,7 +2457,7 @@ def 徽章战令():
 def 生肖福卡():
     '''生肖福卡
 
-        领取
+    领取
     '''
     # 领取
     get('cmd=newAct&subtype=174&op=7&task_id=1')
@@ -2427,9 +2467,9 @@ def 生肖福卡():
 def 长安盛会():
     '''长安盛会
 
-        盛会豪礼点击领取
-        签到宝箱点击领取
-        点击参与至多3次
+    盛会豪礼点击领取
+    签到宝箱点击领取
+    点击参与至多3次
     '''
     for _ in range(3):
         # 长安盛会
@@ -2449,7 +2489,7 @@ def 长安盛会():
 def 深渊秘宝():
     '''深渊秘宝
 
-        仅三魂秘宝和七魄秘宝都能免费抽奖时才执行
+    仅三魂秘宝和七魄秘宝都能免费抽奖时才执行
     '''
     # 深渊秘宝
     get('cmd=newAct&subtype=175')
@@ -2466,7 +2506,7 @@ def 深渊秘宝():
 def 登录商店():
     '''登录商店
 
-        周四全部兑换黄金卷轴*1
+    周四全部兑换黄金卷轴*1
     '''
     for _ in range(5):
         # 兑换5次 黄金卷轴*5
@@ -2481,10 +2521,11 @@ def 登录商店():
 def 盛世巡礼():
     '''盛世巡礼
 
-        周四收下礼物
-        对话		cmd=newAct&subtype=150&op=3&itemId=0
-        点击继续	cmd=newAct&subtype=150&op=4&itemId=0
-        收下礼物	cmd=newAct&subtype=150&op=5&itemId=0
+    周四收下礼物
+
+    对话		cmd=newAct&subtype=150&op=3&itemId=0
+    点击继续	cmd=newAct&subtype=150&op=4&itemId=0
+    收下礼物	cmd=newAct&subtype=150&op=5&itemId=0
     '''
     for itemId in [0, 4, 6, 9, 11, 14, 17]:
         # 收下礼物
@@ -2495,7 +2536,7 @@ def 盛世巡礼():
 def 中秋礼盒():
     '''中秋礼盒
 
-        领取
+    领取
     '''
     for _ in range(3):
         # 中秋礼盒
@@ -2515,8 +2556,8 @@ def 中秋礼盒():
 def 双节签到():
     '''双节签到
 
-        领取签到奖励
-        活动截止日的前一天领取奖励金
+    领取签到奖励
+    活动截止日的前一天领取奖励金
     '''
     # 双节签到
     get('cmd=newAct&subtype=144')
@@ -2534,7 +2575,7 @@ def 双节签到():
 def 圣诞有礼():
     '''圣诞有礼
 
-        周四领取点亮奖励和连线奖励
+    周四领取点亮奖励和连线奖励
     '''
     # 圣诞有礼
     get('cmd=newAct&subtype=145')
@@ -2551,7 +2592,7 @@ def 圣诞有礼():
 def 五一礼包():
     '''五一礼包
 
-        周四领取三次劳动节礼包
+    周四领取三次劳动节礼包
     '''
     for id in range(3):
         get(f'cmd=newAct&subtype=113&op=1&id={id}')
@@ -2565,7 +2606,7 @@ def 五一礼包():
 def 新春礼包():
     '''新春礼包
 
-        周四领取礼包
+    周四领取礼包
     '''
     # 新春礼包
     get('cmd=xinChunGift&subtype=1')
@@ -2580,8 +2621,8 @@ def 新春礼包():
 def 新春拜年():
     '''新春拜年
 
-        第一轮赠礼三个礼物
-        第二轮收取礼物
+    第一轮赠礼三个礼物
+    第二轮收取礼物
     '''
     # 新春拜年
     get('cmd=newAct&subtype=147')
@@ -2601,7 +2642,7 @@ def 新春拜年():
 def 春联大赛():
     '''春联大赛
 
-        选择、领取斗币各三次
+    选择、领取斗币各三次
     '''
     # 开始答题
     get('cmd=newAct&subtype=146&op=1')
@@ -2670,8 +2711,8 @@ def 春联大赛():
 def 乐斗游记():
     '''乐斗游记
 
-        每天领取积分
-        每周四一键领取、兑换十次、兑换一次
+    每天领取积分
+    每周四一键领取、兑换十次、兑换一次
     '''
     # 乐斗游记
     get('cmd=newAct&subtype=176')
@@ -2705,7 +2746,7 @@ def 乐斗游记():
 def 新春登录礼():
     '''新春登录礼
 
-        每天至多领取七次
+    每天至多领取七次
     '''
     # 新春登录礼
     get('cmd=newAct&subtype=99&op=0')
@@ -2718,9 +2759,9 @@ def 新春登录礼():
 def 年兽大作战():
     '''年兽大作战
 
-        随机武技库免费一次
-        自选武技库从大、中、小、投、技各随机选择一个补位
-        挑战3次
+    随机武技库免费一次
+    自选武技库从大、中、小、投、技各随机选择一个补位
+    挑战3次
     '''
     # 年兽大作战
     get('cmd=newAct&subtype=170&op=0')
@@ -2754,7 +2795,7 @@ def 年兽大作战():
 def 惊喜刮刮卡():
     '''惊喜刮刮卡
 
-        每天至多领取三次
+    每天至多领取三次
     '''
     for i in range(3):
         get(f'cmd=newAct&subtype=148&op=2&id={i}')
@@ -2764,7 +2805,7 @@ def 惊喜刮刮卡():
 def 开心娃娃机():
     '''开心娃娃机
 
-        每天抓取一次
+    每天抓取一次
     '''
     get('cmd=newAct&subtype=124&op=1')
     MSG.append(find(r'】<br />(.*?)<br />'))
@@ -2773,7 +2814,7 @@ def 开心娃娃机():
 def 好礼步步升():
     '''好礼步步升
 
-        每天领取一次
+    每天领取一次
     '''
     get('cmd=newAct&subtype=43&op=get')
     MSG.append(find(r'】<br />(.*?)<br />'))
@@ -2782,7 +2823,7 @@ def 好礼步步升():
 def 企鹅吉利兑():
     '''企鹅吉利兑
 
-        领取、活动截止日的前一天兑换材料（每种至多兑换100次）
+    领取、活动截止日的前一天兑换材料（每种至多兑换100次）
     '''
     # 企鹅吉利兑
     get('cmd=geelyexchange')
@@ -2815,7 +2856,7 @@ def 企鹅吉利兑():
 def 乐斗回忆录():
     '''乐斗回忆录
 
-        周四领取回忆礼包
+    周四领取回忆礼包
     '''
     for id in [1, 3, 5, 7, 9]:
         # 回忆礼包
@@ -2826,24 +2867,17 @@ def 乐斗回忆录():
 def 乐斗大笨钟():
     '''乐斗大笨钟
 
-        领取一次
+    领取一次
     '''
     # 领取
     get('cmd=newAct&subtype=18')
     MSG.append(find(r'<br /><br /><br />(.*?)<br />'))
 
-def 领取徒弟经验():
-    get('cmd=exp&B_UID=0&g_ut=1&channel=0')
-    MSG.append(find(r"每日奖励</a><br />(.*?)<br /><br />"))
-
-def 月卡():
-    get('cmd=monthcard&sub=1&g_ut=1&channel=0')
-    MSG.append(find(r'<div id="id"><p>(.*?)<br />'))
 
 def 爱的同心结():
     '''爱的同心结
 
-        依次兑换礼包5、4、3、2、1
+    依次兑换礼包5、4、3、2、1
     '''
     duihuan = {
         4016: 20,
@@ -2864,7 +2898,7 @@ def 爱的同心结():
 def 周年生日祝福():
     '''周年生日祝福
 
-        周四领取
+    周四领取
     '''
     for day in range(1, 8):
         get(f'cmd=newAct&subtype=165&op=3&day={day}')
