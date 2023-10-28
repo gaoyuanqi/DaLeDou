@@ -105,6 +105,7 @@ MISSION = {
         [('新春拜年',), True],
         [('春联大赛',), True],
         [('乐斗游记',), True],
+        [('斗境探秘',), True],
         [('新春登录礼',), True],
         [('年兽大作战',), True],
         [('惊喜刮刮卡',), True],
@@ -2740,6 +2741,25 @@ def 乐斗游记():
                 # 兑换一次
                 get('cmd=newAct&subtype=176&op=2&num=1')
                 MSG.append(find(r'积分。<br /><br />(.*?)<br />'))
+
+
+def 斗境探秘():
+    '''斗境探秘
+
+        领取每日探秘奖励、累计探秘奖励
+    '''
+    # 斗境探秘
+    get('cmd=newAct&subtype=177')
+    # 领取每日探秘奖励
+    for id in findall(r'id=(\d+)&amp;type=2'):
+        # 领取
+        get(f'cmd=newAct&subtype=177&op=2&id={id}&type=2')
+        MSG.append(find(r'】<br /><br />(.*?)<br />'))
+    # 领取累计探秘奖励
+    for id in findall(r'id=(\d+)&amp;type=1'):
+        # 领取
+        get(f'cmd=newAct&subtype=177&op=2&id={id}&type=1')
+        MSG.append(find(r'】<br /><br />(.*?)<br />'))
 
 
 def 新春登录礼():
