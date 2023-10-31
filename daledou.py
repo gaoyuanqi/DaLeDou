@@ -2490,18 +2490,13 @@ def 长安盛会():
 def 深渊秘宝():
     '''深渊秘宝
 
-    仅三魂秘宝和七魄秘宝都能免费抽奖时才执行
+    三魂秘宝、七魄秘宝各免费抽奖一次
     '''
     # 深渊秘宝
     get('cmd=newAct&subtype=175')
-    number: int = HTML.count('免费抽奖')
-    if number == 2:
-        for type in range(1, 3):
-            get(
-                f'cmd=newAct&subtype=175&op=1&type={type}&times=1')
-            MSG.append(find(r'深渊秘宝<br />(.*?)<br />'))
-    else:
-        MSG.append(f'免费抽奖次数为 {number}，不足两次时该任务不执行')
+    for t in findall(r'type=(\d+)&amp;times=1">免费抽奖'):
+        get(f'cmd=newAct&subtype=175&op=1&type={t}&times=1')
+        MSG.append(find(r'深渊秘宝<br />(.*?)<br />'))
 
 
 def 登录商店():
@@ -2746,7 +2741,7 @@ def 乐斗游记():
 def 斗境探秘():
     '''斗境探秘
 
-        领取每日探秘奖励、累计探秘奖励
+    领取每日探秘奖励、累计探秘奖励
     '''
     # 斗境探秘
     get('cmd=newAct&subtype=177')
