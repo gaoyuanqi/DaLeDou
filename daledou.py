@@ -1365,7 +1365,6 @@ def 江湖长梦():
             get(f'cmd=jianghudream&op=showCopyInfo&id={id}')
             # 开启副本
             get(f'cmd=jianghudream&op=beginInstance&ins_id={id}')
-            MSG.append(find(r'【江湖长梦】<br />(.*?)<br />'))
             if '开启副本所需追忆香炉不足' in HTML:
                 return
             elif '无法开启副本' in HTML:
