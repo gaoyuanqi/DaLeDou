@@ -105,6 +105,7 @@ MISSION = {
         [('新春拜年',), True],
         [('春联大赛',), True],
         [('乐斗游记',), True],
+        [('斗境探秘',), True],
         [('新春登录礼',), True],
         [('年兽大作战',), True],
         [('惊喜刮刮卡',), True],
@@ -1364,7 +1365,6 @@ def 江湖长梦():
             get(f'cmd=jianghudream&op=showCopyInfo&id={id}')
             # 开启副本
             get(f'cmd=jianghudream&op=beginInstance&ins_id={id}')
-            MSG.append(find(r'【江湖长梦】<br />(.*?)<br />'))
             if '开启副本所需追忆香炉不足' in HTML:
                 return
             elif '无法开启副本' in HTML:
@@ -2489,18 +2489,13 @@ def 长安盛会():
 def 深渊秘宝():
     '''深渊秘宝
 
-    仅三魂秘宝和七魄秘宝都能免费抽奖时才执行
+    三魂秘宝、七魄秘宝各免费抽奖一次
     '''
     # 深渊秘宝
     get('cmd=newAct&subtype=175')
-    number: int = HTML.count('免费抽奖')
-    if number == 2:
-        for type in range(1, 3):
-            get(
-                f'cmd=newAct&subtype=175&op=1&type={type}&times=1')
-            MSG.append(find(r'深渊秘宝<br />(.*?)<br />'))
-    else:
-        MSG.append(f'免费抽奖次数为 {number}，不足两次时该任务不执行')
+    for t in findall(r'type=(\d+)&amp;times=1">免费抽奖'):
+        get(f'cmd=newAct&subtype=175&op=1&type={t}&times=1')
+        MSG.append(find(r'深渊秘宝<br />(.*?)<br />'))
 
 
 def 登录商店():
@@ -2538,19 +2533,18 @@ def 中秋礼盒():
 
     领取
     '''
-    for _ in range(3):
-        # 中秋礼盒
-        get('cmd=midautumngiftbag&sub=0')
-        ids = findall(r'amp;id=(\d+)')
-        if not ids:
-            MSG.append('没有可领取的了')
-            break
-        for id in ids:
-            # 领取
-            get(f'cmd=midautumngiftbag&sub=1&id={id}')
-            MSG.append(find(r'】<br />(.*?)<br />'))
-            if '已领取完该系列任务所有奖励' in HTML:
-                continue
+    # 中秋礼盒
+    get('cmd=midautumngiftbag&sub=0')
+    ids = findall(r'amp;id=(\d+)')
+    if not ids:
+        MSG.append('没有可领取的')
+        return
+    for id in ids:
+        # 领取
+        get(f'cmd=midautumngiftbag&sub=1&id={id}')
+        MSG.append(find(r'】<br />(.*?)<br />'))
+        if '已领取完该系列任务所有奖励' in HTML:
+            continue
 
 
 def 双节签到():
@@ -2743,6 +2737,25 @@ def 乐斗游记():
                 MSG.append(find(r'积分。<br /><br />(.*?)<br />'))
 
 
+def 斗境探秘():
+    '''斗境探秘
+
+    领取每日探秘奖励、累计探秘奖励
+    '''
+    # 斗境探秘
+    get('cmd=newAct&subtype=177')
+    # 领取每日探秘奖励
+    for id in findall(r'id=(\d+)&amp;type=2'):
+        # 领取
+        get(f'cmd=newAct&subtype=177&op=2&id={id}&type=2')
+        MSG.append(find(r'】<br /><br />(.*?)<br />'))
+    # 领取累计探秘奖励
+    for id in findall(r'id=(\d+)&amp;type=1'):
+        # 领取
+        get(f'cmd=newAct&subtype=177&op=2&id={id}&type=1')
+        MSG.append(find(r'】<br /><br />(.*?)<br />'))
+
+
 def 新春登录礼():
     '''新春登录礼
 
@@ -2795,11 +2808,16 @@ def 年兽大作战():
 def 惊喜刮刮卡():
     '''惊喜刮刮卡
 
-    每天至多领取三次
+    每天至多领取三次、点击刮卡二十次
     '''
     for i in range(3):
         get(f'cmd=newAct&subtype=148&op=2&id={i}')
         MSG.append(find(r'奖池预览</a><br /><br />(.*?)<br />'))
+    for _ in range(20):
+        get('cmd=newAct&subtype=148&op=1')
+        MSG.append(find(r'奖池预览</a><br /><br />(.*?)<br />'))
+        if '您没有刮刮卡了' in HTML:
+            break
 
 
 def 开心娃娃机():
