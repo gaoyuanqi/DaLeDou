@@ -1077,11 +1077,15 @@ def 帮派商会():
 
     每天帮派宝库领取礼包、交易会所交易物品、兑换商店兑换物品
     '''
-    # 帮派宝库
-    get('cmd=fac_corp&op=0')
-    for id, t in findall(r'gift_id=(\d+)&amp;type=(\d+)">点击领取'):
-        get(f'cmd=fac_corp&op=3&gift_id={id}&type={t}')
-        MSG.append(find(r'】</p>(.*?)<br />'))
+    for _ in range(10):
+        # 帮派宝库
+        get('cmd=fac_corp&op=0')
+        if mode := findall(r'gift_id=(\d+)&amp;type=(\d+)">点击领取'):
+            for id, t in mode:
+                get(f'cmd=fac_corp&op=3&gift_id={id}&type={t}')
+                MSG.append(find(r'】</p>(.*?)<br />'))
+        else:
+            break
 
     # 交易会所
     get('cmd=fac_corp&op=1')
