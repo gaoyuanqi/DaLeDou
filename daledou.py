@@ -143,10 +143,10 @@ class DaLeDou:
     def _clean_cookie(self, cookie: str) -> str:
         '''清洁大乐斗cookie
 
-        :return: 'RK=xxx; ptcz=xxx; uin=xxx; skey=xxx'
+        :return: 'RK=xxx; ptcz=xxx; openId=xxx; accessToken=xxx; newuin=xxx'
         '''
         ck = ''
-        for key in ['RK', 'ptcz', 'uin', 'skey']:
+        for key in ['RK', 'ptcz', 'openId', 'accessToken', 'newuin']:
             try:
                 result = re.search(
                     f'{key}=(.*?); ',
@@ -160,7 +160,7 @@ class DaLeDou:
 
     def _match_qq(self) -> str:
         '''从cookie中提取出qq'''
-        return re.search(r'uin=o(\d+); ', self._cookie, re.S).group(1)
+        return re.search(r'newuin=(\d+)', self._cookie, re.S).group(1)
 
     def _create_yaml(self):
         '''基于 daledou.yaml 创建一份以qq命名的 yaml 配置文件
