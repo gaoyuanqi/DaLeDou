@@ -2,29 +2,29 @@ import time
 
 from schedule import every, repeat, run_pending
 
-from daledou import run
+from daledou.run import run_mission
 
 
-@repeat(every(30).minutes)
+@repeat(every(2).hours)
 def job_timing():
-    # 每隔 30 分钟检测cookie有效期
-    run('check')
+    # 每隔 2 小时检测Cookie有效期
+    run_mission('check')
 
 
 @repeat(every().day.at('13:10'))
 def job_one():
-    # 每天 13:05 运行第一轮
-    run('one')
+    # 每天 13:10 运行第一轮
+    run_mission('one')
 
 
 @repeat(every().day.at('20:01'))
 def job_two():
     # 每天 20:01 运行第二轮
-    run('two')
+    run_mission('two')
 
 
 if __name__ == '__main__':
-    run()
+    run_mission()
     while True:
         run_pending()
         time.sleep(1)

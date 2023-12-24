@@ -2,348 +2,76 @@ import re
 import sys
 import time
 import random
-import traceback
-from shutil import copy
-from importlib import reload
-from os import environ, path, getenv
-
-import yaml
-import requests
 from loguru import logger
 
-import settings
+from daledou import WEEK, DAY, DISABLE_PUSH
+from daledou.config import init_config, create_log, push
 
 
 MSG = []
-WEEK: str = time.strftime('%w')
-DATE: str = time.strftime('%d', time.localtime())
-
-# 不支持的通知
-DISABLE_PUSH = ['乐斗', '历练', '镶嵌', '神匠坊', '背包']
-
-MISSION = {
-    'one': [
-        [('邪神秘宝',), True],
-        [('华山论剑',), (int(DATE) <= 26)],
-        [('斗豆月卡',), True],
-        [('每日宝箱',), (DATE == '20')],
-        [('分享',), True],
-        [('乐斗',), True],
-        [('报名',), True],
-        [('巅峰之战进行中',), (WEEK != '2')],
-        [('矿洞',), True],
-        [('掠夺',), (WEEK in ['2', '3'])],
-        [('踢馆',), (WEEK in ['5', '6'])],
-        [('竞技场',), (int(DATE) <= 25)],
-        [('十二宫',), True],
-        [('许愿',), True],
-        [('抢地盘',), True],
-        [('历练',), True],
-        [('镖行天下',), True],
-        [('幻境',), True],
-        [('群雄逐鹿',), (WEEK == '6')],
-        [('画卷迷踪',), True],
-        [('门派',), True],
-        [('门派邀请赛',), (WEEK != '2')],
-        [('会武',), (WEEK not in ['5', '0'])],
-        [('梦想之旅',), True],
-        [('问鼎天下',), True],
-        [('帮派商会',), True],
-        [('帮派远征军',), True],
-        [('帮派黄金联赛',), True],
-        [('任务派遣中心',), True],
-        [('武林盟主',), True],
-        [('全民乱斗',), True],
-        [('侠士客栈',), True],
-        [('江湖长梦',), (WEEK == '4')],
-        [('任务',), True],
-        [('我的帮派',), True],
-        [('帮派祭坛',), True],
-        [('飞升大作战',), True],
-        [('深渊之潮',), True],
-        [('每日奖励',), True],
-        [('领取徒弟经验',), True],
-        [('今日活跃度',), True],
-        [('仙武修真',), True],
-        [('大侠回归三重好礼',), (WEEK == '4')],
-        [('乐斗黄历',), True],
-        [('器魂附魔',), True],
-        [('镶嵌',), (WEEK == '4')],
-        [('兵法',), (WEEK in ['4', '6'])],
-        [('神匠坊',), (WEEK == '4')],
-        [('背包',), True],
-        [('商店',), True],
-        [('猜单双',), True],
-        [('煮元宵',), True],
-        [('元宵节',), (WEEK == '4')],
-        [('万圣节',), True],
-        [('神魔转盘',), True],
-        [('乐斗驿站',), True],
-        [('浩劫宝箱',), True],
-        [('幸运转盘',), True],
-        [('喜从天降',), True],
-        [('冰雪企缘',), True],
-        [('甜蜜夫妻',), True],
-        [('幸运金蛋',), True],
-        [('乐斗菜单',), True],
-        [('客栈同福',), True],
-        [('周周礼包',), True],
-        [('登录有礼',), True],
-        [('活跃礼包',), True],
-        [('上香活动',), True],
-        [('徽章战令',), True],
-        [('生肖福卡',), True],
-        [('长安盛会',), True],
-        [('深渊秘宝',), True],
-        [('登录商店',), (WEEK == '4')],
-        [('盛世巡礼',), (WEEK == '4')],
-        [('中秋礼盒',), True],
-        [('双节签到',), True],
-        [('圣诞有礼',), (WEEK == '4')],
-        [('5.1礼包', '五一礼包'), (WEEK == '4')],
-        [('新春礼包',), (WEEK == '4')],
-        [('新春拜年',), True],
-        [('春联大赛',), True],
-        [('乐斗游记',), True],
-        [('斗境探秘',), True],
-        [('新春登录礼',), True],
-        [('年兽大作战',), True],
-        [('惊喜刮刮卡',), True],
-        [('开心娃娃机',), True],
-        [('好礼步步升',), True],
-        [('企鹅吉利兑',), True],
-        [('乐斗回忆录',), (WEEK == '4')],
-        [('乐斗大笨钟',), True],
-        [('爱的同心结',), (WEEK == '4')],
-        [('周年生日祝福',), (WEEK == '4')],
-    ],
-    'two': [
-        [('邪神秘宝',), True],
-        [('问鼎天下',), (WEEK not in ['6', '0'])],
-        [('任务派遣中心',), True],
-        [('侠士客栈',), True],
-        [('深渊之潮',), True],
-        [('幸运金蛋',), True],
-        [('新春拜年',), True],
-        [('乐斗大笨钟',), True],
-    ],
-}
 
 
-class CookieError(Exception):
-    ...
+def run_mission(tasks: str = 'check') -> None:
+    global QQ, SESSION, MISSION_NAME, YAML
 
+    if len(input := sys.argv) == 2:
+        tasks = input[1]
+    if tasks not in ['check', 'one', 'two']:
+        assert False, f'不支持参数 {tasks}，只支持 check | one | two'
 
-class DaLeDou:
-    def __init__(self, cookie: str) -> None:
-        assert type(cookie) is str, '传入的cookie只能是str类型'
-        self._cookie = self._clean_cookie(cookie)
-        self._qq = self._match_qq()
-
-    def _clean_cookie(self, cookie: str) -> str:
-        '''清洁大乐斗cookie
-
-        :return: 'RK=xxx; ptcz=xxx; openId=xxx; accessToken=xxx; newuin=xxx'
-        '''
-        ck = ''
-        for key in ['RK', 'ptcz', 'openId', 'accessToken', 'newuin']:
-            try:
-                result = re.search(
-                    f'{key}=(.*?); ',
-                    f'{cookie}; ',
-                    re.S
-                ).group(0)
-            except AttributeError:
-                raise CookieError(f'大乐斗cookie不正确：{cookie}')
-            ck += f'{result}'
-        return ck[:-2]
-
-    def _match_qq(self) -> str:
-        '''从cookie中提取出qq'''
-        return re.search(r'newuin=(\d+)', self._cookie, re.S).group(1)
-
-    def _create_yaml(self):
-        '''基于 daledou.yaml 创建一份以qq命名的 yaml 配置文件
-
-        如果以qq命名的yaml配置文件已存在则不做任何操作
-        '''
-        srcpath = f'./config/daledou.yaml'
-        yamlpath = f'./config/{self._qq}.yaml'
-        if not path.isfile(yamlpath):
-            logger.success(f'成功创建配置文件：./config/{self._qq}.yaml')
-            copy(srcpath, yamlpath)
-
-    def _push(self, title: str, message: list) -> None:
-        '''pushplus微信通知'''
-        if token := settings.PUSHPLUS_TOKEN:
-            url = 'http://www.pushplus.plus/send/'
-            content = '\n'.join(list(filter(lambda x:  x, message)))
-            data = {
-                'token': token,
-                'title': title,
-                'content': content,
-            }
-            res = requests.post(url, data=data)
-            json: dict = res.json()
-            if json.get('code') == 200:
-                return logger.success(f'pushplus推送成功：{json}')
-            return logger.warning(f'pushplus推送失败：{json}')
-        logger.warning('pushplus没有配置token，取消微信推送')
-
-    def session(self):
-        '''若cookie有效返回Session对象，否则返回None'''
-        global SESSION
-        url = 'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index'
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-        }
-        with requests.session() as SESSION:
-            requests.utils.add_dict_to_cookiejar(
-                SESSION.cookies, {'Cookie': self._cookie})
-        for _ in range(3):
-            res = SESSION.get(url, headers=headers)
-            res.encoding = 'utf-8'
-            html = res.text
-            if '商店' in html:
-                logger.success(f'{self._qq}：COOKIE有效')
-                if self._cookie != getenv(f'DLD_COOKIE_VALID_{self._qq}'):
-                    environ[f'DLD_COOKIE_VALID_{self._qq}'] = self._cookie
-                    self._create_yaml()
-                return SESSION
-            elif '一键登录' in html:
-                logger.warning(f'{self._qq}：COOKIE无效！！!')
-                break
-
-        if self._cookie != getenv(f'DLD_COOKIE_NULL_{self._qq}'):
-            environ[f'DLD_COOKIE_NULL_{self._qq}'] = self._cookie
-            self._push(f'cookie失效或者系统维护：{self._qq}', [self._cookie])
-
-    def create_log(self) -> int:
-        '''创建当天日志文件
-
-        文件夹以qq命名，日志文件以日期命名
-        '''
-        date = time.strftime('%Y-%m-%d', time.localtime())
-        return logger.add(
-            f'./log/{self._qq}/{date}.log',
-            format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <4}</level> | <level>{message}</level>',
-            enqueue=True,
-            encoding='utf-8',
-            retention='30 days'
-        )
-
-    def get(self, params: str) -> str:
-        '''发送get请求获取html响应内容'''
-        global HTML
-        url = f'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?{params}'
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-        }
-        for _ in range(3):
-            res = SESSION.get(url, headers=headers)
-            res.encoding = 'utf-8'
-            HTML = res.text
-            time.sleep(0.2)
-            if '系统繁忙' not in HTML:
-                break
-        return HTML
-
-    def find(self, mode: str, name: str = '') -> str | None:
-        '''匹配首个'''
-        if match := re.search(mode, HTML, re.S):
-            result: str = match.group(1)
-        else:
-            result = None
-        if not name:
-            name = MISSION_NAME
-        logger.info(f'{self._qq} | {name}：{result}')
-        return result
-
-    def findall(self, mode: str) -> list:
-        '''匹配所有'''
-        return re.findall(mode, HTML, re.S)
-
-    def read_yaml(self, key: str):
-        '''读取config目录下的yaml配置文件'''
-        try:
-            with open(f'./config/{self._qq}.yaml', 'r', encoding='utf-8') as fp:
-                users = yaml.safe_load(fp)
-                data = users[key]
-            return data
-        except Exception:
-            error = traceback.format_exc()
-            logger.error(f'{self._qq}.yaml 配置不正确：\n{error}')
-            self._push(f'{self._qq}.yaml 配置不正确', [error])
-
-    def run(self, tasks: str) -> None:
-        global MISSION_NAME
+    for data in init_config():
+        if tasks == 'check':
+            continue
         start = time.time()
-        for _ in range(3):
-            # 大乐斗首页
-            get('cmd=index')
-            if '退出' in HTML:
-                html = HTML.split('【退出】')[0]
-                for misssion in MISSION.get(tasks, []):
-                    is_mission: tuple = misssion[0]
-                    is_run: bool = misssion[-1]
-                    if len(is_mission) == 2:
-                        mission_name, func_name = is_mission
-                    else:
-                        mission_name = is_mission[0]
-                        func_name = is_mission[0]
-                    MISSION_NAME = mission_name
-                    if is_run and (mission_name in html):
-                        if mission_name not in DISABLE_PUSH:
-                            MSG.append(f'\n【{mission_name}】')
-                        globals()[func_name]()
-                break
+        QQ = data['QQ']
+        YAML = data['YAML']
+        SESSION = data['SESSION']
+        missions: dict = data['MISSIONS']
+        trace: int = create_log(QQ)
+
+        for func in missions[tasks]:
+            MISSION_NAME = func
+            if func not in DISABLE_PUSH:
+                MSG.append(f'\n【{func}】')
+            globals()[func]()
 
         end = time.time()
         MSG.append(f'\n【运行时长】\n时长：{int(end - start)} s')
-        self._push(f'{self._qq} {tasks}', MSG)
+        push(f'{QQ} {tasks}', MSG)
         MSG.clear()
+        logger.remove(trace)
 
 
 def get(params: str) -> str:
     '''发送get请求获取html响应内容'''
-    HTML = DALEDOU.get(params)
+    global HTML
+    url = f'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?{params}'
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
+    }
+    for _ in range(3):
+        res = SESSION.get(url, headers=headers)
+        res.encoding = 'utf-8'
+        HTML = res.text
+        time.sleep(0.2)
+        if '系统繁忙' not in HTML:
+            break
     return HTML
 
 
 def find(mode: str, name: str = '') -> str | None:
     '''匹配首个'''
-    return DALEDOU.find(mode, name)
+    match = re.search(mode, HTML, re.S)
+    result = match.group(1) if match else None
+    if not name:
+        name = MISSION_NAME
+    logger.info(f'{QQ} | {name}：{result}')
+    return result
 
 
 def findall(mode: str) -> list:
     '''匹配所有'''
-    return DALEDOU.findall(mode)
-
-
-def read_yaml(key: str):
-    '''读取yaml配置文件'''
-    return DALEDOU.read_yaml(key)
-
-
-def run(tasks: str = 'check') -> None:
-    global DALEDOU
-
-    if len(input := sys.argv) == 2:
-        tasks = input[1]
-    if tasks not in ['check', 'one', 'two']:
-        assert False, f'不支持 {tasks} 参数，只支持 check | one | two'
-
-    reload(settings)
-    for ck in settings.DALEDOU_ACCOUNT:
-        print('\n')
-        DALEDOU = DaLeDou(ck)
-        if DALEDOU.session():
-            if tasks == 'check':
-                continue
-            trace = DALEDOU.create_log()
-            DALEDOU.run(tasks)
-            logger.remove(trace)
-        del DALEDOU
+    return re.findall(mode, HTML, re.S)
 
 
 def 邪神秘宝():
@@ -355,7 +83,7 @@ def 邪神秘宝():
     for i in [0, 1]:
         # 免费一次 or 抽奖一次
         get(f'cmd=tenlottery&op=2&type={i}')
-        MSG.append(find(r'】</p>(.*?)<br />', '邪神秘宝'))
+        MSG.append(find(r'】</p>(.*?)<br />'))
 
 
 def 华山论剑():
@@ -364,7 +92,7 @@ def 华山论剑():
     每月1~25号每天至多挑战10次，耐久不足时自动更换侠士
     每月26号领取赛季段位奖励
     '''
-    if int(DATE) <= 25:
+    if DAY <= 25:
         for _ in range(10):
             # 开始挑战
             get('cmd=knightarena&op=challenge')
@@ -399,7 +127,7 @@ def 华山论剑():
                 break
             elif '请先设置上阵侠士后再开始战斗' in HTML:
                 break
-    elif DATE == '26':
+    elif DAY == 26:
         get(r'cmd=knightarena&op=drawranking')
         MSG.append(find(r'【赛季段位奖励】<br />(.*?)<br />'))
 
@@ -473,7 +201,7 @@ def 分享():
             if cooling := findall(r'战斗剩余时间：(\d+)'):
                 time.sleep(int(cooling[0]))
 
-    if WEEK == '4':
+    if WEEK == 4:
         get('cmd=sharegame&subtype=3')
         for s in findall(r'sharenums=(\d+)'):
             # 领取
@@ -552,7 +280,7 @@ def 报名():
         MSG.append(find(r'升级。<br />(.*?) '))
 
     # 侠侣争霸
-    if WEEK in ['2', '5', '0']:
+    if WEEK in [2, 5, 7]:
         get('cmd=cfight&subtype=9')
         if '使用规则' in HTML:
             MSG.append(find(r'】</p><p>(.*?)<br />'))
@@ -560,7 +288,7 @@ def 报名():
             MSG.append(find(r'报名状态.*?<br />(.*?)<br />'))
 
     # 笑傲群侠
-    if WEEK in ['6', '0']:
+    if WEEK in [6, 7]:
         get('cmd=knightfight&op=signup')
         MSG.append(find(r'侠士侠号.*?<br />(.*?)<br />'))
 
@@ -571,11 +299,11 @@ def 巅峰之战进行中():
     周一报名（随机加入）、领奖
     周三、四、五、六、日征战
     '''
-    if WEEK == '1':
+    if WEEK == 1:
         for c in ['cmd=gvg&sub=4&group=0&check=1', 'cmd=gvg&sub=1']:
             get(c)
             MSG.append(find(r'】</p>(.*?)<br />'))
-    elif WEEK not in ['1', '2']:
+    elif WEEK not in [1, 2]:
         # 巅峰之战
         get('cmd=gvg&sub=0')
         for _ in range(14):
@@ -632,7 +360,7 @@ def 掠夺():
     周二掠夺一次（选择可掠夺粮仓最低战力）、领奖
     周三领取胜负奖励
     '''
-    if WEEK == '2':
+    if WEEK == 2:
         get('cmd=forage_war')
         if '本轮轮空' in HTML:
             MSG.append(find(r'本届战况：(.*?)<br />'))
@@ -654,7 +382,7 @@ def 掠夺():
         # 领奖
         get('cmd=forage_war&subtype=5')
         MSG.append(find(r'返回</a><br />(.*?)<br />'))
-    elif WEEK == '3':
+    elif WEEK == 3:
         get('cmd=forage_war&subtype=6')
         MSG.append(find(r'规则</a><br />(.*?)<br />'))
 
@@ -665,7 +393,7 @@ def 踢馆():
     周五试炼5次、高倍转盘一次、挑战至多31次
     周六领奖以及报名踢馆
     '''
-    if WEEK == '5':
+    if WEEK == 5:
         for t in [2, 2, 2, 2, 2, 4]:
             # 试炼、高倍转盘
             get(f'cmd=facchallenge&subtype={t}')
@@ -683,7 +411,7 @@ def 踢馆():
             elif '您的复活次数已耗尽' in HTML:
                 MSG.append('您的复活次数已耗尽')
                 break
-    elif WEEK == '6':
+    elif WEEK == 6:
         for p in ['7', '1']:
             get(f'cmd=facchallenge&subtype={p}')
             MSG.append(find(r'功勋商店</a><br />(.*?)<br />'))
@@ -705,7 +433,7 @@ def 竞技场():
             break
         find(r'更新提示</a><br />(.*?)。')
 
-    if yaml := read_yaml('竞技场'):
+    if yaml := YAML.get('竞技场'):
         # 兑换10个
         get(f'cmd=arena&op=exchange&id={yaml}&times=10')
         MSG.append(find(r'竞技场</a><br />(.*?)<br />'))
@@ -716,7 +444,7 @@ def 十二宫():
 
     每天默认白羊宫请猴王扫荡
     '''
-    if yaml := read_yaml('十二宫'):
+    if yaml := YAML.get('十二宫'):
         # 请猴王扫荡
         get(f'cmd=zodiacdungeon&op=autofight&scene_id={yaml}')
         if '恭喜你' in HTML:
@@ -764,7 +492,7 @@ def 历练():
 
     每天默认掉落佣兵碎片的每个关卡BOSS会被乐斗3次
     '''
-    for id in read_yaml('历练'):
+    for id in YAML.get('历练'):
         for _ in range(3):
             get(f'cmd=mappush&subtype=3&mapid=6&npcid={id}&pageid=2')
             find(r'阅历值：\d+<br />(.*?)<br />')
@@ -810,7 +538,7 @@ def 幻境():
 
     每天默认乐斗鹅王的试炼
     '''
-    if yaml := read_yaml('幻境'):
+    if yaml := YAML.get('幻境'):
         get(f'cmd=misty&op=start&stage_id={yaml}')
         for _ in range(5):
             # 乐斗
@@ -919,7 +647,7 @@ def 门派邀请赛():
     每周一报名、领取奖励
     每周三、四、五、六、日挑战6次以及默认兑换10个炼气石
     '''
-    if WEEK == '1':
+    if WEEK == 1:
         # 组队报名
         get('cmd=secttournament&op=signup')
         if '已加入到某只队伍中' in HTML:
@@ -929,12 +657,12 @@ def 门派邀请赛():
         # 领取奖励
         get('cmd=secttournament&op=getrankandrankingreward')
         MSG.append(find(r'规则</a><br />(.*?)<br />'))
-    elif WEEK not in ['1', '2']:
+    elif WEEK not in [1, 2]:
         for _ in range(6):
             # 开始挑战
             get('cmd=secttournament&op=fight')
             MSG.append(find(r'规则</a><br />(.*?)<br />'))
-        if yaml := read_yaml('门派邀请赛'):
+        if yaml := YAML.get('门派邀请赛'):
             # 兑换10个
             get(f'cmd=exchange&subtype=2&type={yaml}&times=10&costtype=11')
             MSG.append(find(r'】<br />(.*?)<br />'))
@@ -948,7 +676,7 @@ def 会武():
     周四助威丐帮
     周六领取奖励、兑换真黄金卷轴*10
     '''
-    if WEEK in ['1', '2', '3']:
+    if WEEK in [1, 2, 3]:
         for _ in range(21):
             # 挑战
             get('cmd=sectmelee&op=dotraining')
@@ -963,13 +691,13 @@ def 会武():
                     # 抱歉，您的会武积分不足，不能兑换该物品！
                     MSG.append('会武积分不足兑换试炼书*10')
                     break
-    elif WEEK == '4':
+    elif WEEK == 4:
         # 冠军助威 丐帮
         get('cmd=sectmelee&op=cheer&sect=1003')
         # 冠军助威
         get('cmd=sectmelee&op=showcheer')
         MSG.append(find(r'【冠军助威】<br />(.*?)<br />'))
-    elif WEEK == '6':
+    elif WEEK == 6:
         # 领奖
         get('cmd=sectmelee&op=drawreward')
         MSG.append(find(r'【领奖】<br />(.*?)<br />'))
@@ -988,7 +716,7 @@ def 梦想之旅():
     get('cmd=dreamtrip&sub=2')
     MSG.append(find(r'规则</a><br />(.*?)<br />'))
 
-    if WEEK == '4':
+    if WEEK == 4:
         bmapid = {
             '空桑山': 2,
             '鹊山': 3,
@@ -1036,11 +764,11 @@ def 问鼎天下():
     周六淘汰赛助威 神ㄨ阁丶
     周日排名赛助威 神ㄨ阁丶
     '''
-    if WEEK == '1':
+    if WEEK == 1:
         # 领取奖励
         get('cmd=tbattle&op=drawreward')
         MSG.append(find(r'规则</a><br />(.*?)<br />'))
-    if WEEK not in ['6', '0']:
+    if WEEK not in [6, 7]:
         # 问鼎天下
         get('cmd=tbattle')
         if '你占领的领地已经枯竭' in HTML:
@@ -1060,14 +788,14 @@ def 问鼎天下():
                 MSG.append(find(r'规则</a><br />(.*?)<br />'))
                 if '大获全胜' in HTML:
                     break
-    elif WEEK == '6':
+    elif WEEK == 6:
         # 淘汰赛助威
-        id = read_yaml('问鼎天下')['淘汰赛']
+        id = YAML.get('问鼎天下')['淘汰赛']
         get(f'cmd=tbattle&op=cheerregionbattle&id={id}')
         MSG.append(find(r'规则</a><br />(.*?)<br />'))
-    elif WEEK == '0':
+    elif WEEK == 7:
         # 排名赛助威
-        id = read_yaml('问鼎天下')['排名赛']
+        id = YAML.get('问鼎天下')['排名赛']
         get(f'cmd=tbattle&op=cheerchampionbattle&id={id}')
         MSG.append(find(r'规则</a><br />(.*?)<br />'))
 
@@ -1089,7 +817,7 @@ def 帮派商会():
 
     # 交易会所
     get('cmd=fac_corp&op=1')
-    data: dict = read_yaml('帮派商会')
+    data: dict = YAML.get('帮派商会')
     jiaoyi: dict = data['交易会所']
     for jiaoyi_name, params in jiaoyi.items():
         if jiaoyi_name in HTML:
@@ -1098,7 +826,7 @@ def 帮派商会():
 
     # 兑换商店
     get('cmd=fac_corp&op=2')
-    data: dict = read_yaml('帮派商会')
+    data: dict = YAML.get('帮派商会')
     duihuan: dict = data['兑换商店']
     for duihuan_name, type_id in duihuan.items():
         if duihuan_name in HTML:
@@ -1112,7 +840,7 @@ def 帮派远征军():
     周一、二、三、四、五、六参战攻击
     周日领取奖励
     '''
-    while WEEK != '0':
+    while WEEK != 7:
         # 帮派远征军
         get('cmd=factionarmy&op=viewIndex&island_id=-1')
         point_id = findall(r'point_id=(\d+)">参战')
@@ -1131,7 +859,7 @@ def 帮派远征军():
                 elif '您的血量不足' in HTML:
                     MSG.append('您的血量不足，请重生后在进行战斗')
                     return
-    if WEEK == '0':
+    if WEEK == 7:
         # 领取奖励
         for id in range(15):
             get(f'cmd=factionarmy&op=getPointAward&point_id={id}')
@@ -1275,7 +1003,7 @@ def 武林盟主():
     周一、三、五分站赛默认报名黄金，总决赛不需报名
     周二、四、六竞猜
     '''
-    if WEEK in ['3', '5', '0']:
+    if WEEK in [3, 5, 7]:
         # 武林盟主
         get('cmd=wlmz&op=view_index')
         if data := findall(r'section_id=(\d+)&amp;round_id=(\d+)">'):
@@ -1285,14 +1013,14 @@ def 武林盟主():
         else:
             MSG.append('没有可领取的排行奖励和竞猜奖励')
 
-    if WEEK in ['1', '3', '5']:
-        if yaml := read_yaml('武林盟主'):
+    if WEEK in [1, 3, 5]:
+        if yaml := YAML.get('武林盟主'):
             get(f'cmd=wlmz&op=signup&ground_id={yaml}')
             if '总决赛周不允许报名' in HTML:
                 MSG.append(find(r'战报</a><br />(.*?)<br />'))
                 return
             MSG.append(find(r'赛场】<br />(.*?)<br />'))
-    elif WEEK in ['2', '4', '6']:
+    elif WEEK in [2, 4, 6]:
         for index in range(8):
             # 选择
             get(f'cmd=wlmz&op=guess_up&index={index}')
@@ -1361,7 +1089,7 @@ def 江湖长梦():
             MSG.append(find(r'】<br />(.*?)<br />'))
             break
 
-    for id, num in read_yaml('江湖长梦'):
+    for id, num in YAML.get('江湖长梦'):
         if id != 1:
             MSG.append('目前仅支持柒承的忙碌日常')
             break
@@ -1720,12 +1448,12 @@ def 我的帮派():
         return
 
     # 周日 领取奖励 》报名帮派战争 》激活祝福
-    if WEEK == '0':
+    if WEEK == 7:
         for sub in [4, 9, 6]:
             get(f'cmd=facwar&sub={sub}')
             MSG.append(find(r'</p>(.*?)<br /><a.*?查看上届'))
 
-    for id in read_yaml('我的帮派'):
+    for id in YAML.get('我的帮派'):
         # 供奉
         get(f'cmd=oblation&id={id}&page=1')
         if '每天最多供奉5次' in HTML:
@@ -1851,7 +1579,7 @@ def 飞升大作战():
         get('cmd=ascendheaven&op=signup&type=2')
         MSG.append(find(r'】<br />(.*?)<br />S'))
         break
-    if WEEK == '4':
+    if WEEK == 4:
         # 飞升大作战
         get('cmd=ascendheaven')
         if ('赛季结算中' in HTML):
@@ -1873,7 +1601,7 @@ def 深渊之潮():
     MSG.append(find(r'】<br />(.*?)<br />'))
     if '您暂未加入帮派' in HTML:
         MSG.append('帮派巡礼需要加入帮派才能领取')
-    if yaml := read_yaml('深渊之潮'):
+    if yaml := YAML.get('深渊之潮'):
         for _ in range(3):
             get(f'cmd=abysstide&op=enterabyss&id={yaml}')
             if '暂无可用挑战次数' in HTML:
@@ -2033,7 +1761,7 @@ def 兵法():
     周四随机助威
     周六领奖、领取斗币
     '''
-    if WEEK == '4':
+    if WEEK == 4:
         # 助威
         get('cmd=brofight&subtype=13')
         if teamid := findall(r'.*?teamid=(\d+).*?助威</a>'):
@@ -2041,7 +1769,7 @@ def 兵法():
             # 确定
             get(f'cmd=brofight&subtype=13&teamid={t}&type=5&op=cheer')
             MSG.append(find(r'领奖</a><br />(.*?)<br />'))
-    elif WEEK == '6':
+    elif WEEK == 6:
         # 兵法 -> 助威 -> 领奖
         get('cmd=brofight&subtype=13&op=draw')
         MSG.append(find(r'领奖</a><br />(.*?)<br />'))
@@ -2079,7 +1807,7 @@ def 神匠坊():
                 find(r'背包<br /></p>(.*?)!')
 
     # 符石分解
-    if yaml := read_yaml('神匠坊'):
+    if yaml := YAML.get('神匠坊'):
         data = []
         for p in range(1, 10):
             # 下一页
@@ -2116,7 +1844,7 @@ def 背包():
 
     yaml文件指定的物品、所有带宝箱的物品、锦囊、属性（xx洗刷刷除外）被使用至多10次
     '''
-    data: list = read_yaml('背包')
+    data: list = YAML.get('背包')
     # 背包
     get('cmd=store&store_type=0')
     if page := findall(r'第1/(\d+)'):
@@ -2268,7 +1996,7 @@ def 万圣节():
     get('cmd=hallowmas&gb_id=0')
     try:
         date: str = findall(r'~\d+月(\d+)日')[0]
-        if int(DATE) == int(date) - 1:
+        if DAY == int(date) - 1:
             num: str = findall(r'南瓜灯：(\d+)个')[0]
             B = int(num) / 40
             A = (int(num) - int(B) * 40) / 20
@@ -2564,7 +2292,7 @@ def 双节签到():
         # 领取
         get('cmd=newAct&subtype=144&op=1')
         MSG.append(find(r'】<br />(.*?)<br />'))
-    if int(DATE) == int(date) - 1:
+    if DAY == int(date) - 1:
         # 奖励金
         get('cmd=newAct&subtype=144&op=3')
         MSG.append(find(r'】<br />(.*?)<br />'))
@@ -2611,7 +2339,7 @@ def 新春礼包():
     date_list = findall(r'~\d+月(\d+)日')
     giftid = findall(r'giftid=(\d+)')
     for date, id in zip(date_list, giftid):
-        if int(DATE) == int(date) - 1:
+        if DAY == int(date) - 1:
             get(f'cmd=xinChunGift&subtype=2&giftid={id}')
             MSG.append(find(r'】<br />(.*?)<br />'))
 
@@ -2721,7 +2449,7 @@ def 乐斗游记():
         get(f'cmd=newAct&subtype=176&op=1&task_id={id}')
         MSG.append(find(r'积分。<br /><br />(.*?)<br />'))
 
-    if WEEK == '4':
+    if WEEK == 4:
         # 一键领取
         get('cmd=newAct&subtype=176&op=5')
         MSG.append(find(r'积分。<br /><br />(.*?)<br />'))
@@ -2858,8 +2586,8 @@ def 企鹅吉利兑():
     try:
         # 限时兑换
         date: str = findall(r'至\d+月(\d+)日')[0]
-        if int(DATE) == int(date) - 1:
-            for p in read_yaml('企鹅吉利兑'):
+        if DAY == int(date) - 1:
+            for p in YAML.get('企鹅吉利兑'):
                 for _ in range(100):
                     get(f'cmd=geelyexchange&op=ExchangeProps&id={p}')
                     if '你的精魄不足，快去完成任务吧~' in HTML:
