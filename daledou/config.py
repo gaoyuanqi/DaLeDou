@@ -124,6 +124,17 @@ def get_index_html(session: Session) -> str | None:
             return html.split('【退出】')[0]
 
 
+def replace_mission(missions: dict) -> list[str]:
+    '''替换missions中不可作为调用函数名的键'''
+    mission = {
+        '5.1礼包': '五一礼包',
+    }
+    for key, value in mission.items():
+        if key in missions:
+            missions[value] = missions.pop(key)
+    return list(missions)
+
+
 def init_config():
     if cookies := read_yaml('settings.yaml', 'DALEDOU_ACCOUNT'):
         for cookie in cookies:
@@ -132,20 +143,15 @@ def init_config():
                 logger.success(f'{qq}：Cookie在有效期内')
                 create_yaml(qq)
                 if html := get_index_html(sessions):
-                    one = {k: v for k,
-                           v in MISSIONS_ONE.items() if k in html}
-                    two = {k: v for k,
-                           v in MISSIONS_TWO.items() if k in html}
-                    if '5.1礼包' in one:
-                        del one['5.1礼包']
-                        one['五一礼包'] = True
+                    one = {k: v for k, v in MISSIONS_ONE.items() if k in html}
+                    two = {k: v for k, v in MISSIONS_TWO.items() if k in html}
                     yield {
                         'QQ': qq,
                         'YAML': read_yaml(f'{qq}.yaml'),
                         'SESSION': sessions,
                         'MISSIONS': {
-                            'one': list(one),
-                            'two': list(two),
+                            'one': replace_mission(one),
+                            'two': replace_mission(two),
                         }
                     }
                 else:
