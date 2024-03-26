@@ -1293,119 +1293,6 @@ def 挑战陌生人():
         find(r'删</a><br />(.*?)！', '任务-挑战陌生人')
 
 
-def 强化神装():
-    '''任务-强化神装
-
-    神装或技能升级一次（升级成功或失败才算一次）
-    '''
-    # 任务
-    missions = get('cmd=task&sub=1')
-    if 'id=116' in missions:
-        for id in range(6):
-            # 神兵  0
-            # 神铠  1
-            # 神羽  2
-            # 神兽  3
-            # 神饰  4
-            # 神履  5
-            get(f'cmd=outfit&op=1&magic_outfit_id={id}')
-            find(r'\|<br />(.*?)<br />', '任务-强化神装')
-            if '进阶失败' in HTML:
-                break
-            elif '成功' in HTML:
-                break
-    if 'id=117' in missions:
-        magic_skill_id = [
-            2644,  # 武神附体
-            2665,  # 断筋
-            2675,  # 召唤神兵
-            2653,  # 圣盾术
-            2687,  # 荆刺护甲
-            2697,  # 无懈可击
-            2782,  # 惩击
-            2794,  # 圣洁之躯
-            2804,  # 愈合祷言
-            2831,  # 龟甲术
-            2854,  # 重伤之爪
-            2842,  # 蛮力猛击
-            2888,  # 钻石锋刃
-            2877,  # 至高皇权
-            2865,  # 吸血咒
-            2905,  # 动如脱兔
-            2915,  # 足下生根
-            2926,  # 迷踪步
-        ]
-        for id in magic_skill_id:
-            get(f'cmd=outfit&op=3&magic_skill_id={id}')
-            find(r'</a><br />(.*?)<br />', '任务-强化神装')
-            if '升级失败' in HTML:
-                break
-
-
-def 武器专精():
-    '''任务-武器专精
-
-    专精或武器栏升级一次（升级成功或失败才算一次）
-    '''
-    # 任务
-    missions = get('cmd=task&sub=1')
-    if 'id=114' in missions:
-        # 武器专精
-        for tid in range(4):
-            get(f'cmd=weapon_specialize&op=2&type_id={tid}')
-            find(r'<br />(.*?)<br />', '任务-武器专精')
-            if '升星失败' in HTML:
-                break
-            elif '升星成功' in HTML:
-                break
-    if 'id=115' in missions:
-        # 武器栏
-        for sid in range(1000, 1012):
-            # 武器栏      投掷武器专精  小型武器专精  中型武器专精  大型武器专精
-            # 专精·控制   1000         1003         1006         1009
-            # 专精·吸血   1001         1004         1007         1010
-            # 专精·凝神   1002         1005         1008         1011
-            get(f'cmd=weapon_specialize&op=5&storage_id={sid}')
-            if '激活' in HTML:
-                find(r'<br /><br />(.*?)<br />', '任务-武器专精')
-                continue
-            find(r'<br />(.*?)<br />', '任务-武器专精')
-            if '升星失败' in HTML:
-                break
-            elif '升星成功' in HTML:
-                break
-
-
-def 强化铭刻():
-    '''任务-强化铭刻
-
-    强化一次（强化成功或失败才算一次）
-
-    技能      id  材料
-    坚韧不拔  0   坚固的砥石
-    嗜血如命  1   染血的羊皮
-    坚定不移  2   稳固的磐石
-    生存本能  3   沧桑的兽骨
-    横扫千军  4   尖锐的铁器
-    三魂之力  5   三彩水晶石
-    四魂天功  6   四色补天石
-    炙血战魂  7   破碎的铠甲
-    百战之躯  8   粗壮的牛角
-    攻无不克  9   锋利的狼牙
-    魅影舞步  10
-    '''
-    idx = random.randint(0, 3)
-    id = random.randint(0, 4)
-    for id in range(11):
-        get(
-            f'cmd=inscription&subtype=5&type_id={id}&weapon_idx={idx}&attr_id={id}')
-        find(r'<br />(.*?)<br />', '任务-强化铭刻')
-        if '升级所需材料不足' in HTML:
-            continue
-        else:
-            break
-
-
 def 任务():
     '''任务
 
@@ -1424,12 +1311,6 @@ def 任务():
         兵法研习()
     if '挑战陌生人' in missions:
         挑战陌生人()
-    if '强化神装' in missions:
-        强化神装()
-    if '武器专精' in missions:
-        武器专精()
-    if '强化铭刻' in missions:
-        强化铭刻()
 
     # 一键完成任务
     get('cmd=task&sub=7')
