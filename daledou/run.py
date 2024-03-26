@@ -1610,6 +1610,51 @@ def 器魂附魔():
         MSG.append(find(r'器魂附魔<br />(.*?)<br />'))
 
 
+def 侠客岛():
+    '''侠客岛
+
+    侠客行接受任务、领取奖励至多3次，刷新至多4次（即免费次数为0时不再刷新）
+    第一轮及第二轮均执行
+    '''
+    # 侠客行
+    get('cmd=knight_island&op=viewmissionindex')
+    count: str = '4'
+    for _ in range(4):
+        viewmissiondetail_pos = findall(r'viewmissiondetail&amp;pos=(\d+)')
+        if viewmissiondetail_pos:
+            break
+        for p in viewmissiondetail_pos:
+            # 接受
+            get(f'cmd=knight_island&op=viewmissiondetail&pos={p}')
+            mission_name = find(r'侠客行<br /><br />(.*?)（', '侠客行-任务名称')
+            # 快速委派
+            get(f'cmd=knight_island&op=autoassign&pos={p}')
+            find(r'）<br />(.*?)<br />', f'侠客行-{mission_name}')
+            if '快速委派成功' in HTML:
+                # 开始任务
+                get(f'cmd=knight_island&op=begin&pos={p}')
+                html = find(r'斗豆）<br />(.*?)<br />', f'侠客行-{mission_name}')
+                MSG.append(f'{mission_name}：{html}')
+            elif '符合条件侠士数量不足' in HTML:
+                # 侠客行
+                get('cmd=knight_island&op=viewmissionindex')
+                # 免费刷新次数
+                count = find(r'剩余：(\d+)次', '侠客行-免费刷新次数')
+                if count != '0':
+                    # 刷新
+                    get(f'cmd=knight_island&op=refreshmission&pos={p}')
+                    find(r'斗豆）<br />(.*?)<br />', f'侠客行-{mission_name}')
+
+        if count == '0':
+            break
+
+    # 领取任务奖励
+    for p2 in findall(r'getmissionreward&amp;pos=(\d+)'):
+        # 领取
+        get(f'cmd=knight_island&op=getmissionreward&pos={p2}')
+        MSG.append(find(r'（60斗豆）<br />(.*?)<br />'))
+
+
 def 镶嵌():
     '''镶嵌
 
