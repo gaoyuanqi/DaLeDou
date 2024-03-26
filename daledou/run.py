@@ -2053,10 +2053,13 @@ def 幸运转盘():
 def 喜从天降():
     '''喜从天降
 
-    点燃烟花
+    每天至多点燃烟花10次，活动时间20.00-22.00
     '''
-    get('cmd=newAct&subtype=137&op=1')
-    MSG.append(find(r'】<br />(.*?)<br />'))
+    for _ in range(10):
+        get('cmd=newAct&subtype=137&op=1')
+        MSG.append(find(r'】<br />(.*?)<br />'))
+        if '燃放烟花次数不足' in HTML:
+            break
 
 
 def 冰雪企缘():
