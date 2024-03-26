@@ -346,6 +346,8 @@ def 矿洞():
             # 确认开启
             get('cmd=factionmine&op=start&floor=5&mode=1')
             MSG.append(find(r'矿石商店</a><br />(.*?)<br />'))
+            if '当前不能开启此副本' in HTML:
+                return
         elif '副本挑战中' in HTML:
             # 挑战
             get('cmd=factionmine&op=fight')
