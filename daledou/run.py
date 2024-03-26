@@ -2552,6 +2552,8 @@ def 惊喜刮刮卡():
         MSG.append(find(r'奖池预览</a><br /><br />(.*?)<br />'))
         if '您没有刮刮卡了' in HTML:
             break
+        elif '不在刮奖时间不能刮奖' in HTML:
+            break
 
 
 def 开心娃娃机():
