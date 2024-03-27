@@ -1619,9 +1619,10 @@ def 侠客岛():
     # 侠客行
     get('cmd=knight_island&op=viewmissionindex')
     count: str = '4'
+    mission_success: bool = False
     for _ in range(4):
         viewmissiondetail_pos = findall(r'viewmissiondetail&amp;pos=(\d+)')
-        if viewmissiondetail_pos:
+        if not viewmissiondetail_pos:
             break
         for p in viewmissiondetail_pos:
             # 接受
@@ -1631,6 +1632,7 @@ def 侠客岛():
             get(f'cmd=knight_island&op=autoassign&pos={p}')
             find(r'）<br />(.*?)<br />', f'侠客行-{mission_name}')
             if '快速委派成功' in HTML:
+                mission_success = True
                 # 开始任务
                 get(f'cmd=knight_island&op=begin&pos={p}')
                 html = find(r'斗豆）<br />(.*?)<br />', f'侠客行-{mission_name}')
@@ -1650,9 +1652,13 @@ def 侠客岛():
 
     # 领取任务奖励
     for p2 in findall(r'getmissionreward&amp;pos=(\d+)'):
+        mission_success = True
         # 领取
         get(f'cmd=knight_island&op=getmissionreward&pos={p2}')
-        MSG.append(find(r'（60斗豆）<br />(.*?)<br />'))
+        MSG.append(find(r'斗豆）<br />(.*?)<br />'))
+
+    if not mission_success:
+        MSG.append('没有可接受或可领取的任务（符合条件侠士数量不足、执行中、已完成）')
 
 
 def 镶嵌():
