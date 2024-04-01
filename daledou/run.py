@@ -712,48 +712,19 @@ def 梦想之旅():
     '''梦想之旅
 
     每天普通旅行一次
-    周四梦幻旅行（如果下一个区域存在 '已去过'）、领取区域、超级礼包
+    周四领取区域礼包、超级礼包
     '''
     # 普通旅行
     get('cmd=dreamtrip&sub=2')
     MSG.append(find(r'规则</a><br />(.*?)<br />'))
 
     if WEEK == 4:
-        bmapid = {
-            '空桑山': 2,
-            '鹊山': 3,
-            '鹿蜀': 4,
-            '昆仑之丘': 1
-        }
-        # 梦想之旅
-        get('cmd=dreamtrip')
-        for k, v in bmapid.items():
-            if k in HTML:
-                # 下一个区域
-                get(f'cmd=dreamtrip&sub=0&bmapid={v}')
-                if '已去过' in HTML:
-                    # 梦想之旅
-                    get('cmd=dreamtrip')
-                    if smapid := findall(r'梦幻旅行</a><br />(.*?)<br /><br />'):
-                        # 查找未去过的目的地
-                        id_list = []
-                        list = smapid[0].split('<br />')
-                        for i, v in enumerate(list):
-                            if '未去过' in v:
-                                id_list.append(i + 1)
-                        # 消耗梦幻机票去目的地
-                        for id in id_list:
-                            # 去这里
-                            get(f'cmd=dreamtrip&sub=2&smapid={id}')
-                            MSG.append(find(r'规则</a><br />(.*?)<br />'))
-                            if '当前没有梦幻机票' in HTML:
-                                break
         # 梦想之旅
         get('cmd=dreamtrip')
         for _ in range(2):
             if bmapid := findall(r'sub=4&amp;bmapid=(\d+)'):
-                # 礼包     1 or 2 or 3 or 4
-                # 超级礼包 0
+                # 区域礼包    1 or 2 or 3 or 4
+                # 超级礼包    0
                 get(f'cmd=dreamtrip&sub=4&bmapid={bmapid[0]}')
                 MSG.append(find(r'规则</a><br />(.*?)<br />'))
 
