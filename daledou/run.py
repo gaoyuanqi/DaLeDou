@@ -2,9 +2,10 @@ import re
 import sys
 import time
 import random
+import datetime
 from loguru import logger
 
-from daledou import WEEK, DAY, DISABLE_PUSH
+from daledou import WEEK, DAY, DISABLE_PUSH,WEEK_CHINESE
 from daledou.config import init_config, create_log, push
 
 
@@ -29,6 +30,7 @@ def run_mission(tasks: str = 'check') -> None:
         missions: dict = data['MISSIONS']
         trace: int = create_log(QQ)
 
+        MSG.append(f'【开始时间】\n{str(datetime.datetime.now())[:-7]} {WEEK_CHINESE}')
         for func in missions[tasks]:
             MISSION_NAME = func
             if func not in DISABLE_PUSH:

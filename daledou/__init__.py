@@ -8,6 +8,8 @@ NOW = datetime.datetime.now()
 WEEK: int = NOW.weekday() + 1
 DAY: int = NOW.day
 
+_CHINESE = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+WEEK_CHINESE = _CHINESE[WEEK - 1]
 
 # 不支持的通知
 DISABLE_PUSH = ['乐斗', '历练', '镶嵌', '神匠坊', '背包']
