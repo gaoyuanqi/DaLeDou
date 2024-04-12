@@ -338,10 +338,17 @@ def 矿洞():
     # 矿洞
     get('cmd=factionmine')
     for _ in range(5):
-        if '领取奖励' in HTML:
+        if '副本挑战中' in HTML:
+            # 挑战
+            get('cmd=factionmine&op=fight')
+            MSG.append(find(r'商店</a><br />(.*?)<br />'))
+            if '挑战次数不足' in HTML:
+                break
+        elif '领取奖励' in HTML:
+            MSG.append(find(r'。<br />(.*?)<br />', '矿洞-排名奖励'))
             # 领取奖励
             get('cmd=factionmine&op=reward')
-            MSG.append(find(r'】<br /><br />(.*?)<br />'))
+            MSG.append(find(r'商店</a><br />(.*?)<br />', '矿洞-领取奖励'))
         elif '开启副本' in HTML:
             # floor   1、2、3、4、5 对应 第一、二、三、四、五层
             # mode    1、2、3 对应 简单、普通、困难
@@ -349,12 +356,6 @@ def 矿洞():
             get('cmd=factionmine&op=start&floor=5&mode=1')
             MSG.append(find(r'矿石商店</a><br />(.*?)<br />'))
             if '当前不能开启此副本' in HTML:
-                return
-        elif '副本挑战中' in HTML:
-            # 挑战
-            get('cmd=factionmine&op=fight')
-            MSG.append(find(r'商店</a><br />(.*?)<br />'))
-            if '挑战次数不足' in HTML:
                 break
 
 
