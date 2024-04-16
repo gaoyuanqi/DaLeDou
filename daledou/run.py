@@ -1197,8 +1197,15 @@ def 助阵():
         if '提升成功' in HTML:
             find(r'战斗力：.*?<br />(.*?)<br />', '任务-助阵')
             n += 1
+        elif '经验值已经达到最大' in HTML:
+            find(r'战斗力：.*?<br />(.*?)<br />', '任务-助阵')
+        elif '你还没有激活该属性' in HTML:
+            find(r'战斗力：.*?<br />(.*?)<br />', '任务-助阵')
+            break
         elif '不满足条件' in HTML:
+            # 助阵组合所需佣兵不满足条件，不能提升助阵属性经验
             find(r'战斗力：.*?<br /><br />(.*?)。', '任务-助阵')
+            break
         elif '阅历不足' in HTML:
             find(r'战斗力：.*?<br /><br />(.*?)，', '任务-助阵')
             break
