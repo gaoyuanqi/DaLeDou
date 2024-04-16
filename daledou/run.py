@@ -165,50 +165,78 @@ def 分享():
     每天分享直到上限，若次数不足则挑战斗神塔增加次数（每挑战11层增加一次分享）
     每周四领取分享次数奖励
     '''
+    # 达人等级对应斗神塔CD时间
+    data = {
+        '1': 7,
+        '2': 6,
+        '3': 5,
+        '4': 4,
+        '5': 3,
+        '6': 2,
+        '7': 1,
+        '8': 1,
+        '9': 1,
+        '10': 1,
+    }
+    # 乐斗达人
+    get('cmd=ledouvip')
+    if grade := find(r'当前级别：(\d+)', '达人等级'):
+        second = data[grade]
+    else:
+        # 还未成为达人
+        second = 10
+
     for _ in range(9):
         # 一键分享
         get(f'cmd=sharegame&subtype=6')
         find(r'】</p>(.*?)<p>', '一键分享')
-        if '上限' in HTML:
+        if '达到当日分享次数上限' in HTML:
             MSG.append(find(r'</p><p>(.*?)<br />.*?开通达人', '分享次数'))
             # 自动挑战
             get('cmd=towerfight&type=11')
-            find(r'】<br />(.*?)<', '斗神塔')
-            # 结束挑战
-            get('cmd=towerfight&type=7')
-            find(r'】<br />(.*?)<br />', '斗神塔')
+            find(r'】<br />(.*?)<', '斗神塔-自动挑战')
+            time.sleep(second)
+            if '结束挑战' in HTML:
+                # 结束挑战
+                get('cmd=towerfight&type=7')
+                find(r'】<br />(.*?)<br />', '斗神塔-结束挑战')
             break
 
-        # 斗神塔
-        get('cmd=towerfight&type=3')
-        if '结束挑战' in HTML:
-            # 结束挑战
-            get('cmd=towerfight&type=7')
-            find(r'】<br />(.*?)<br />', '斗神塔')
         for _ in range(11):
+            # 斗神塔
+            get('cmd=towerfight&type=3')
+            if '结束挑战' in HTML:
+                # 结束挑战
+                get('cmd=towerfight&type=7')
+                find(r'】<br />(.*?)<br />', '斗神塔-结束挑战')
+                time.sleep(second)
+                break
+
             # 开始挑战 or 挑战下一层
             get('cmd=towerfight&type=0')
-            find(r'】<br />(.*?)<', '斗神塔')
+            find(r'】<br />(.*?)<', '斗神塔-挑战')
             if '您需要消耗斗神符才能继续挑战斗神塔' in HTML:
                 # 一键分享
                 get(f'cmd=sharegame&subtype=6')
-                find(r'】</p>(.*?)<p>', '斗神塔')
+                find(r'】</p>(.*?)<p>', '一键分享')
+                MSG.append(find(r'</p><p>(.*?)<br />.*?开通达人', '分享次数'))
                 return
-            elif '您败给' in HTML:
-                # 结束挑战
-                get('cmd=towerfight&type=7')
-                find(r'】<br />(.*?)<br />', '斗神塔')
-                break
+            elif '已经没有剩余的周挑战数' in HTML:
+                # 一键分享
+                get(f'cmd=sharegame&subtype=6')
+                find(r'】</p>(.*?)<p>', '一键分享')
+                MSG.append(find(r'</p><p>(.*?)<br />.*?开通达人', '分享次数'))
+                return
 
-            if cooling := findall(r'战斗剩余时间：(\d+)'):
-                time.sleep(int(cooling[0]))
+            time.sleep(second)
 
     if WEEK == 4:
+        # 领取奖励
         get('cmd=sharegame&subtype=3')
         for s in findall(r'sharenums=(\d+)'):
             # 领取
             get(f'cmd=sharegame&subtype=4&sharenums={s}')
-            MSG.append(find(r'】</p>(.*?)<p>'), '斗神塔')
+            MSG.append(find(r'】</p>(.*?)<p>'), '分享奖励')
 
 
 def 乐斗():
