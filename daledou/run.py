@@ -398,6 +398,9 @@ def 掠夺():
         if '本轮轮空' in HTML:
             MSG.append(find(r'本届战况：(.*?)<br />'))
             return
+        elif '未报名' in HTML:
+            MSG.append(find(r'本届战况：(.*?)<br />'))
+            return
 
         # 掠夺
         get('cmd=forage_war&subtype=3')
