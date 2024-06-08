@@ -14,8 +14,14 @@ class CookieError(Exception):
     ...
 
 
-def read_yaml(file: str, key: str = ''):
-    '''读取config目录下的yaml配置文件'''
+def read_yaml(file: str, key: str | None =None):
+    '''
+    读取config目录下的yaml配置文件
+
+    Args:
+        file: 文件名称
+        key: yaml文件中的键
+    '''
     try:
         with open(f'./config/{file}', 'r', encoding='utf-8') as fp:
             users: dict = yaml.safe_load(fp)
@@ -29,9 +35,14 @@ def read_yaml(file: str, key: str = ''):
 
 
 def clean_cookie(cookie: str) -> tuple[str, str]:
-    '''清洁大乐斗cookie
+    '''
+    清洁大乐斗Cookie，改成 'RK=xx; ptcz=xx; openId=xx; accessToken=xx; newuin=xx'
 
-    :return: ('qq', 'RK=xx; ptcz=xx; openId=xx; accessToken=xx; newuin=xx')
+    Args:
+        cookie: 大乐斗Cookie
+
+    Returns: 
+        tuple[str, str]: 第一个元素是qq，第二个元素是清洁后的大乐斗Cookie
     '''
     ck = ''
     for key in ['RK', 'ptcz', 'openId', 'accessToken', 'newuin']:
@@ -50,7 +61,16 @@ def clean_cookie(cookie: str) -> tuple[str, str]:
 
 
 def session(cookie: str) -> Session | None:
-    '''若cookie有效则返回Session对象，否则返回None'''
+    '''
+    向Session会话添加大乐斗Cookie，若Cookie有效则返回Session会话，否则返回None
+
+    Args:
+        cookie: 大乐斗Cookie
+
+    Returns:
+        Session: 含有大乐斗Cookie的Session会话
+        None: 大乐斗Cookie无效
+    '''
     url = 'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index'
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
@@ -68,7 +88,12 @@ def session(cookie: str) -> Session | None:
 
 
 def create_yaml(qq: str):
-    '''基于daledou.yaml创建一份以qq命名的yaml配置文件'''
+    '''
+    基于daledou.yaml创建一份以qq命名的yaml配置文件
+
+    Args:
+        qq: QQ号
+    '''
     default_path = './config/daledou.yaml'
     create_path = f'./config/{qq}.yaml'
     if os.path.isfile(create_path):
@@ -79,9 +104,14 @@ def create_yaml(qq: str):
 
 
 def create_log(qq: str) -> int:
-    '''创建当天日志文件
+    '''
+    创建当天日志文件，文件夹以qq命名，日志文件以日期命名
 
-    文件夹以qq命名，日志文件以日期命名
+    Args:
+        qq: QQ号
+
+    Returns:
+        int: 跟踪ID
     '''
     return logger.add(
         f'./log/{qq}/{NOW.strftime("%Y-%m-%d")}.log',
@@ -93,7 +123,13 @@ def create_log(qq: str) -> int:
 
 
 def push(title: str, message: list[str]) -> None:
-    '''pushplus微信通知'''
+    '''
+    pushplus微信通知
+
+    Args:
+        title: 通知标题
+        message: 通知内容，列表内的若干元素只能是str类型
+    '''
     if token := read_yaml('settings.yaml', 'PUSHPLUS_TOKEN'):
         url = 'http://www.pushplus.plus/send/'
         content = '\n'.join(list(filter(lambda x:  x, message)))
@@ -111,7 +147,16 @@ def push(title: str, message: list[str]) -> None:
 
 
 def get_index_html(session: Session) -> str | None:
-    '''获取大乐斗首页html'''
+    '''
+    获取大乐斗首页HTML源码
+
+    Args:
+        session: 大乐斗session会话
+
+    Returns:
+        str: 找到大乐斗首页HTML源码
+        None: 没有找到大乐斗首页HTML源码
+    '''
     url = 'https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index'
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
@@ -125,17 +170,32 @@ def get_index_html(session: Session) -> str | None:
 
 
 def replace_mission(missions: dict) -> list[str]:
-    '''替换missions中不可作为调用函数名的键'''
-    mission = {
+    '''
+    替换 missions 中存在部分大乐斗首页任务名称不能作为函数名称的键
+
+    可以通过修改 data 字典来扩展，其键为大乐斗首页任务名称，值为实际函数名称
+
+    比如 5.1礼包 （函数名称不能以数字开头）需替换为 五一礼包 （必须是 run.py 文件中存在的函数）
+
+    Args:
+        missions: 大乐斗首页任务名称
+
+    Returns:
+        list[str]: 函数名称列表
+    '''
+    data = {
         '5.1礼包': '五一礼包',
     }
-    for key, value in mission.items():
+    for key, value in data.items():
         if key in missions:
             missions[value] = missions.pop(key)
     return list(missions)
 
 
 def init_config():
+    '''
+    初始化账号配置，若Cookie有效则返回包含账号数据的生成器
+    '''
     if cookies := read_yaml('settings.yaml', 'DALEDOU_ACCOUNT'):
         for cookie in cookies:
             qq, ck = clean_cookie(cookie)

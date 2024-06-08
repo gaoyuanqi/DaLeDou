@@ -40,7 +40,6 @@ pip3 install -r requirements.txt
 
 **4、如果你第一次使用，需运行以下命令**
 
-此命令不会执行脚本，只是做一些检查工作
 ```sh
 python main.py
 ```
@@ -59,7 +58,9 @@ python main.py
 2023-12-23 21:59:12.179 | SUCCESS  | daledou.config:create_yaml:80 - 检测到文件 ./config/123456.yaml
 ```
 
-**5、手动运行指定轮次**
+脚本启动后会进入定时，默认 `13:10` 运行第一轮、`20:01` 运行第二轮
+
+**5、如果你错过定时运行，可以手动运行指定轮次**
 
 `13:10` 之后运行第一轮：
 ```sh
@@ -71,11 +72,9 @@ python main.py one
 python main.py two
 ```
 
-**6、其它说明**
-
-脚本启动后会进入定时，默认 `13:10` 运行第一轮、`20:01` 运行第二轮
-
 第一轮和第二轮时间间隔尽量长一些；时间不够优先运行第一轮，第一轮包括了绝大部分任务
+
+**6、其它说明**
 
 要查看脚本会做哪些任务见：[文档](https://www.gaoyuanqi.cn/python-daledou/#more)
 
@@ -103,3 +102,15 @@ python main.py two
 - `神匠坊`：符石分解，默认分解 `I类`
 - `江湖长梦`：选择副本，默认且仅支持 `柒承的忙碌日常`
 - `问鼎天下`：选择淘汰赛、排名赛助威帮派，默认 `神阁☆圣域`
+
+假设配置文件为 `123456.yaml`，向其中添加一个配置：
+```yaml
+demo: daledou
+```
+
+在 `run.py` 文件中读取配置：
+```Python
+def my_func():
+    result = YAML.get('demo')
+    # result 值为 daledou
+```
