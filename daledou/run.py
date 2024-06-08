@@ -63,9 +63,9 @@ def get(params: str) -> str:
         res = SESSION.get(url, headers=headers)
         res.encoding = 'utf-8'
         HTML = res.text
-        time.sleep(0.2)
         if '系统繁忙' not in HTML:
             break
+        time.sleep(0.2)
     return HTML
 
 
