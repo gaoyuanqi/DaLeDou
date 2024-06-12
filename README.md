@@ -102,6 +102,7 @@ python main.py two
 - `神匠坊`：符石分解，默认分解 `I类`
 - `江湖长梦`：选择副本，默认且仅支持 `柒承的忙碌日常`
 - `问鼎天下`：选择淘汰赛、排名赛助威帮派，默认 `神阁☆圣域`
+-  `长安盛会`：选择黄金卷轴类别，默认 `3036`
 
 假设配置文件为 `123456.yaml`，向其中添加一个配置：
 ```yaml
@@ -110,7 +111,7 @@ demo: daledou
 
 在 `run.py` 文件中读取配置：
 ```Python
-def my_func():
+def demo():
     result = YAML.get('demo')
     # result 值为 daledou
 ```
