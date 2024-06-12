@@ -2448,10 +2448,16 @@ def 惊喜刮刮卡():
 
 def 开心娃娃机():
     '''
-    每天抓取一次
+    每天免费抓取一次
     '''
-    get('cmd=newAct&subtype=124&op=1')
-    MSG.append(find(r'】<br />(.*?)<br />'))
+    # 开心娃娃机
+    get('cmd=newAct&subtype=124&op=0')
+    if '1/1' in HTML:
+        # 抓取一次
+        get('cmd=newAct&subtype=124&op=1')
+        MSG.append(find(r'】<br />(.*?)<br />'))
+    else:
+        MSG.append('没有免费抓取次数')
 
 
 def 好礼步步升():
