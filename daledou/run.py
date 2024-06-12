@@ -1927,10 +1927,15 @@ def 万圣节():
 
 def 神魔转盘():
     '''
-    幸运抽奖一次
+    幸运抽奖免费抽奖一次
     '''
-    get('cmd=newAct&subtype=88&op=1')
-    MSG.append(find(r'】<br />(.*?)<br />'))
+    # 神魔转盘
+    get('cmd=newAct&subtype=88&op=0')
+    if '免费抽奖一次' in HTML:
+        get('cmd=newAct&subtype=88&op=1')
+        MSG.append(find(r'】<br />(.*?)<br />'))
+    else:
+        MSG.append('没有免费抽奖次数')
 
 
 def 乐斗驿站():
