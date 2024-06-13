@@ -103,6 +103,19 @@ def findall(mode: str) -> list:
     return re.findall(mode, HTML, re.S)
 
 
+def info(log: str, name: str | None = None) -> None:
+    '''
+    日志封装
+
+    Args:
+        log: 日志信息
+        name: 大乐斗首页任务名称， 默认值为 MISSION_NAME
+    '''
+    if name is None:
+        name = MISSION_NAME
+    logger.info(f'{QQ} | {name}：{log}')
+
+
 def 邪神秘宝():
     '''
     高级秘宝    免费一次 or 抽奖一次
