@@ -2103,12 +2103,13 @@ def 生肖福卡():
 
 def 长安盛会():
     '''
-    盛会豪礼：点击领取
-    签到宝箱：点击领取
-    全民挑战：点击参与
+    盛会豪礼：点击领取  id  1
+    签到宝箱：点击领取  id  2
+    全民挑战：点击参与  id  3
     '''
-    # 长安盛会
-    get('cmd=newAct&subtype=118&op=0')
+    if s_id := YAML.get('长安盛会'):
+        # 选择黄金卷轴类别
+        get(f'cmd=newAct&subtype=118&op=2&select_id={s_id}')
     for id in findall(r'op=1&amp;id=(\d+)'):
         if id != '3':
             # 点击领取
@@ -2117,12 +2118,9 @@ def 长安盛会():
 
     turn_count = find(r'剩余转动次数：(\d+)', '长安盛会-转动次数')
     for _ in range(int(turn_count)):
-        if s_id := YAML.get('长安盛会'):
-            # 选择黄金卷轴类别
-            get(f'cmd=newAct&subtype=118&op=2&select_id={s_id}')
         # 点击参与
         get('cmd=newAct&subtype=118&op=1&id=3')
-        MSG.append(find(r'】<br /><br />(.*?)</p>', '长安盛会-点击参与'))
+        MSG.append(find(r'】<br />(.*?)<br />', '长安盛会-点击参与'))
 
 
 def 深渊秘宝():
