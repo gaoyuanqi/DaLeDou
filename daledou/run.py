@@ -2164,15 +2164,21 @@ def 登录商店():
 def 盛世巡礼():
     '''
     周四收下礼物
-
-    对话		cmd=newAct&subtype=150&op=3&itemId=0
-    点击继续	cmd=newAct&subtype=150&op=4&itemId=0
-    收下礼物	cmd=newAct&subtype=150&op=5&itemId=0
     '''
-    for itemId in [0, 4, 6, 9, 11, 14, 17]:
-        # 收下礼物
-        get(f'cmd=newAct&subtype=150&op=5&itemId={itemId}')
-        MSG.append(find(r'礼物<br />(.*?)<br />'))
+    for s in range(1, 8):
+        # 点击进入
+        get(f'cmd=newAct&subtype=150&op=2&sceneId={s}')
+        if '他已经给过你礼物了' in HTML:
+            info(f'礼物已领取', f'盛世巡礼-地点{s}')
+            MSG.append(f'地点{s}礼物已领取')
+        elif s == 7 and '点击继续' not in HTML:
+            info(f'礼物已领取', f'盛世巡礼-地点{s}')
+            MSG.append(f'地点{s}礼物已领取')
+        elif item := find(r'itemId=(\d+)', f'盛世巡礼-地点{s}-itemId'):
+            # 收下礼物
+            get(f'cmd=newAct&subtype=150&op=5&itemId={item}')
+            msg = find(r'礼物<br />(.*?)<br />', f'盛世巡礼-地点{s}-收下礼物')
+            MSG.append(f'地点{s}领取{msg}')
 
 
 def 中秋礼盒():
