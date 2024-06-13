@@ -2142,9 +2142,13 @@ def 深渊秘宝():
     '''
     # 深渊秘宝
     get('cmd=newAct&subtype=175')
-    for t in findall(r'type=(\d+)&amp;times=1">免费抽奖'):
-        get(f'cmd=newAct&subtype=175&op=1&type={t}&times=1')
-        MSG.append(find(r'深渊秘宝<br />(.*?)<br />'))
+    if t_list := findall(r'type=(\d+)&amp;times=1">免费抽奖'):
+        for t in t_list:
+            get(f'cmd=newAct&subtype=175&op=1&type={t}&times=1')
+            MSG.append(find(r'深渊秘宝<br />(.*?)<br />'))
+    else:
+        info('没有免费抽奖次数')
+        MSG.append('没有免费抽奖次数')
 
 
 def 登录商店():
