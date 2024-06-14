@@ -52,29 +52,49 @@ python main.py
 
 你需要修改上面创建的 `./config/123456.yaml` 配置文件（大乐斗Cookie有效才会创建）
 
-修改完成后再次运行 `python main.py` 命令将会检查yaml文件格式，如果没有出现错误，最终输出信息：
+修改完成后重新运行 `python main.py` 命令进行账号检查，如果没有出现错误，最终输出信息：
 ```sh
 2023-12-23 21:59:12.179 | SUCCESS  | daledou.config:init_config:138 - 123456：Cookie在有效期内
 2023-12-23 21:59:12.179 | SUCCESS  | daledou.config:create_yaml:80 - 检测到文件 ./config/123456.yaml
 ```
 
-脚本启动后会进入定时，默认 `13:10` 运行第一轮、`20:01` 运行第二轮
+使用此命令启动脚本后会进入定时，默认 `13:10` 运行第一轮、`20:01` 运行第二轮
 
-**5、如果你错过定时运行，可以手动运行指定轮次**
+
+## dev.py 文件使用说明
+
+**1、run 命令模式**
+
+如果你错过定时运行，你可以运行指定轮次脚本
 
 `13:10` 之后运行第一轮：
 ```sh
-python main.py one
+python dev.py run one
 ```
 
 `20:01` 之后运行第二轮：
 ```sh
-python main.py two
+python dev.py run two
 ```
 
 第一轮和第二轮时间间隔尽量长一些；时间不够优先运行第一轮，第一轮包括了绝大部分任务
 
-**6、其它说明**
+**2、dev 命令模式**
+
+如果你想要调试某个任务函数，又不想注释 `__init__.py` 文件中的变量
+
+使用格式：
+```sh
+python dev.py dev [func_name]
+```
+
+`func_name` 指任务函数名称，比如调试 `邪神秘宝`：
+```sh
+python dev.py dev 邪神秘宝
+```
+
+
+## 脚本任务说明
 
 要查看脚本会做哪些任务见：[文档](https://www.gaoyuanqi.cn/python-daledou/#more)
 

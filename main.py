@@ -24,7 +24,7 @@ def job_two():
 
 
 if __name__ == '__main__':
-    run_mission()
+    run_mission('check')
     while True:
         run_pending()
         time.sleep(1)

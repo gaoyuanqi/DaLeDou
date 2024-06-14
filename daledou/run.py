@@ -1,7 +1,7 @@
 import re
-import sys
 import time
 import random
+import argparse
 import datetime
 from loguru import logger
 
@@ -12,13 +12,31 @@ from daledou.config import init_config, create_log, push
 MSG = []
 
 
-def run_mission(tasks: str = 'check') -> None:
-    global QQ, SESSION, MISSION_NAME, YAML
+def get_argparse():
+    '''
+    根据命令行输入参数来调用不同函数
+    '''
+    parser = argparse.ArgumentParser(description='处理命令行输入')
+    subparsers = parser.add_subparsers(help='运行模式')
 
-    if len(input := sys.argv) == 2:
-        tasks = input[1]
-    if tasks not in ['check', 'one', 'two']:
-        assert False, f'不支持参数 {tasks}，只支持 check | one | two'
+    parser_dev = subparsers.add_parser('dev', help='用于调用某个函数')
+    parser_dev.add_argument('func_name', type=str, help='run.py文件中某个函数名称')
+    parser_dev.set_defaults(func=dev_mission)
+
+    parser_run = subparsers.add_parser('run', help='用于执行第一轮或者第二轮任务')
+    parser_run.add_argument('arg', type=str, help='one: 第一轮 two: 第二轮', choices=['one', 'two'])
+    parser_run.set_defaults(func=run_mission)
+
+    args = parser.parse_args()
+
+    if 'func' in args:
+        args.func(args.func_name if 'func_name' in args else args.arg)
+    else:
+        parser.print_help()
+
+
+def run_mission(tasks: str):
+    global QQ, SESSION, MISSION_NAME, YAML
 
     for data in init_config():
         if tasks == 'check':
@@ -40,6 +58,29 @@ def run_mission(tasks: str = 'check') -> None:
         end = time.time()
         MSG.append(f'\n【运行时长】\n时长：{int(end - start)} s')
         push(f'{QQ} {tasks}', MSG)
+        MSG.clear()
+        logger.remove(trace)
+
+
+def dev_mission(func: str):
+    global QQ, SESSION, MISSION_NAME, YAML
+
+    for data in init_config():
+        start = time.time()
+        QQ = data['QQ']
+        YAML = data['YAML']
+        SESSION = data['SESSION']
+        trace: int = create_log(QQ)
+
+        MSG.append(f'【开始时间】\n{str(datetime.datetime.now())[:-7]} {WEEK_CHINESE}')
+        MISSION_NAME = func
+        if func not in DISABLE_PUSH:
+            MSG.append(f'\n【{func}】')
+            globals()[func]()
+
+        end = time.time()
+        MSG.append(f'\n【运行时长】\n时长：{int(end - start)} s')
+        print(f'微信通知信息：\n{MSG}')
         MSG.clear()
         logger.remove(trace)
 
