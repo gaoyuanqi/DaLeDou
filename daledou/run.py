@@ -77,7 +77,7 @@ def dev_mission(func: str):
 
         end = time.time()
         MSG.append(f'\n【运行时长】\n时长：{int(end - start)} s')
-        print(f'微信通知信息：\n{MSG}')
+        print(f'微信信息（不会推送）：\n{MSG}')
         MSG.clear()
         logger.remove(trace)
 
@@ -2156,22 +2156,22 @@ def 长安盛会():
     '''
     盛会豪礼：点击领取  id  1
     签到宝箱：点击领取  id  2
-    全民挑战：点击参与  id  3
+    全民挑战：点击参与  id  3，4，5
     '''
     if s_id := YAML.get('长安盛会'):
         # 选择黄金卷轴类别
         get(f'cmd=newAct&subtype=118&op=2&select_id={s_id}')
     for id in findall(r'op=1&amp;id=(\d+)'):
-        if id != '3':
+        if id in ['1', '2']:
             # 点击领取
             get(f'cmd=newAct&subtype=118&op=1&id={id}')
             MSG.append(find(r'】<br />(.*?)<br />', '长安盛会-点击领取'))
-
-    turn_count = find(r'剩余转动次数：(\d+)', '长安盛会-转动次数')
-    for _ in range(int(turn_count)):
-        # 点击参与
-        get('cmd=newAct&subtype=118&op=1&id=3')
-        MSG.append(find(r'】<br />(.*?)<br />', '长安盛会-点击参与'))
+        else:
+            turn_count = find(r'剩余转动次数：(\d+)', '长安盛会-转动次数')
+            for _ in range(int(turn_count)):
+                # 点击参与
+                get(f'cmd=newAct&subtype=118&op=1&id={id}')
+                MSG.append(find(r'】<br />(.*?)<br />', '长安盛会-点击参与'))
 
 
 def 深渊秘宝():
