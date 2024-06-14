@@ -5,11 +5,8 @@ import argparse
 import datetime
 from loguru import logger
 
-from daledou import WEEK, DAY, DISABLE_PUSH,WEEK_CHINESE
+from daledou import MSG, WEEK, DAY, DISABLE_PUSH, WEEK_CHINESE
 from daledou.config import init_config, create_log, push
-
-
-MSG = []
 
 
 def get_argparse():

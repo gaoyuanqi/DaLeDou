@@ -1,6 +1,7 @@
 import datetime
 
 
+# 存放微信通知消息
 MSG = []
 
 # 获取当前日期和时间
