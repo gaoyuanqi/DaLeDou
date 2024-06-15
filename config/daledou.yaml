@@ -216,6 +216,24 @@
   排名赛: 82494
 
 长安盛会: 3036
-# 选择黄金卷轴类别
+# 选择黄金卷轴类别（用于第一阶段）
 # 3036 黄金卷轴
 # 5089 真黄金卷轴
+
+矿洞: floor=1&mode=1
+# 开启副本，默认开启 第一层（简单）
+# floor=1&mode=1    第一层（简单）
+# floor=1&mode=2    第一层（普通）
+# floor=1&mode=3    第一层（困难）
+# floor=2&mode=1    第二层（简单）
+# floor=2&mode=2    第二层（普通）
+# floor=2&mode=3    第二层（困难）
+# floor=3&mode=1    第三层（简单）
+# floor=3&mode=2    第三层（普通）
+# floor=3&mode=3    第三层（困难）
+# floor=4&mode=1    第四层（简单）
+# floor=4&mode=2    第四层（普通）
+# floor=4&mode=3    第四层（困难）
+# floor=5&mode=1    第五层（简单）
+# floor=5&mode=2    第五层（普通）
+# floor=5&mode=3    第五层（困难）

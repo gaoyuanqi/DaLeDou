@@ -428,9 +428,7 @@ def 巅峰之战进行中():
 
 def 矿洞():
     '''
-    每天挑战3次
-    副本开启第五层简单
-    领取通关奖励
+    每天挑战3次、领取通关奖励以及开启副本
     '''
     # 矿洞
     get('cmd=factionmine')
@@ -445,15 +443,14 @@ def 矿洞():
             MSG.append(find(r'。<br />(.*?)<br />', '矿洞-排名奖励'))
             # 领取奖励
             get('cmd=factionmine&op=reward')
-            MSG.append(find(r'商店</a><br />(.*?)<br />', '矿洞-领取奖励'))
+            MSG.append(find(r'商店</a><br />(.*?)<br />', '矿洞-排名奖励'))
         elif '开启副本' in HTML:
-            # floor   1、2、3、4、5 对应 第一、二、三、四、五层
-            # mode    1、2、3 对应 简单、普通、困难
-            # 确认开启
-            get('cmd=factionmine&op=start&floor=5&mode=1')
-            MSG.append(find(r'矿石商店</a><br />(.*?)<br />'))
-            if '当前不能开启此副本' in HTML:
-                break
+            if data_str := YAML.get('矿洞'):
+                # 确认开启
+                get(f'cmd=factionmine&op=start&{data_str}')
+                MSG.append(find(r'矿石商店</a><br />(.*?)<br />', '矿洞-开启副本'))
+                if '当前不能开启此副本' in HTML:
+                    break
 
 
 def 掠夺():
