@@ -2188,16 +2188,17 @@ def 深渊秘宝():
 
 def 登录商店():
     '''
-    周四全部兑换黄金卷轴*1
+    周四兑换材料
     '''
-    for _ in range(5):
-        # 兑换5次 黄金卷轴*5
-        get('cmd=newAct&op=exchange&subtype=52&type=1223&times=5')
-        MSG.append(find(r'<br /><br />(.*?)<br /><br />'))
-    for _ in range(3):
-        # 兑换3次 黄金卷轴*1
-        get('cmd=newAct&op=exchange&subtype=52&type=1223&times=1')
-        MSG.append(find(r'<br /><br />(.*?)<br /><br />'))
+    if t_int := YAML.get('登录商店'):
+        for _ in range(5):
+            # 兑换5次
+            get(f'cmd=newAct&op=exchange&subtype=52&type={t_int}&times=5')
+            MSG.append(find(r'<br /><br />(.*?)<br /><br />'))
+        for _ in range(3):
+            # 兑换3次
+            get(f'cmd=newAct&op=exchange&subtype=52&type={t_int}&times=1')
+            MSG.append(find(r'<br /><br />(.*?)<br /><br />'))
 
 
 def 盛世巡礼():
