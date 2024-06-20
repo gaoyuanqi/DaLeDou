@@ -309,7 +309,7 @@ def 分享():
         for s in findall(r'sharenums=(\d+)'):
             # 领取
             get(f'cmd=sharegame&subtype=4&sharenums={s}')
-            MSG.append(find(r'】</p>(.*?)<p>'), '分享奖励')
+            MSG.append(find(r'】</p>(.*?)<p>', '分享奖励'))
 
 
 def 乐斗():
