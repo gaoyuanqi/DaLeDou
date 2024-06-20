@@ -2142,11 +2142,65 @@ def 徽章战令():
 
 def 生肖福卡():
     '''
-    领取
+    集卡：
+        好友赠卡：领取好友赠卡
+        分享：向好友分享一次福卡（选择数量最多的，如果数量最大值为1则不分享）
+        领取：领取
+    兑奖：
+        周四合成周年福卡
+    抽奖：
+        周四且只有兑换过合成周年福卡才能抽奖
     '''
+    # 好友赠卡
+    get('cmd=newAct&subtype=174&op=4')
+    for name, qq, id in findall(r'送您(.*?)\*.*?oppuin=(\d+).*?id=(\d+)'):
+        # 领取
+        get(f'cmd=newAct&subtype=174&op=6&oppuin={qq}&card_id={id}')
+        find(r'】<br />(.*?)<br />', f'生肖福卡-{name}')
+        MSG.append(f'好友赠卡：{name}')
+
+    # 分享福卡
+    # 生肖福卡
+    get('cmd=newAct&subtype=174')
+    if qq := YAML.get('生肖福卡'):
+        pattern = '[子丑寅卯辰巳午未申酉戌亥][鼠牛虎兔龙蛇马羊猴鸡狗猪]'
+        data = findall(f'({pattern})\s+(\d+).*?id=(\d+)')
+        name, max_number, id = max(data, key=lambda x: int(x[1]))
+        if int(max_number) >= 2:
+            # 分享福卡
+            get(f'cmd=newAct&subtype=174&op=5&oppuin={qq}&card_id={id}&confirm=1')
+            MSG.append(find(r'~<br /><br />(.*?)<br />', f'生肖福卡-{name}福卡'))
+        else:
+            info('福卡最大数量大于等于2时分享', '生肖福卡-取消分享')
+            MSG.append('福卡最大数量大于等于2时分享')
+
     # 领取
-    get('cmd=newAct&subtype=174&op=7&task_id=1')
-    MSG.append(find(r'~<br /><br />(.*?)<br />活跃度80'))
+    # 生肖福卡
+    get('cmd=newAct&subtype=174')
+    for task_id in findall(r'task_id=(\d+)'):
+        # 领取
+        get(f'cmd=newAct&subtype=174&op=7&task_id={task_id}')
+        MSG.append(find(r'~<br /><br />(.*?)<br />', f'生肖福卡-集卡'))
+
+    # 兑奖及抽奖
+    if WEEK == 4:
+        # 合成周年福卡
+        get('cmd=newAct&subtype=174&op=8')
+        MSG.append(find(r'。<br /><br />(.*?)<br />', '生肖福卡-兑奖'))
+
+        # 抽奖
+        get('cmd=newAct&subtype=174&op=2')
+        for id, data in findall(r'id=(\d+).*?<br />(.*?)<br />'):
+            numbers = re.findall(r'\d+', data)
+            min_number = min(numbers, key=lambda x: int(x))
+            for _ in range(int(min_number)):
+                # 春/夏/秋/冬宵抽奖
+                get(f'cmd=newAct&subtype=174&op=10&id={id}&confirm=1')
+                MSG.append(find(r'幸运抽奖<br /><br />(.*?)<br />', '生肖福卡-抽奖'))
+                if '您还未合成周年福卡' in HTML:
+                    info('需先合成周年福卡才能抽奖', '生肖福卡-抽奖')
+                    MSG.append('需合成周年福卡才能抽奖')
+                    return
 
 
 def 长安盛会():
