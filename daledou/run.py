@@ -2494,6 +2494,19 @@ def 斗境探秘():
         MSG.append(find(r'】<br /><br />(.*?)<br />'))
 
 
+def 端午有礼():
+    '''
+    周四兑换礼包
+    '''
+    for number, i in YAML.get('端午有礼'):
+        for _ in range(number):
+            # 兑换
+            get(f'cmd=newAct&subtype=121&op=1&index={i}')
+            MSG.append(find(r'】<br /><br />(.*?)<br />'))
+            if '您的端午香粽不足' in HTML:
+                break
+
+
 def 新春登录礼():
     '''
     每天至多领取七次
