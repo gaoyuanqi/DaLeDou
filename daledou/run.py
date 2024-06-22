@@ -1697,6 +1697,48 @@ def 侠客岛():
         MSG.append('没有可接受或可领取的任务（符合条件侠士数量不足、执行中、已完成）')
 
 
+def 时空遗迹():
+    '''
+    八卦迷阵：
+        1、通关四层八卦
+        2、领取通关奖励
+    '''
+    # 八卦迷阵
+    get('cmd=spacerelic&op=goosip')
+    if '小天使' not in HTML:
+        info('今日首通没有找到八卦门')
+        MSG.append('今日首通没有找到八卦门')
+        return
+
+    data = {
+        '离': 1,
+        '坤': 2,
+        '兑': 3,
+        '乾': 4,
+        '坎': 5,
+        '艮': 6,
+        '震': 7,
+        '巽': 8,
+    }
+    for i in find(r'小天使-(.*?)<br />'):
+        # 点击八卦
+        get(f'cmd=spacerelic&op=goosip&id={data[i]}')
+        MSG.append(find(r'分钟<br /><br />(.*?)<br />'))
+        if '恭喜您' not in HTML:
+            # 你被迷阵xx击败，停留在了本层
+            # 耐力不足，无法闯关
+            # 你被此门上附着的阵法传送回了第一层
+            # 请遵循迷阵规则进行闯关
+            return
+        # 恭喜您进入到下一层
+        # 恭喜您已通关迷阵，快去领取奖励吧
+
+    if '恭喜您已通关迷阵' in HTML:
+        # 领取通关奖励
+        get('cmd=spacerelic&op=goosipgift')
+        MSG.append(find(r'分钟<br /><br />(.*?)<br />'))
+
+
 def 镶嵌():
     '''
     周四镶嵌魂珠升级（碎 -> 1 -> 2 -> 3）
