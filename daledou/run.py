@@ -2238,11 +2238,11 @@ def 生肖福卡():
             for _ in range(int(min_number)):
                 # 春/夏/秋/冬宵抽奖
                 get(f'cmd=newAct&subtype=174&op=10&id={id}&confirm=1')
-                MSG.append(find(r'幸运抽奖<br /><br />(.*?)<br />', '生肖福卡-抽奖'))
                 if '您还未合成周年福卡' in HTML:
                     info('需先合成周年福卡才能抽奖', '生肖福卡-抽奖')
                     MSG.append('需合成周年福卡才能抽奖')
                     return
+                MSG.append(find(r'幸运抽奖<br /><br />(.*?)<br />', '生肖福卡-抽奖'))
 
 
 def 长安盛会():
