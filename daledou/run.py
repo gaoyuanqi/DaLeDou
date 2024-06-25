@@ -1703,13 +1703,6 @@ def 时空遗迹():
         1、通关四层八卦
         2、领取通关奖励
     '''
-    # 八卦迷阵
-    get('cmd=spacerelic&op=goosip')
-    if '小天使' not in HTML:
-        info('今日首通没有找到八卦门')
-        MSG.append('今日首通没有找到八卦门')
-        return
-
     data = {
         '离': 1,
         '坤': 2,
@@ -1720,23 +1713,28 @@ def 时空遗迹():
         '震': 7,
         '巽': 8,
     }
-    for i in find(r'小天使-(.*?)<br />'):
-        # 点击八卦
-        get(f'cmd=spacerelic&op=goosip&id={data[i]}')
-        MSG.append(find(r'分钟<br /><br />(.*?)<br />'))
-        if '恭喜您' not in HTML:
-            # 你被迷阵xx击败，停留在了本层
-            # 耐力不足，无法闯关
-            # 你被此门上附着的阵法传送回了第一层
-            # 请遵循迷阵规则进行闯关
-            return
-        # 恭喜您进入到下一层
-        # 恭喜您已通关迷阵，快去领取奖励吧
-
-    if '恭喜您已通关迷阵' in HTML:
-        # 领取通关奖励
-        get('cmd=spacerelic&op=goosipgift')
-        MSG.append(find(r'分钟<br /><br />(.*?)<br />'))
+    # 八卦迷阵
+    get('cmd=spacerelic&op=goosip')
+    if result := find(r'([乾坤震巽坎离艮兑]{4})'):
+        for i in result:
+            # 点击八卦
+            get(f'cmd=spacerelic&op=goosip&id={data[i]}')
+            MSG.append(find(r'分钟<br /><br />(.*?)<br />'))
+            if '恭喜您' not in HTML:
+                # 你被迷阵xx击败，停留在了本层
+                # 耐力不足，无法闯关
+                # 你被此门上附着的阵法传送回了第一层
+                # 请遵循迷阵规则进行闯关
+                return
+            # 恭喜您进入到下一层
+            # 恭喜您已通关迷阵，快去领取奖励吧
+        if '恭喜您已通关迷阵' in HTML:
+            # 领取通关奖励
+            get('cmd=spacerelic&op=goosipgift')
+            MSG.append(find(r'分钟<br /><br />(.*?)<br />'))
+    else:
+        info('今日首通没有找到八卦门')
+        MSG.append('今日首通没有找到八卦门')
 
 
 def 镶嵌():
