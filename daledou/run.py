@@ -2642,6 +2642,7 @@ def 开心娃娃机():
         get('cmd=newAct&subtype=124&op=1')
         MSG.append(find(r'】<br />(.*?)<br />'))
     else:
+        info('没有免费抓取次数')
         MSG.append('没有免费抓取次数')
 
 
