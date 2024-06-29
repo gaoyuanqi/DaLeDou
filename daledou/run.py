@@ -881,33 +881,32 @@ def 帮派商会():
     '''
     每天帮派宝库领取礼包、交易会所交易物品、兑换商店兑换物品
     '''
+    data: dict = YAML.get('帮派商会')
     for _ in range(10):
         # 帮派宝库
         get('cmd=fac_corp&op=0')
         if mode := findall(r'gift_id=(\d+)&amp;type=(\d+)">点击领取'):
             for id, t in mode:
                 get(f'cmd=fac_corp&op=3&gift_id={id}&type={t}')
-                MSG.append(find(r'】</p>(.*?)<br />'))
+                MSG.append(find(r'】</p>(.*?)<br />', '帮派商会-礼包'))
         else:
             break
 
     # 交易会所
     get('cmd=fac_corp&op=1')
-    data: dict = YAML.get('帮派商会')
     jiaoyi: dict = data['交易会所']
-    for jiaoyi_name, params in jiaoyi.items():
-        if jiaoyi_name in HTML:
+    for name, params in jiaoyi.items():
+        if name in HTML:
             get(f'cmd=fac_corp&op=4&{params}')
-            MSG.append(find(r'】</p>(.*?)<br />'))
+            MSG.append(find(r'】</p>(.*?)<br />', f'帮派商会-交易-{name}'))
 
     # 兑换商店
     get('cmd=fac_corp&op=2')
-    data: dict = YAML.get('帮派商会')
     duihuan: dict = data['兑换商店']
-    for duihuan_name, type_id in duihuan.items():
-        if duihuan_name in HTML:
+    for name, type_id in duihuan.items():
+        if name in HTML:
             get(f'cmd=fac_corp&op=5&type_id={type_id}')
-            MSG.append(find(r'】</p>(.*?)<br />'))
+            MSG.append(find(r'】</p>(.*?)<br />', f'帮派商会-兑换-{name}'))
 
 
 def 帮派远征军():
