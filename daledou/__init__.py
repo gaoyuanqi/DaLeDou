@@ -8,6 +8,7 @@ MSG = []
 NOW = datetime.datetime.now()
 WEEK: int = NOW.weekday() + 1
 DAY: int = NOW.day
+MONTH: int = NOW.month
 
 _CHINESE = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 WEEK_CHINESE = _CHINESE[WEEK - 1]

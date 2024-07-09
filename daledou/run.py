@@ -5,7 +5,7 @@ import argparse
 import datetime
 from loguru import logger
 
-from daledou import MSG, WEEK, DAY, DISABLE_PUSH, WEEK_CHINESE
+from daledou import MSG, WEEK, DAY, MONTH, DISABLE_PUSH, WEEK_CHINESE
 from daledou.config import init_config, create_log, push
 
 
@@ -2207,9 +2207,11 @@ def 生肖福卡():
         分享：向好友分享一次福卡（选择数量最多的，如果数量最大值为1则不分享）
         领取：领取
     兑奖：
-        周四合成周年福卡
+        周四合成周年福卡、分斗豆
     抽奖：
-        周四且只有兑换过合成周年福卡才能抽奖
+        周四抽奖：
+            已合成周年福卡则抽奖
+            已过合卡时间则继续抽奖
     '''
     # 好友赠卡
     get('cmd=newAct&subtype=174&op=4')
@@ -2247,6 +2249,13 @@ def 生肖福卡():
         # 合成周年福卡
         get('cmd=newAct&subtype=174&op=8')
         MSG.append(find(r'。<br /><br />(.*?)<br />', '生肖福卡-兑奖'))
+        # 分斗豆
+        get('cmd=newAct&subtype=174&op=9')
+        MSG.append(find(r'。<br /><br />(.*?)<br />', '生肖福卡-兑奖'))
+
+        # 合卡结束日期
+        date = findall(r'合卡时间：.*?至(\d+)月(\d+)日')
+        month, day = date[0]
 
         # 抽奖
         get('cmd=newAct&subtype=174&op=2')
@@ -2257,9 +2266,14 @@ def 生肖福卡():
                 # 春/夏/秋/冬宵抽奖
                 get(f'cmd=newAct&subtype=174&op=10&id={id}&confirm=1')
                 if '您还未合成周年福卡' in HTML:
-                    info('需先合成周年福卡才能抽奖', '生肖福卡-抽奖')
-                    MSG.append('需合成周年福卡才能抽奖')
-                    return
+                    if (MONTH == int(month)) and (DAY > int(day)):
+                        # 合卡时间已结束
+                        # 继续抽奖
+                        get(f'cmd=newAct&subtype=174&op=10&id={id}')
+                    else:
+                        info('合卡期间需先合成周年福卡才能抽奖', '生肖福卡-抽奖')
+                        MSG.append('合卡期间需先合成周年福卡才能抽奖')
+                        return
                 MSG.append(find(r'幸运抽奖<br /><br />(.*?)<br />', '生肖福卡-抽奖'))
 
 
