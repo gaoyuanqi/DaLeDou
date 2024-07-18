@@ -818,7 +818,7 @@ def 梦想之旅():
         # 获取当前区域所有未去过的目的地
         place = findall(r'([\u4e00-\u9fa5\s\-]+)(?=\s未去过)')
         # 梦幻旅行
-        get('cmd=dreamtrip&sub=3&bmapid=1')
+        get('cmd=dreamtrip&sub=3&bmapid=4')
         for name in place:
             s = find(f'{name}.*?smapid=(\d+)', f'梦想之旅-{name}-id')
             # 去这里
