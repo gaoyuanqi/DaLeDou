@@ -439,11 +439,6 @@ def 矿洞():
             MSG.append(find(r'商店</a><br />(.*?)<br />'))
             if '挑战次数不足' in HTML:
                 break
-        elif '领取奖励' in HTML:
-            MSG.append(find(r'。<br />(.*?)<br />', '矿洞-排名奖励'))
-            # 领取奖励
-            get('cmd=factionmine&op=reward')
-            MSG.append(find(r'商店</a><br />(.*?)<br />', '矿洞-排名奖励'))
         elif '开启副本' in HTML:
             if data_str := YAML.get('矿洞'):
                 # 确认开启
@@ -451,6 +446,11 @@ def 矿洞():
                 MSG.append(find(r'矿石商店</a><br />(.*?)<br />', '矿洞-开启副本'))
                 if '当前不能开启此副本' in HTML:
                     break
+        elif '领取奖励' in HTML:
+            MSG.append(find(r'。<br />(.*?)<br />', '矿洞-排名奖励'))
+            # 领取奖励
+            get('cmd=factionmine&op=reward')
+            MSG.append(find(r'商店</a><br />(.*?)<br />', '矿洞-排名奖励'))
 
 
 def 掠夺():
