@@ -1,14 +1,8 @@
-# 【yaml】文件格式说明:
-# 所有标点符号均使用英文,比如 : -
-# 冒号: 与数据之间有一个空格
-# 短横线- 与数据之间有一个空格
-# 在行首加 # 会注释该行
-
-# 大乐斗cookie，至少包含 'RK=xx; ptcz=xx; openId=xx; accessToken=xx; newuin=xx'
+# 大乐斗Cookie，直接复制填入即可
 # 支持多账号，每行对应一个账号（以短横线 - 开始）
 DALEDOU_ACCOUNT:
   - RK=xx; ptcz=xx; openId=xx; accessToken=xx; newuin=111111
   - RK=xx; ptcz=xx; openId=xx; accessToken=xx; newuin=222222
 
-# pushplus公众号一对一推送token
+# pushplus微信公众号一对一推送token
 PUSHPLUS_TOKEN: ""

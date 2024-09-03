@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+requests = "*"
+pyyaml = "*"
+loguru = "*"
+schedule = "*"
+black = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
