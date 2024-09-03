@@ -1942,7 +1942,7 @@ def 背包():
             number = find(r"数量：(\d+)", f"背包-{_id}-存在数量")
             id_number.append((str(_id), int(number)))
 
-    for _id, number in id_number:
+    for _id, number in set(id_number):
         if _id in ["3023", "3024", "3025"]:
             # xx洗刷刷，3103生命洗刷刷除外
             print_info("只能生命洗刷刷，其它洗刷刷不支持")
