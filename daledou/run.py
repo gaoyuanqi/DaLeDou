@@ -285,7 +285,7 @@ def 分享():
         for _ in range(11):
             # 开始挑战 or 挑战下一层
             get("cmd=towerfight&type=0")
-            find(name="神塔-挑战")
+            find(name="斗神塔-挑战")
             time.sleep(second)
             if "您" in HTML:
                 # 您败给了
