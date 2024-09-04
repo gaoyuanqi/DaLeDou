@@ -471,13 +471,18 @@ def 矿洞():
 def 掠夺():
     """
     周二掠夺一次（各粮仓中第一个最低战斗力的成员）、领奖
-    周三领取胜负奖励
+    周三领取胜负奖励、报名
     """
     if WEEK == 3:
+        # 领取胜负奖励
         get("cmd=forage_war&subtype=6")
+        PUSH_CONTENT.append(find())
+        # 报名
+        get("cmd=forage_war&subtype=1")
         PUSH_CONTENT.append(find())
         return
 
+    # 掠夺
     get("cmd=forage_war")
     if "本轮轮空" in HTML:
         PUSH_CONTENT.append(find(r"本届战况：(.*?)<br />"))
