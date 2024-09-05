@@ -1996,7 +1996,7 @@ def 镶嵌():
         for _ in range(50):
             # 1 -> 2 -> 3 -> 4
             get(f"cmd=upgradepearl&type=3&pearl_id={p}")
-            _msg = find(r"魂珠升级</p><p>(.*?)</p>")
+            _msg = find(r"魂珠升级</p><p>(.*?)<")
             if "您拥有的魂珠数量不够" in HTML:
                 break
             PUSH_CONTENT.append(_msg)
