@@ -5,7 +5,7 @@
 玩家要求：
 - 乐斗等级最好大于50
 - 乐斗战力越高越好
-- 有开通乐斗达人
+- 最好开通乐斗达人
 
 
 ## Python版本
@@ -22,17 +22,22 @@ Python 3.11
 git clone https://github.com/gaoyuanqi/DaLeDou.git
 ```
 
-**2、安装依赖**
+**2、进入项目**
+```sh
+cd DaLeDou
+```
+
+**3、安装依赖**
 ```sh
 make install
 ```
 
-**3、激活虚拟环境**
+**4、激活虚拟环境**
 ```sh
 pipenv shell
 ```
 
-**4、`config/settings.yaml` 配置**
+**5、`config/settings.yaml` 配置**
 
 添加大乐斗Cookie（必须）：
 ```yaml
@@ -46,7 +51,7 @@ DALEDOU_ACCOUNT:
 PUSHPLUS_TOKEN: ""
 ```
 
-**5、创建大乐斗任务配置文件**
+**6、创建大乐斗任务配置文件**
 
 如果你第一次使用，运行以下命令：
 ```sh
@@ -54,7 +59,7 @@ python main.py check
 ```
 这会在 `config` 目录下创建一个以 `QQ` 命名的yaml配置文件（大乐斗Cookie有效才会创建）
 
-**6、定时运行大乐斗任务**
+**7、定时运行大乐斗任务**
 
 启动定时命令：
 ```sh
@@ -69,7 +74,7 @@ python main.py
 
 还会每隔2小时检查大乐斗Cookie有效期
 
-**7、其它命令**
+**8、其它命令**
 
 立即运行 [第一轮](https://www.gaoyuanqi.cn/python-daledou/?highlight=%E5%A4%A7%E4%B9%90%E6%96%97#%E7%AC%AC%E4%B8%80%E8%BD%AE)，建议 `13:10` 后运行：
 ```sh
