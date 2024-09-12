@@ -1931,6 +1931,9 @@ def 背包():
         print_info(f"查找第 {p} 页id")
         # 下页
         get(f"cmd=store&store_type=0&page={p}")
+        if "使用规则" in HTML:
+            find(r"】</p><p>(.*?)<br />")
+            continue
         _, HTML = HTML.split("清理")
         HTML, _ = HTML.split("商店")
         for _m in yaml:
@@ -1944,7 +1947,7 @@ def 背包():
         if "很抱歉" in HTML:
             find(r"】</p><p>(.*?)<br />", f"背包-{_id}-不存在")
         else:
-            number = find(r"数量：(\d+)", f"背包-{_id}-存在数量")
+            number = find(r"数量：(\d+)", f"背包-{_id}-数量")
             id_number.append((str(_id), int(number)))
 
     for _id, number in set(id_number):
