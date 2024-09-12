@@ -2547,7 +2547,7 @@ def 乐斗游记():
     # 兑换
     if num := find(r"溢出积分：(\d+)"):
         num_10 = int(int(num) / 10)
-        num_1 = num - (num_10 * 10)
+        num_1 = int(num) - (num_10 * 10)
         for _ in range(num_10):
             # 兑换十次
             get("cmd=newAct&subtype=176&op=2&num=10")
