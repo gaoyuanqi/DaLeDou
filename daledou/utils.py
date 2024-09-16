@@ -1,4 +1,3 @@
-import os
 import re
 from datetime import datetime
 from pathlib import Path
@@ -64,23 +63,16 @@ def session_add_cookie(cookie: str) -> Session | None:
                 return session
 
 
-def push(title: str, content: list[str], send: bool = True) -> None:
+def push(title: str, content: str) -> None:
     """
     pushplus微信通知
     """
-    # 移除 content 中的 None
-    _content = "\n".join(list(filter(None, content)))
-    if not send:
-        print(f"\n------------模拟微信信息------------")
-        print(_content)
-        return
-
     if token := read_yaml("settings.yaml", "PUSHPLUS_TOKEN"):
         url = "http://www.pushplus.plus/send/"
         data = {
             "token": token,
             "title": title,
-            "content": _content,
+            "content": content,
         }
         res = requests.post(url, data=data)
         logger.success(f"pushplus推送信息：{res.json()}")
@@ -88,7 +80,7 @@ def push(title: str, content: list[str], send: bool = True) -> None:
         logger.warning("你没有配置pushplus微信推送")
 
 
-def create_yaml(qq: str) -> None:
+def create_qq_yaml(qq: str) -> None:
     """
     基于daledou.yaml创建一份以qq命名的yaml配置文件
     """
@@ -112,9 +104,9 @@ def get_dld_index_html(session: Session) -> str | None:
             return html.split("【退出】")[0]
 
 
-def replace_mission(missions: list[str]) -> list[str]:
+def map_mission_names_to_function_names(missions: list[str]) -> list[str]:
     """
-    将大乐斗首页的任务名称替换为run.py中的函数名称
+    将大乐斗首页任务名称映射为 run.py 中相应的函数名称
     """
     _data = {
         # 键为大乐斗首页任务名称，值为函数名称
@@ -137,12 +129,12 @@ def init_config():
 
         if dld_session is None:
             logger.warning(f"{qq}：Cookie无效")
-            push(f"{qq}：Cookie无效", [ck])
+            push(f"{qq}：Cookie无效", ck)
             continue
         logger.success(f"{qq}：Cookie有效")
 
         # 为当前账号创建yaml任务配置文件
-        create_yaml(qq)
+        create_qq_yaml(qq)
         # 读取当前账号任务配置
         _read_yaml = read_yaml(f"{qq}.yaml")
 
@@ -150,7 +142,7 @@ def init_config():
         dld_html = get_dld_index_html(dld_session)
         if dld_html is None:
             logger.warning(f"{qq}：大乐斗首页未找到，可能官方繁忙或者维护")
-            push(f"{qq} 大乐斗首页未找到", ["大乐斗首页未找到，可能官方繁忙或者维护"])
+            push(f"{qq} 大乐斗首页未找到", "大乐斗首页未找到，可能官方繁忙或者维护")
             continue
 
         # 过滤大乐斗首页不存在的任务
@@ -162,15 +154,15 @@ def init_config():
             "YAML": _read_yaml,
             "SESSION": dld_session,
             "MISSIONS": {
-                "one": replace_mission(_one),
-                "two": replace_mission(_two),
+                "one": map_mission_names_to_function_names(_one),
+                "two": map_mission_names_to_function_names(_two),
             },
         }
 
 
-def create_log(qq: str) -> int:
+def create_qq_log(qq: str) -> int:
     """
-    创建当天日志文件，文件夹以qq命名，日志文件以日期命名
+    为当前QQ创建当天日志文件，返回日志记录器的标识符
     """
     log_dir = Path(f"./log/{qq}")
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -184,12 +176,19 @@ def create_log(qq: str) -> int:
     )
 
 
-def get_date() -> str:
+def get_datetime_weekday() -> str:
     """
-    返回格式化后的日期时间：2024-09-01 14:35:18 周日
+    获取当前的日期和时间，并附加星期信息：2024-09-01 14:35:18 周日
     """
     name = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
     now = datetime.now()
     week = now.weekday()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
     return f"{formatted_now} {name[week]}"
+
+
+def remove_none_and_join(content: list[str | None]) -> str:
+    """
+    移除列表中的所有 None 值，并将剩余元素用换行符连接成一个字符串
+    """
+    return "\n".join(list(filter(None, content)))

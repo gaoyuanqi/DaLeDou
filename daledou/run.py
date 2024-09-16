@@ -14,10 +14,11 @@ from daledou import (
     WEEK,
 )
 from daledou.utils import (
-    create_log,
-    get_date,
+    create_qq_log,
+    get_datetime_weekday,
     init_config,
     push,
+    remove_none_and_join,
 )
 
 
@@ -61,53 +62,59 @@ def job_two():
     _run_job("two")
 
 
-def _run_job(tasks: str):
-    global QQ, SESSION, MISSION_NAME, YAML
+def _init_data(data: dict) -> tuple:
+    global QQ, YAML, SESSION
+
+    start = time.time()
+    PUSH_CONTENT.append(f"【开始时间】\n{get_datetime_weekday()}")
+
+    QQ = data["QQ"]
+    YAML = data["YAML"]
+    SESSION = data["SESSION"]
+    missions: dict[list] = data["MISSIONS"]
+
+    trace: int = create_qq_log(QQ)
+    return start, trace, missions
+
+
+def _run_job(job: str):
+    global MISSION_NAME
 
     for data in init_config():
-        if tasks == "check":
+        if job == "check":
             continue
-        start = time.time()
-        QQ = data["QQ"]
-        YAML = data["YAML"]
-        SESSION = data["SESSION"]
-        missions: dict = data["MISSIONS"]
-        trace: int = create_log(QQ)
+        start, trace, missions = _init_data(data)
 
-        PUSH_CONTENT.append(f"【开始时间】\n{get_date()}")
-        for func in missions[tasks]:
+        for func in missions[job]:
             MISSION_NAME = func
             PUSH_CONTENT.append(f"\n【{func}】")
             globals()[func]()
 
         end = time.time()
-        PUSH_CONTENT.append(f"\n【运行时长】\n时长：{int(end - start)} s")
-        push(f"{QQ} {tasks}", PUSH_CONTENT)
-        PUSH_CONTENT.clear()
         logger.remove(trace)
+        PUSH_CONTENT.append(f"\n【运行时长】\n时长：{int(end - start)} s")
+        push(f"{QQ} {job}", remove_none_and_join(PUSH_CONTENT))
+        PUSH_CONTENT.clear()
 
 
-def _dev_job(funcs: list[str]):
-    global QQ, SESSION, MISSION_NAME, YAML
+def _dev_job(job: list[str]):
+    global MISSION_NAME
 
     for data in init_config():
-        start = time.time()
-        QQ = data["QQ"]
-        YAML = data["YAML"]
-        SESSION = data["SESSION"]
-        trace: int = create_log(QQ)
+        start, trace, _ = _init_data(data)
 
-        PUSH_CONTENT.append(f"【开始时间】\n{get_date()}")
-        for func in funcs:
+        for func in job:
             MISSION_NAME = func
             PUSH_CONTENT.append(f"\n【{func}】")
-            globals()[func]()
+            result = globals()[func]()
 
         end = time.time()
-        PUSH_CONTENT.append(f"\n【运行时长】\n时长：{int(end - start)} s")
-        push("标题", PUSH_CONTENT, send=False)
-        PUSH_CONTENT.clear()
         logger.remove(trace)
+        PUSH_CONTENT.append(f"\n【运行时长】\n时长：{int(end - start)} s")
+        if result is None:
+            print(f"\n------------模拟微信信息------------")
+            print(remove_none_and_join(PUSH_CONTENT))
+        PUSH_CONTENT.clear()
 
 
 def get(params: str) -> str:
