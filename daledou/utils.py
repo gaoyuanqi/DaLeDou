@@ -1,4 +1,5 @@
 import re
+import sys
 from datetime import datetime
 from pathlib import Path
 from shutil import copy
@@ -115,11 +116,41 @@ def map_mission_names_to_function_names(missions: list[str]) -> list[str]:
     return [_data.get(k, k) for k in missions]
 
 
+def setup_console_logger() -> int:
+    """
+    设置控制台日志处理器，返回处理器id
+    """
+    return logger.add(
+        sink=sys.stderr,
+        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{message}</level>",
+    )
+
+
+def create_qq_log(qq: str) -> int:
+    """
+    为QQ创建日志文件，返回日志处理器id
+    """
+    log_dir = Path(f"./log/{qq}")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / f'{NOW.strftime("%Y-%m-%d")}.log'
+
+    return logger.add(
+        log_file,
+        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{message}</level>",
+        enqueue=True,
+        encoding="utf-8",
+        retention="30 days",
+    )
+
+
 def init_config():
     """
     初始化账号配置，若Cookie有效则返回包含账号数据的生成器
     """
+    logger.remove()
+    setup_console_logger()
     dld_cookie: list[str] = read_yaml("settings.yaml", "DALEDOU_ACCOUNT")
+
     for cookie in dld_cookie:
         ck: str = clean_cookie(cookie)
         qq: str = get_qq(ck)
@@ -128,15 +159,18 @@ def init_config():
         dld_session = session_add_cookie(ck)
 
         if dld_session is None:
-            logger.warning(f"{qq}：Cookie无效")
-            push(f"{qq}：Cookie无效", ck)
+            logger.warning(f"{qq} | Cookie无效")
+            push(f"{qq} | Cookie无效", ck)
             continue
-        logger.success(f"{qq}：Cookie有效")
+        logger.success(f"{qq} | Cookie有效")
 
-        # 为当前账号创建yaml任务配置文件
+        # 创建QQ任务配置文件
         create_qq_yaml(qq)
-        # 读取当前账号任务配置
-        _read_yaml = read_yaml(f"{qq}.yaml")
+        # 读取QQ任务配置
+        _read_qq_yaml = read_yaml(f"{qq}.yaml")
+
+        # 创建QQ日志文件
+        _create_qq_log: int = create_qq_log(qq)
 
         # 获取大乐斗首页HTML
         dld_html = get_dld_index_html(dld_session)
@@ -151,29 +185,14 @@ def init_config():
 
         yield {
             "QQ": qq,
-            "YAML": _read_yaml,
+            "YAML": _read_qq_yaml,
             "SESSION": dld_session,
+            "HANDLER_ID": _create_qq_log,
             "MISSIONS": {
                 "one": map_mission_names_to_function_names(_one),
                 "two": map_mission_names_to_function_names(_two),
             },
         }
-
-
-def create_qq_log(qq: str) -> int:
-    """
-    为当前QQ创建当天日志文件，返回日志记录器的标识符
-    """
-    log_dir = Path(f"./log/{qq}")
-    log_dir.mkdir(parents=True, exist_ok=True)
-    log_file = log_dir / f'{NOW.strftime("%Y-%m-%d")}.log'
-    return logger.add(
-        log_file,
-        format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <4} | {message}",
-        enqueue=True,
-        encoding="utf-8",
-        retention="30 days",
-    )
 
 
 def get_datetime_weekday() -> str:

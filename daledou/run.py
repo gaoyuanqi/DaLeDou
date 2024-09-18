@@ -14,7 +14,6 @@ from daledou import (
     WEEK,
 )
 from daledou.utils import (
-    create_qq_log,
     get_datetime_weekday,
     init_config,
     push,
@@ -63,7 +62,7 @@ def job_two():
 
 
 def _init_data(data: dict) -> tuple:
-    global QQ, YAML, SESSION
+    global QQ, YAML, SESSION, HANDLER_ID
 
     start = time.time()
     PUSH_CONTENT.append(f"【开始时间】\n{get_datetime_weekday()}")
@@ -71,10 +70,10 @@ def _init_data(data: dict) -> tuple:
     QQ = data["QQ"]
     YAML = data["YAML"]
     SESSION = data["SESSION"]
+    HANDLER_ID = data["HANDLER_ID"]
     missions: dict[list] = data["MISSIONS"]
 
-    trace: int = create_qq_log(QQ)
-    return start, trace, missions
+    return start, missions
 
 
 def _run_job(job: str):
@@ -83,17 +82,20 @@ def _run_job(job: str):
     for data in init_config():
         if job == "check":
             continue
-        start, trace, missions = _init_data(data)
-
+        start, missions = _init_data(data)
         for func in missions[job]:
             MISSION_NAME = func
             PUSH_CONTENT.append(f"\n【{func}】")
             globals()[func]()
-
         end = time.time()
-        logger.remove(trace)
-        PUSH_CONTENT.append(f"\n【运行时长】\n时长：{int(end - start)} s")
+        PUSH_CONTENT.append(f"\n【运行耗时】\n耗时：{int(end - start)} s")
+
+        # 移除当前QQ日志处理器
+        logger.remove(HANDLER_ID)
+
+        # pushplus微信推送消息
         push(f"{QQ} {job}", remove_none_and_join(PUSH_CONTENT))
+
         PUSH_CONTENT.clear()
 
 
@@ -101,19 +103,21 @@ def _dev_job(job: list[str]):
     global MISSION_NAME
 
     for data in init_config():
-        start, trace, _ = _init_data(data)
-
+        start, _ = _init_data(data)
         for func in job:
             MISSION_NAME = func
             PUSH_CONTENT.append(f"\n【{func}】")
             result = globals()[func]()
-
         end = time.time()
-        logger.remove(trace)
-        PUSH_CONTENT.append(f"\n【运行时长】\n时长：{int(end - start)} s")
+        PUSH_CONTENT.append(f"\n【运行耗时】\n耗时：{int(end - start)} s")
+
+        # 移除当前QQ日志处理器
+        logger.remove(HANDLER_ID)
+
         if result is None:
             print(f"\n------------模拟微信信息------------")
             print(remove_none_and_join(PUSH_CONTENT))
+
         PUSH_CONTENT.clear()
 
 
