@@ -1605,6 +1605,8 @@ def 帮派祭坛():
                 PUSH_CONTENT.append(find())
             if "转转券不足" in HTML:
                 break
+            elif "已达转转券转动次数上限" in HTML:
+                break
         if "【随机分配】" in HTML:
             for op, _id in findall(r"op=(.*?)&amp;id=(\d+)"):
                 # 选择
