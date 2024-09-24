@@ -8,9 +8,6 @@ WEEK: int = NOW.weekday() + 1
 DAY: int = NOW.day
 MONTH: int = NOW.month
 
-# 用于储存pushplus内容正文
-PUSH_CONTENT: list[str] = []
-
 # 请求头
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",

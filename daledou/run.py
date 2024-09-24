@@ -10,12 +10,10 @@ from daledou import (
     DAY,
     HEADERS,
     MONTH,
-    PUSH_CONTENT,
     WEEK,
 )
 from daledou.utils import (
-    get_datetime_weekday,
-    init_config,
+    get_dld_data,
     push,
     remove_none_and_join,
 )
@@ -33,7 +31,8 @@ def run_serve():
         _run_job(args.mode)
     elif args.mode in ["", "timing"]:
         _run_job("check")
-        logger.info("将在 13:10 和 20:01 定时运行...")
+        print("脚本将在 13:10 和 20:01 定时运行...")
+        print("--" * 20)
         while True:
             run_pending()
             time.sleep(1)
@@ -62,11 +61,11 @@ def job_two():
 
 
 def _init_data(data: dict) -> tuple:
-    global QQ, YAML, SESSION, HANDLER_ID
+    global PUSH_CONTENT, QQ, YAML, SESSION, HANDLER_ID
 
     start = time.time()
-    PUSH_CONTENT.append(f"【开始时间】\n{get_datetime_weekday()}")
 
+    PUSH_CONTENT = data["PUSH_CONTENT"]
     QQ = data["QQ"]
     YAML = data["YAML"]
     SESSION = data["SESSION"]
@@ -79,7 +78,7 @@ def _init_data(data: dict) -> tuple:
 def _run_job(job: str):
     global MISSION_NAME
 
-    for data in init_config():
+    for data in get_dld_data():
         if job == "check":
             continue
         start, missions = _init_data(data)
@@ -96,13 +95,11 @@ def _run_job(job: str):
         # pushplus微信推送消息
         push(f"{QQ} {job}", remove_none_and_join(PUSH_CONTENT))
 
-        PUSH_CONTENT.clear()
-
 
 def _dev_job(job: list[str]):
     global MISSION_NAME
 
-    for data in init_config():
+    for data in get_dld_data():
         start, _ = _init_data(data)
         for func in job:
             MISSION_NAME = func
@@ -115,10 +112,9 @@ def _dev_job(job: list[str]):
         logger.remove(HANDLER_ID)
 
         if result is None:
-            print(f"\n------------模拟微信信息------------")
+            print(f"--------------模拟微信信息--------------")
             print(remove_none_and_join(PUSH_CONTENT))
-
-        PUSH_CONTENT.clear()
+        print("--" * 20)
 
 
 def get(params: str) -> str:
@@ -152,8 +148,8 @@ def find(mode: str = r"<br />(.*?)<", name: str | None = None) -> str | None:
 
     无论结果如何都会被打印并写入日志
     """
-    match = re.search(mode, HTML, re.S)
-    result = match.group(1) if match else None
+    _match = re.search(mode, HTML, re.S)
+    result = _match.group(1) if _match else None
     print_info(result, name)
     return result
 
