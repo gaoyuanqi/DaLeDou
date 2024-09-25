@@ -8,7 +8,6 @@ requests = "*"
 pyyaml = "*"
 loguru = "*"
 schedule = "*"
-black = "*"
 
 [dev-packages]
 
