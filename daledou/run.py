@@ -112,7 +112,7 @@ def _dev_job(job: list[str]):
         logger.remove(HANDLER_ID)
 
         if result is None:
-            print(f"--------------模拟微信信息--------------")
+            print("--------------模拟微信信息--------------")
             print(remove_none_and_join(PUSH_CONTENT))
         print("--" * 20)
 
@@ -283,7 +283,7 @@ def 分享():
 
     for _ in range(9):
         # 一键分享
-        get(f"cmd=sharegame&subtype=6")
+        get("cmd=sharegame&subtype=6")
         find(r"】</p>(.*?)<p>")
         if ("达到当日分享次数上限" in HTML) or _end:
             PUSH_CONTENT.append(find(r"</p><p>(.*?)<br />.*?开通达人"))
@@ -683,7 +683,7 @@ def 幻境():
     get(f"cmd=misty&op=start&stage_id={stage_id}")
     for _ in range(5):
         # 乐斗
-        get(f"cmd=misty&op=fight")
+        get("cmd=misty&op=fight")
         PUSH_CONTENT.append(find(r"星数.*?<br />(.*?)<br />"))
         if "尔等之才" in HTML:
             break
@@ -750,7 +750,7 @@ def 门派():
         # 查看一名同门成员的资料 or 查看一名其他门派成员的资料
         print_info("查看好友第二页所有成员")
         # 好友第2页
-        get(f"cmd=friendlist&page=2")
+        get("cmd=friendlist&page=2")
         for uin in findall(r"\d+：.*?B_UID=(\d+).*?级"):
             # 查看好友
             get(f"cmd=totalinfo&B_UID={uin}")
@@ -896,7 +896,7 @@ def 梦想之旅():
     for name in place:
         # 梦幻旅行
         get(f"cmd=dreamtrip&sub=3&bmapid={bmapid}")
-        s = find(f"{name}.*?smapid=(\d+)")
+        s = find(rf"{name}.*?smapid=(\d+)")
         # 去这里
         get(f"cmd=dreamtrip&sub=2&smapid={s}")
         PUSH_CONTENT.append(find())
@@ -981,7 +981,7 @@ def 帮派商会():
     get("cmd=fac_corp&op=1")
     if "已交易" not in HTML:
         for mode in jiaoyi:
-            data_1 += findall(f"{mode}.*?type=(\d+)&amp;goods_id=(\d+)")
+            data_1 += findall(rf"{mode}.*?type=(\d+)&amp;goods_id=(\d+)")
         for t, _id in data_1:
             # 兑换
             get(f"cmd=fac_corp&op=4&type={t}&goods_id={_id}")
@@ -991,7 +991,7 @@ def 帮派商会():
     get("cmd=fac_corp&op=2")
     if "已兑换" not in HTML:
         for mode in duihuan:
-            data_2 += findall(f"{mode}.*?type_id=(\d+)")
+            data_2 += findall(rf"{mode}.*?type_id=(\d+)")
         for t in data_2:
             get(f"cmd=fac_corp&op=5&type_id={t}")
             PUSH_CONTENT.append(find(r"</p>(.*?)<br />", f"帮派商会-兑换-{t}"))
@@ -1410,7 +1410,7 @@ def 查看好友资料():
         #  开启查看好友信息和收徒
         get("cmd=set&type=1")
     # 查看好友第2页
-    get(f"cmd=friendlist&page=2")
+    get("cmd=friendlist&page=2")
     for uin in findall(r"\d+：.*?B_UID=(\d+).*?级"):
         get(f"cmd=totalinfo&B_UID={uin}")
 
@@ -1948,7 +1948,7 @@ def 背包():
         HTML, _ = HTML.split("商店")
         for _m in yaml:
             # 查找物品id
-            data += findall(f"{_m}.*?</a>数量：.*?id=(\d+)")
+            data += findall(rf"{_m}.*?</a>数量：.*?id=(\d+)")
 
     id_number = []
     for _id in data:
@@ -2400,7 +2400,7 @@ def 生肖福卡():
     get("cmd=newAct&subtype=174")
     if qq := YAML["生肖福卡"]:
         pattern = "[子丑寅卯辰巳午未申酉戌亥][鼠牛虎兔龙蛇马羊猴鸡狗猪]"
-        data = findall(f"({pattern})\s+(\d+).*?id=(\d+)")
+        data = findall(rf"({pattern})\s+(\d+).*?id=(\d+)")
         name, max_number, card_id = max(data, key=lambda x: int(x[1]))
         if int(max_number) >= 2:
             # 分享福卡
@@ -2418,7 +2418,7 @@ def 生肖福卡():
     for task_id in findall(r"task_id=(\d+)"):
         # 领取
         get(f"cmd=newAct&subtype=174&op=7&task_id={task_id}")
-        PUSH_CONTENT.append(find(r"~<br /><br />(.*?)<br />", f"生肖福卡-集卡"))
+        PUSH_CONTENT.append(find(r"~<br /><br />(.*?)<br />", "生肖福卡-集卡"))
 
     if WEEK != 4:
         return
@@ -2655,7 +2655,7 @@ def 春联大赛():
     for _ in range(3):
         for s in findall(r"上联：(.*?) 下联："):
             if x := _data.get(s):
-                xialian = find(f"{x}<a.*?index=(\d+)")
+                xialian = find(rf"{x}<a.*?index=(\d+)")
             else:
                 # 上联在字库中不存在，将随机选择
                 xialian = [random.choice(range(3))]
@@ -2787,10 +2787,10 @@ def 盛世巡礼():
         # 点击进入
         get(f"cmd=newAct&subtype=150&op=2&sceneId={s}")
         if "他已经给过你礼物了" in HTML:
-            print_info(f"礼物已领取", f"盛世巡礼-地点{s}")
+            print_info("礼物已领取", f"盛世巡礼-地点{s}")
             PUSH_CONTENT.append(f"地点{s}礼物已领取")
         elif s == 7 and ("点击继续" not in HTML):
-            print_info(f"礼物已领取", f"盛世巡礼-地点{s}")
+            print_info("礼物已领取", f"盛世巡礼-地点{s}")
             PUSH_CONTENT.append(f"地点{s}礼物已领取")
         elif item := find(r"itemId=(\d+)", f"盛世巡礼-地点{s}-itemId"):
             # 收下礼物
