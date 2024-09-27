@@ -127,9 +127,12 @@ def get(params: str) -> str:
         res = SESSION.get(url, headers=HEADERS)
         res.encoding = "utf-8"
         HTML = res.text
-        if "系统繁忙" not in HTML:
+        if "系统繁忙" in HTML:
+            time.sleep(0.4)
+        elif "操作频繁" in HTML:
+            time.sleep(0.4)
+        else:
             break
-        time.sleep(0.2)
     return HTML
 
 
@@ -464,7 +467,6 @@ def 矿洞():
             PUSH_CONTENT.append(find())
             if "挑战次数不足" in HTML:
                 break
-            time.sleep(1.5)
         elif "开启副本" in HTML:
             # 确认开启
             get(f"cmd=factionmine&op=start&floor={f}&mode={m}")
