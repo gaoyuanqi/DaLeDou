@@ -3114,3 +3114,39 @@ def 神装():
     s.神装进阶(_input_2)
 
     return True
+
+
+def 夺宝奇兵():
+    """
+    夺宝奇兵选择太空探宝场景投掷
+    """
+    # 合成
+    D.get("cmd=element&subtype=4")
+    result = D.find(r"拥有:(\d+)")
+    print("--" * 20)
+
+    print("夺宝奇兵太空探宝场景投掷")
+    print("任意非数字键退出")
+    _input = input("输入低于多少战功时结束投掷：")
+    if not _input.isdigit():
+        return True
+    print("--" * 20)
+
+    while True:
+        if int(result) < int(_input):
+            break
+
+        # 投掷
+        D.get("cmd=element&subtype=7")
+        if "【夺宝奇兵】" in D.html:
+            D.find(r"<br /><br />(.*?)<br />")
+            result = D.find(r"拥有:(\d+)")
+            if "您的战功不足" in D.html:
+                break
+        elif "【选择场景】" in D.html:
+            if "你掷出了" in D.html:
+                D.find(r"】<br />(.*?)<br />")
+            # 选择太空探宝
+            D.get("cmd=element&subtype=15&gameType=3")
+
+    return True
