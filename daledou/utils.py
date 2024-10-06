@@ -1,5 +1,6 @@
 import re
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 from shutil import copy
@@ -12,11 +13,19 @@ from requests import Session
 from daledou import HEADERS, MISSIONS_ONE, MISSIONS_TWO
 
 
-def remove_none_and_join(push_content: list[str | None]) -> str:
+def read_yaml(file: str, key: str | None = None):
     """
-    移除列表中的所有 None 值，并将剩余元素用换行符连接成一个字符串
+    读取config目录下的yaml配置文件
     """
-    return "\n".join(list(filter(None, push_content)))
+    path = Path(f"./config/{file}")
+    try:
+        with path.open("r", encoding="utf-8") as fp:
+            users = yaml.safe_load(fp)
+            return users[key] if key else users
+    except FileNotFoundError:
+        raise FileNotFoundError(f"{path} 文件不存在")
+    except yaml.YAMLError:
+        raise yaml.YAMLError(f"{path} 文件格式不正确")
 
 
 def push(title: str, content: str) -> None:
@@ -34,21 +43,6 @@ def push(title: str, content: str) -> None:
         logger.success(f"pushplus推送信息：{res.json()}")
     else:
         logger.warning("你没有配置pushplus微信推送")
-
-
-def read_yaml(file: str, key: str | None = None):
-    """
-    读取config目录下的yaml配置文件
-    """
-    path = Path(f"./config/{file}")
-    try:
-        with path.open("r", encoding="utf-8") as fp:
-            users = yaml.safe_load(fp)
-            return users[key] if key else users
-    except FileNotFoundError:
-        raise FileNotFoundError(f"{path} 文件不存在")
-    except yaml.YAMLError:
-        raise yaml.YAMLError(f"{path} 文件格式不正确")
 
 
 def map_mission_names_to_function_names(missions: list[str]) -> list[str]:
@@ -71,7 +65,7 @@ class InItDaLeDou:
         # 设置控制台输出
         self.setup_console_logger()
         # 初始化pushplus内容正文
-        self.push_content: list[str] = [
+        self.msg: list[str] = [
             f"【开始时间】\n{self.get_datetime_weekday()}",
         ]
 
@@ -86,8 +80,6 @@ class InItDaLeDou:
             self.handler_id: int = self.create_qq_log()
             # 获取大乐斗首页HTML
             self.main_page_html = self.get_dld_main_page_html()
-
-        print("--" * 20)
 
     def setup_console_logger(self) -> int:
         """
@@ -188,16 +180,93 @@ class InItDaLeDou:
         formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
         return f"{formatted_now} {name[week]}"
 
+    def get_dld_yaml(self):
+        """
+        获取大乐斗任务配置
+        """
+        return read_yaml(f"{self.qq}.yaml")
 
-def get_dld_data():
+
+class DaLeDou:
     """
-    返回大乐斗账号数据
+    大乐斗实例方法
     """
-    print("--" * 20)
+
+    def __init__(self, qq: str, session: Session, mission: dict, yaml: dict):
+        self.start_timing = time.time()
+        self.qq = qq
+        self.session = session
+        self.mission = mission
+        self.yaml = yaml
+        self.html = None
+        self.msg = None
+        self.mission_name = None
+
+    def get(self, params: str) -> str:
+        """
+        发送get请求获取响应内容
+        """
+        url = f"https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?{params}"
+        for _ in range(3):
+            res = self.session.get(url, headers=HEADERS)
+            res.encoding = "utf-8"
+            self.html = res.text
+            if "系统繁忙" in self.html:
+                time.sleep(0.4)
+            elif "操作频繁" in self.html:
+                time.sleep(0.4)
+            else:
+                break
+        return self.html
+
+    def print_info(self, message: str, mission_name=None) -> None:
+        """
+        打印信息
+        """
+        if mission_name is None:
+            mission_name = self.mission_name
+        logger.info(f"{self.qq} | {mission_name}：{message}")
+
+    def find(self, mode: str = "<br />(.*?)<", mission_name=None) -> str | None:
+        """
+        匹配成功返回首个结果，匹配失败返回None
+
+        无论结果如何都会被打印并写入日志
+        """
+        _match = re.search(mode, self.html, re.S)
+        result = _match.group(1) if _match else None
+        self.print_info(result, mission_name)
+        return result
+
+    def findall(self, mode: str) -> list:
+        """
+        查找大乐斗HTML字符串源码中所有匹配正则表达式的子串
+        """
+        return re.findall(mode, self.html, re.S)
+
+    def remove_msg_none_and_join(self) -> str:
+        """
+        移除列表中的所有 None 值，并将剩余元素用换行符连接成一个字符串
+        """
+        return "\n".join(list(filter(None, self.msg)))
+
+    def run_time(self):
+        """
+        运行耗时
+        """
+        self.msg.append(
+            f"\n【运行耗时】\n耗时：{int(time.time() - self.start_timing)} s"
+        )
+
+
+def yield_dld_objects():
+    """
+    返回大乐斗实例对象
+    """
     dld_cookies: list[str] = read_yaml("settings.yaml", "DALEDOU_ACCOUNT")
     for cookie in dld_cookies:
         dld = InItDaLeDou(cookie)
-        qq: str = dld.qq
+        dld_qq: str = dld.qq
         dld_session = dld.session
 
         if dld_session is None:
@@ -211,14 +280,17 @@ def get_dld_data():
         _one = [k for k in MISSIONS_ONE if k in dld_main_page_html]
         _two = [k for k in MISSIONS_TWO if k in dld_main_page_html]
 
-        yield {
-            "PUSH_CONTENT": dld.push_content,
-            "QQ": qq,
-            "YAML": read_yaml(f"{qq}.yaml"),
-            "SESSION": dld_session,
-            "HANDLER_ID": dld.handler_id,
-            "MISSIONS": {
-                "one": map_mission_names_to_function_names(_one),
-                "two": map_mission_names_to_function_names(_two),
-            },
+        mission = {
+            "one": map_mission_names_to_function_names(_one),
+            "two": map_mission_names_to_function_names(_two),
         }
+
+        yaml = dld.get_dld_yaml()
+
+        D = DaLeDou(dld_qq, dld_session, mission, yaml)
+        D.msg = dld.msg
+
+        yield D
+
+        # 移除当前QQ日志处理器
+        logger.remove(dld.handler_id)
