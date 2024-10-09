@@ -45,45 +45,51 @@ def push(title: str, content: str) -> None:
         logger.warning("你没有配置pushplus微信推送")
 
 
-def map_mission_names_to_function_names(missions: list[str]) -> list[str]:
-    """
-    将大乐斗首页任务名称映射为 run.py 中的函数名称
-    """
-    _data = {
-        # 键为大乐斗首页任务名称，值为函数名称
-        "5.1礼包": "五一礼包",
-    }
-    return [_data.get(k, k) for k in missions]
-
-
 class InItDaLeDou:
     """
     初始化大乐斗
     """
 
-    def __init__(self, dld_cookie: str) -> None:
-        # 设置控制台输出
-        self.setup_console_logger()
-        # 初始化pushplus内容正文
-        self.msg: list[str] = [
-            f"【开始时间】\n{self.get_datetime_weekday()}",
-        ]
+    def __init__(self, dld_cookie: str):
+        self._setup_console_logger()
+        self._start_time = f"【开始时间】\n{self._get_datetime_weekday()}"
+        self._cookie: str = self._clean_cookie(dld_cookie)
+        self._qq: str = self._get_qq()
+        self._session = self._session_add_cookie()
 
-        self.cookie: str = self.clean_cookie(dld_cookie)
-        self.qq: str = self.get_qq()
-        self.session = self.session_add_cookie()
-
-        if isinstance(self.session, requests.Session):
+        if isinstance(self._session, requests.Session):
             # 创建QQ任务配置文件
-            self.create_qq_yaml()
+            self._create_qq_yaml()
             # 创建QQ日志文件
-            self.handler_id: int = self.create_qq_log()
-            # 获取大乐斗首页HTML
-            self.main_page_html = self.get_dld_main_page_html()
+            self._handler_id: int = self._create_qq_log()
+            # 大乐斗任务配置
+            self._yaml: dict = read_yaml(f"{self.qq}.yaml")
+            # 获取函数映射
+            self._func_map = self._get_func_map()
 
-    def setup_console_logger(self) -> int:
+    @property
+    def start_time(self):
+        return self._start_time
+
+    @property
+    def qq(self):
+        return self._qq
+
+    @property
+    def session(self):
+        return self._session
+
+    @property
+    def yaml(self):
+        return self._yaml
+
+    @property
+    def func_map(self):
+        return self._func_map
+
+    def _setup_console_logger(self) -> int:
         """
-        设置控制台输出，返回处理器id
+        设置控制台输出格式，返回处理器id
         """
         logger.remove()
         return logger.add(
@@ -91,7 +97,7 @@ class InItDaLeDou:
             format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{message}</level>",
         )
 
-    def clean_cookie(self, dld_cookie: str) -> str:
+    def _clean_cookie(self, dld_cookie: str) -> str:
         """
         清洁大乐斗Cookie，改成 'RK=xx; ptcz=xx; openId=xx; accessToken=xx; newuin=xx'
         """
@@ -106,19 +112,19 @@ class InItDaLeDou:
             ck += f"{result}"
         return ck[:-2]
 
-    def get_qq(self) -> str:
+    def _get_qq(self) -> str:
         """
-        返回 self.cookie 中的QQ
+        返回 self._cookie 中的QQ
         """
-        return re.search(r"newuin=(\d+)", self.cookie, re.S).group(1)
+        return re.search(r"newuin=(\d+)", self._cookie, re.S).group(1)
 
-    def session_add_cookie(self) -> Session | None:
+    def _session_add_cookie(self) -> Session | None:
         """
         向Session添加大乐斗Cookie，若Cookie有效则返回Session，否则返回None
         """
         url = "https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index"
         with requests.Session() as session:
-            session.cookies.set("Cookie", self.cookie)
+            session.cookies.set("Cookie", self._cookie)
             for _ in range(3):
                 res = session.get(url, headers=HEADERS, allow_redirects=False)
                 res.encoding = "utf-8"
@@ -127,9 +133,9 @@ class InItDaLeDou:
                     return session
 
         logger.warning(f"{self.qq} | Cookie无效")
-        push(f"{self.qq} | Cookie无效", self.cookie)
+        push(f"{self.qq} | Cookie无效", self._cookie)
 
-    def create_qq_yaml(self) -> None:
+    def _create_qq_yaml(self) -> None:
         """
         基于daledou.yaml创建一份以qq命名的yaml配置文件
         """
@@ -139,7 +145,7 @@ class InItDaLeDou:
             copy(default_path, create_path)
         logger.success(f"任务配置：{create_path}")
 
-    def create_qq_log(self) -> int:
+    def _create_qq_log(self) -> int:
         """
         创建QQ日志文件，返回日志处理器id
         """
@@ -156,21 +162,7 @@ class InItDaLeDou:
             retention="30 days",
         )
 
-    def get_dld_main_page_html(self) -> str | None:
-        """
-        获取大乐斗首页HTML源码
-        """
-        url = "https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index"
-        for _ in range(3):
-            response = self.session.get(url, headers=HEADERS)
-            response.encoding = "utf-8"
-            if "商店" in response.text:
-                return response.text.split("【退出】")[0]
-
-        logger.warning(f"{self.qq} | 大乐斗首页未找到，可能官方繁忙或者维护")
-        push(f"{self.qq} 大乐斗首页未找到", "大乐斗首页未找到，可能官方繁忙或者维护")
-
-    def get_datetime_weekday(self) -> str:
+    def _get_datetime_weekday(self) -> str:
         """
         获取当前的日期和时间，并附加星期信息：2024-09-01 14:35:18 周日
         """
@@ -180,11 +172,47 @@ class InItDaLeDou:
         formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
         return f"{formatted_now} {name[week]}"
 
-    def get_dld_yaml(self):
+    def _get_func_map(self) -> dict | None:
         """
-        获取大乐斗任务配置
+        过滤掉未出现在大乐斗首页的任务，并将剩余任务名称映射的函数名称以字典返回
         """
-        return read_yaml(f"{self.qq}.yaml")
+        if _html := self._get_dld_main_page_html():
+            _one = [k for k in MISSIONS_ONE if k in _html]
+            _two = [k for k in MISSIONS_TWO if k in _html]
+            return {
+                "one": self._map_mission_names_to_function_names(_one),
+                "two": self._map_mission_names_to_function_names(_two),
+            }
+
+    def _get_dld_main_page_html(self) -> str | None:
+        """
+        获取大乐斗首页HTML源码
+        """
+        url = "https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index"
+        for _ in range(3):
+            response = self._session.get(url, headers=HEADERS)
+            response.encoding = "utf-8"
+            if "商店" in response.text:
+                return response.text.split("【退出】")[0]
+
+        logger.warning(f"{self.qq} | 大乐斗首页未找到，可能官方繁忙或者维护")
+        push(f"{self.qq} 大乐斗首页未找到", "大乐斗首页未找到，可能官方繁忙或者维护")
+
+    def _map_mission_names_to_function_names(self, missions: list[str]) -> list[str]:
+        """
+        将大乐斗首页任务名称映射为 run.py 中的函数名称
+        """
+        _data = {
+            # 键为大乐斗首页任务名称，值为函数名称
+            "5.1礼包": "五一礼包",
+        }
+        return [_data.get(k, k) for k in missions]
+
+    def remove_logger_handler(self):
+        """
+        移除当前QQ日志处理器
+        """
+        logger.remove(self._handler_id)
 
 
 class DaLeDou:
@@ -192,15 +220,48 @@ class DaLeDou:
     大乐斗实例方法
     """
 
-    def __init__(self, qq: str, session: Session, mission: dict, yaml: dict):
-        self.start_timing = time.time()
-        self.qq = qq
-        self.session = session
-        self.mission = mission
-        self.yaml = yaml
+    def __init__(self, qq: str, session: Session, yaml: dict, func_map: dict):
+        self._start_time = time.time()
+        self._qq = qq
+        self._session = session
+        self._yaml = yaml
+        self._func_map = func_map
+        # 储存推送消息
+        self._msg: list[str] = []
+        # 大乐斗当前页面HTML
         self.html = None
-        self.msg = None
-        self.mission_name = None
+        # 大乐斗日志任务名称
+        self.func_name = None
+
+    @property
+    def qq(self):
+        return self._qq
+
+    @property
+    def yaml(self):
+        return self._yaml
+
+    @property
+    def func_map(self):
+        return self._func_map
+
+    @property
+    def msg(self):
+        return self._msg
+
+    @property
+    def msg_join(self) -> str:
+        """
+        将列表中的元素用换行符连接成一个字符串
+        """
+        return "\n".join(self.msg)
+
+    def msg_append(self, message: str):
+        """
+        向列表添加字符串消息
+        """
+        if isinstance(message, str):
+            self.msg.append(message)
 
     def get(self, params: str) -> str:
         """
@@ -208,7 +269,7 @@ class DaLeDou:
         """
         url = f"https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?{params}"
         for _ in range(3):
-            res = self.session.get(url, headers=HEADERS)
+            res = self._session.get(url, headers=HEADERS)
             res.encoding = "utf-8"
             self.html = res.text
             if "系统繁忙" in self.html:
@@ -219,15 +280,15 @@ class DaLeDou:
                 break
         return self.html
 
-    def print_info(self, message: str, mission_name=None) -> None:
+    def print_info(self, message: str, name: str | None = None) -> None:
         """
         打印信息
         """
-        if mission_name is None:
-            mission_name = self.mission_name
-        logger.info(f"{self.qq} | {mission_name}：{message}")
+        if name is None:
+            name = self.func_name
+        logger.info(f"{self.qq} | {name}：{message}")
 
-    def find(self, mode: str = "<br />(.*?)<", mission_name=None) -> str | None:
+    def find(self, mode: str = "<br />(.*?)<", name: str | None = None) -> str | None:
         """
         匹配成功返回首个结果，匹配失败返回None
 
@@ -235,7 +296,7 @@ class DaLeDou:
         """
         _match = re.search(mode, self.html, re.S)
         result = _match.group(1) if _match else None
-        self.print_info(result, mission_name)
+        self.print_info(result, name)
         return result
 
     def findall(self, mode: str) -> list:
@@ -244,18 +305,12 @@ class DaLeDou:
         """
         return re.findall(mode, self.html, re.S)
 
-    def remove_msg_none_and_join(self) -> str:
-        """
-        移除列表中的所有 None 值，并将剩余元素用换行符连接成一个字符串
-        """
-        return "\n".join(list(filter(None, self.msg)))
-
     def run_time(self):
         """
         运行耗时
         """
-        self.msg.append(
-            f"\n【运行耗时】\n耗时：{int(time.time() - self.start_timing)} s"
+        self.msg_append(
+            f"\n【运行耗时】\n耗时：{int(time.time() - self._start_time)} s"
         )
 
 
@@ -266,31 +321,13 @@ def yield_dld_objects():
     dld_cookies: list[str] = read_yaml("settings.yaml", "DALEDOU_ACCOUNT")
     for cookie in dld_cookies:
         dld = InItDaLeDou(cookie)
-        dld_qq: str = dld.qq
-        dld_session = dld.session
-
-        if dld_session is None:
+        if dld.session is None:
+            continue
+        if dld.func_map is None:
             continue
 
-        dld_main_page_html = dld.main_page_html
-        if dld_main_page_html is None:
-            continue
-
-        # 过滤大乐斗首页不存在的任务
-        _one = [k for k in MISSIONS_ONE if k in dld_main_page_html]
-        _two = [k for k in MISSIONS_TWO if k in dld_main_page_html]
-
-        mission = {
-            "one": map_mission_names_to_function_names(_one),
-            "two": map_mission_names_to_function_names(_two),
-        }
-
-        yaml = dld.get_dld_yaml()
-
-        D = DaLeDou(dld_qq, dld_session, mission, yaml)
-        D.msg = dld.msg
-
+        D = DaLeDou(dld.qq, dld.session, dld.yaml, dld.func_map)
+        D.msg_append(dld.start_time)
         yield D
 
-        # 移除当前QQ日志处理器
-        logger.remove(dld.handler_id)
+        dld.remove_logger_handler()
