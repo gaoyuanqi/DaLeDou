@@ -89,6 +89,31 @@ def _run_func(mode: str, unknown_args=None):
 # ============================================================
 
 
+def get_backpack_item_count(item_id: str | int) -> int:
+    """
+    返回背包物品id数量
+    """
+    # 背包物品详情
+    D.get(f"cmd=owngoods&id={item_id}")
+    if "很抱歉" in D.html:
+        D.find(r"】</p><p>(.*?)<br />", f"背包-{item_id}-不存在")
+        result = 0
+    else:
+        result = D.find(r"数量：(\d+)", f"背包-{item_id}-数量")
+    return int(result)
+
+
+def get_store_points(params: str) -> int:
+    """
+    返回商店积分
+    """
+    # 商店
+    D.get(params)
+    result = D.find(name="商店积分")
+    _, store_points = result.split("：")
+    return int(store_points)
+
+
 def 邪神秘宝():
     """
     每天高级秘宝和极品秘宝免费一次或者抽奖一次
@@ -708,9 +733,14 @@ def 门派():
 
 def 门派邀请赛():
     """
-    周一、二报名、领取奖励、兑换10个yaml配置的材料
-    周三、四、五、六、日开始挑战至多10次
+    周一、二报名、领取奖励
+    周三~周日兑换门派战书至多5个、开始挑战至多10次
+    yaml配置商店兑换
     """
+    _yaml: dict = D.yaml["门派邀请赛"]
+    _week: list = _yaml["week"]
+    _data: dict = _yaml["data"]
+
     if WEEK in [1, 2]:
         # 组队报名
         D.get("cmd=secttournament&op=signup")
@@ -718,15 +748,17 @@ def 门派邀请赛():
         # 领取奖励
         D.get("cmd=secttournament&op=getrankandrankingreward")
         D.msg_append(D.find())
-        if t := D.yaml["门派邀请赛"]:
-            # 兑换10个
-            D.get(f"cmd=exchange&subtype=2&type={t}&times=10&costtype=11")
-            D.msg_append(D.find())
         return
 
-    for _ in range(5):
+    # 背包门派战书数量
+    _count: int = get_backpack_item_count(3662)
+    if _count >= 5:
+        _number = 0
+    else:
+        _number = 5 - _count
+    for _ in range(_number):
         # 兑换门派战书*1
-        D.get("cmd=exchange&subtype=2&type=1249&times=1&costtype=11")
+        D.get("cmd=exchange&subtype=2&type=1249&times=1")
         D.msg_append(D.find())
         if "积分不足" in D.html:
             break
@@ -738,6 +770,19 @@ def 门派邀请赛():
             break
         elif "门派战书不足" in D.html:
             break
+
+    if WEEK not in _week:
+        return
+
+    for t, count in _data.items():
+        for _ in range(count):
+            # 兑换10个
+            D.get(f"cmd=exchange&subtype=2&type={t}&times=10")
+            D.msg_append(D.find())
+            if "达到当日兑换上限" in D.html:
+                break
+            elif "积分不足" in D.html:
+                return
 
 
 def 会武():
@@ -2899,31 +2944,6 @@ def 周年生日祝福():
     for day in range(1, 8):
         D.get(f"cmd=newAct&subtype=165&op=3&day={day}")
         D.msg_append(D.find())
-
-
-def get_backpack_item_count(_id: str | int) -> int:
-    """
-    返回背包物品id数量
-    """
-    # 背包物品详情
-    D.get(f"cmd=owngoods&id={_id}")
-    if "很抱歉" in D.html:
-        D.find(r"】</p><p>(.*?)<br />", f"背包-{_id}-不存在")
-        result = 0
-    else:
-        result = D.find(r"数量：(\d+)", f"背包-{_id}-数量")
-    return int(result)
-
-
-def get_store_points(params: str) -> int:
-    """
-    返回商店积分
-    """
-    # 商店
-    D.get(params)
-    result = D.find(name="商店积分")
-    _, store_points = result.split("：")
-    return int(store_points)
 
 
 class ShenZhuang:

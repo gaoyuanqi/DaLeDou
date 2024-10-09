@@ -273,7 +273,7 @@ class DaLeDou:
             res.encoding = "utf-8"
             self.html = res.text
             if "系统繁忙" in self.html:
-                time.sleep(0.4)
+                time.sleep(0.2)
             elif "操作频繁" in self.html:
                 time.sleep(0.4)
             else:
