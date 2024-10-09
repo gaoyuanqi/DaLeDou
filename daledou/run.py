@@ -734,12 +734,23 @@ def 门派():
 def 门派邀请赛():
     """
     周一、二报名、领取奖励
-    周三~周日兑换门派战书至多5个、开始挑战至多10次
-    yaml配置商店兑换
+    周三~周日开始挑战至多10次（消耗门派战书*5）
+    yaml默认每天商店兑换20个炼气石
     """
     _yaml: dict = D.yaml["门派邀请赛"]
-    _week: list = _yaml["week"]
-    _data: dict = _yaml["data"]
+
+    # 商店兑换
+    for t, count in _yaml.items():
+        for _ in range(count):
+            # 兑换10个
+            D.get(f"cmd=exchange&subtype=2&type={t}&times=10")
+            D.msg_append(D.find())
+            if "达到当日兑换上限" in D.html:
+                break
+            elif "积分不足" in D.html:
+                break
+        if "积分不足" in D.html:
+            break
 
     if WEEK in [1, 2]:
         # 组队报名
@@ -771,10 +782,18 @@ def 门派邀请赛():
         elif "门派战书不足" in D.html:
             break
 
-    if WEEK not in _week:
-        return
 
-    for t, count in _data.items():
+def 会武():
+    """
+    周一、二、三初、中、高级试炼场挑战至多21次
+    周四助威丐帮
+    周六、日领奖
+    yaml默认每天商店兑换20个真黄金卷轴
+    """
+    _yaml: dict = D.yaml["会武"]
+
+    # 商店兑换
+    for t, count in _yaml.items():
         for _ in range(count):
             # 兑换10个
             D.get(f"cmd=exchange&subtype=2&type={t}&times=10")
@@ -782,29 +801,32 @@ def 门派邀请赛():
             if "达到当日兑换上限" in D.html:
                 break
             elif "积分不足" in D.html:
-                return
+                break
+        if "积分不足" in D.html:
+            break
 
-
-def 会武():
-    """
-    周一、二、三初、中、高级试炼场挑战至多21次、yaml配置是否兑换试炼书*1
-    周四助威丐帮
-    周五兑换10个真黄金卷轴*10
-    周六、日领奖
-    """
-    if WEEK == 4:
+    if WEEK in [1, 2, 3]:
+        for _ in range(21):
+            # 挑战
+            D.get("cmd=sectmelee&op=dotraining")
+            if "试炼场】" in D.html:
+                D.msg_append(D.find(r"最高伤害：\d+<br />(.*?)<br />"))
+                continue
+            D.msg_append(D.find(r"规则</a><br />(.*?)<br />"))
+            if "你已达今日挑战上限" in D.html:
+                break
+            elif "你的试炼书不足" in D.html:
+                # 兑换 试炼书*1
+                D.get("cmd=exchange&subtype=2&type=1265&times=1")
+                D.msg_append(D.find())
+                if "积分不足" in D.html:
+                    break
+    elif WEEK == 4:
         # 冠军助威 丐帮
         D.get("cmd=sectmelee&op=cheer&sect=1003")
         # 冠军助威
         D.get("cmd=sectmelee&op=showcheer")
         D.msg_append(D.find())
-    elif WEEK == 5:
-        for _ in range(10):
-            # 兑换 真黄金卷轴*10
-            D.get("cmd=exchange&subtype=2&type=1263&times=10&costtype=13")
-            D.msg_append(D.find())
-            if "积分不足" in D.html:
-                break
     elif WEEK in [6, 7]:
         # 领奖
         D.get("cmd=sectmelee&op=showreward")
@@ -816,28 +838,6 @@ def 会武():
             D.msg_append(D.find(r"规则</a><br />(.*?)<br />"))
         else:
             D.msg_append(D.find())
-
-    if WEEK not in [1, 2, 3]:
-        return
-
-    _is_exchange: bool = D.yaml["会武"]
-    for _ in range(21):
-        # 挑战
-        D.get("cmd=sectmelee&op=dotraining")
-        if "试炼场】" in D.html:
-            D.msg_append(D.find(r"最高伤害：\d+<br />(.*?)<br />"))
-            continue
-        D.msg_append(D.find(r"规则</a><br />(.*?)<br />"))
-        if "你已达今日挑战上限" in D.html:
-            break
-        elif "你的试炼书不足" in D.html:
-            if not _is_exchange:
-                break
-            # 兑换 试炼书*1
-            D.get("cmd=exchange&subtype=2&type=1265&times=1&costtype=13")
-            D.msg_append(D.find())
-            if "积分不足" in D.html:
-                break
 
 
 def 梦想之旅():
