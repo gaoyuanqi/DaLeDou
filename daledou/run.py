@@ -508,7 +508,7 @@ def 踢馆():
 
 def 竞技场():
     """
-    每月1~25号每天至多挑战10次、领取奖励、竞技点商店yaml配置默认不兑换
+    每月1~25号每天挑战至多10次、领取奖励
     """
     for _ in range(10):
         # 免费挑战 or 开始挑战
@@ -521,10 +521,9 @@ def 竞技场():
     D.get("cmd=arena&op=drawdaily")
     D.msg_append(D.find())
 
-    if _id := D.yaml["竞技场"]:
-        # 兑换10个
-        D.get(f"cmd=arena&op=exchange&id={_id}&times=10")
-        D.msg_append(D.find())
+    # 兑换10个河图洛书
+    D.get("cmd=arena&op=exchange&id=5435&times=10")
+    D.msg_append(D.find())
 
 
 def 十二宫():
