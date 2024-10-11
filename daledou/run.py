@@ -735,22 +735,33 @@ def 门派邀请赛():
     """
     周一、二报名、领取奖励
     周三~周日开始挑战至多10次（消耗门派战书*5）
-    yaml默认每天商店兑换20个炼气石
+    商店兑换详见yaml配置文件
     """
     _yaml: dict = D.yaml["门派邀请赛"]
 
-    # 商店兑换
-    for t, count in _yaml.items():
-        for _ in range(count):
+    # 门派邀请赛商店兑换
+    for _id, _dict in _yaml.items():
+        _week: list = _dict["week"]
+        _number: int = _dict["number"]
+        if (WEEK not in _week) or (_number == 0):
+            continue
+        quotient, remainder = divmod(_number, 10)
+        for _ in range(quotient):
             # 兑换10个
-            D.get(f"cmd=exchange&subtype=2&type={t}&times=10")
+            D.get(f"cmd=exchange&subtype=2&type={_id}&times=10")
             D.msg_append(D.find())
             if "达到当日兑换上限" in D.html:
                 break
             elif "积分不足" in D.html:
                 break
-        if "积分不足" in D.html:
-            break
+        for _ in range(remainder):
+            # 兑换1个
+            D.get(f"cmd=exchange&subtype=2&type={_id}&times=1")
+            D.msg_append(D.find())
+            if "达到当日兑换上限" in D.html:
+                break
+            elif "积分不足" in D.html:
+                break
 
     if WEEK in [1, 2]:
         # 组队报名
@@ -761,18 +772,6 @@ def 门派邀请赛():
         D.msg_append(D.find())
         return
 
-    # 背包门派战书数量
-    _count: int = get_backpack_item_count(3662)
-    if _count >= 5:
-        _number = 0
-    else:
-        _number = 5 - _count
-    for _ in range(_number):
-        # 兑换门派战书*1
-        D.get("cmd=exchange&subtype=2&type=1249&times=1")
-        D.msg_append(D.find())
-        if "积分不足" in D.html:
-            break
     for _ in range(10):
         # 开始挑战
         D.get("cmd=secttournament&op=fight")
@@ -788,7 +787,7 @@ def 会武():
     周一、二、三初、中、高级试炼场挑战至多21次
     周四助威丐帮
     周六、日领奖
-    yaml配置商店兑换
+    商店兑换详见yaml配置文件
     """
     _yaml: dict[int, dict] = D.yaml["会武"]
 
