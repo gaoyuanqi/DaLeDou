@@ -670,7 +670,7 @@ def 画卷迷踪():
 def 门派():
     """
     万年寺：点燃普通香炉 》点燃高香香炉
-    八叶堂：进入木桩训练 》进入同门切磋
+    八叶堂：进入木桩训练 》进入同门切磋 》进入同门切磋
     五花堂：至多完成任务3次
     """
     # 点燃普通香炉 》点燃高香香炉
@@ -678,8 +678,8 @@ def 门派():
         D.get(f"cmd=sect&op={op}")
         D.msg_append(D.find(r"修行。<br />(.*?)<br />"))
 
-    # 进入木桩训练 》进入同门切磋
-    for op in ["trainingwithnpc", "trainingwithmember"]:
+    # 进入木桩训练 》进入同门切磋 》进入同门切磋
+    for op in ["trainingwithnpc", "trainingwithmember", "trainingwithmember"]:
         D.get(f"cmd=sect&op={op}")
         D.msg_append(D.find())
 
