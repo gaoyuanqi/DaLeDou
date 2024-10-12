@@ -2953,6 +2953,15 @@ def 周年生日祝福():
         D.msg_append(D.find())
 
 
+def 重阳太白诗会():
+    """
+    每天领取重阳礼包
+    不支持赋诗奖赏礼包
+    """
+    D.get("cmd=newAct&subtype=168&op=2")
+    D.msg_append(D.find(r"<br /><br />(.*?)<br />"))
+
+
 class ShenZhuang:
     """
     神装进阶
