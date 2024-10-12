@@ -2034,15 +2034,13 @@ def 神匠坊():
     # 符石打造
     # 符石
     D.get("cmd=weapongod&sub=7")
-    if data_3 := D.find(r"符石水晶：(\d+)"):
-        number = int(data_3)
-        ten = int(number / 60)
-        one = int((number - (ten * 60)) / 6)
-        for _ in range(ten):
+    if _number := D.find(r"符石水晶：(\d+)"):
+        quotient, remainder = divmod(int(_number), 60)
+        for _ in range(quotient):
             # 打造十次
             D.get("cmd=weapongod&sub=8&produce_type=1&times=10")
             D.msg_append(D.find(r"背包</a><br /></p>(.*?)<"))
-        for _ in range(one):
+        for _ in range(int(remainder / 6)):
             # 打造一次
             D.get("cmd=weapongod&sub=8&produce_type=1&times=1")
             D.msg_append(D.find(r"背包</a><br /></p>(.*?)<"))
