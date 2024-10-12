@@ -25,7 +25,7 @@ _ONE = {
     "矿洞": True,
     "掠夺": WEEK in [2, 3],
     "踢馆": WEEK in [5, 6],
-    "竞技场": DAY <= 25,
+    "竞技场": True,
     "十二宫": True,
     "许愿": True,
     "抢地盘": True,

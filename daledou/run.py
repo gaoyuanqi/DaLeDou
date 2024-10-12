@@ -508,8 +508,16 @@ def 踢馆():
 
 def 竞技场():
     """
+    每天兑换10个河图洛书
     每月1~25号每天挑战至多10次、领取奖励
     """
+    # 兑换10个河图洛书
+    D.get("cmd=arena&op=exchange&id=5435&times=10")
+    D.msg_append(D.find())
+
+    if DAY > 25:
+        return
+
     for _ in range(10):
         # 免费挑战 or 开始挑战
         D.get("cmd=arena&op=challenge")
@@ -519,10 +527,6 @@ def 竞技场():
 
     # 领取奖励
     D.get("cmd=arena&op=drawdaily")
-    D.msg_append(D.find())
-
-    # 兑换10个河图洛书
-    D.get("cmd=arena&op=exchange&id=5435&times=10")
     D.msg_append(D.find())
 
 
