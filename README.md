@@ -8,7 +8,7 @@
 ## Python版本
 
 ```
-Python 3.11
+Python 3.12
 ```
 
 
