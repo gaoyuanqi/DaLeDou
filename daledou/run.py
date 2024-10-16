@@ -1245,62 +1245,6 @@ def 侠士客栈():
             D.get(f"cmd=warriorinn&op=rejectadventure&pos={p}")
 
 
-def 江湖长梦():
-    """
-    每天挑战柒承的忙碌日常（yaml配置挑战次数）、兑换玄铁令*1
-    """
-    _number: int = D.yaml["江湖长梦"]
-
-    # 兑换 玄铁令*1
-    D.get("cmd=longdreamexchange&op=exchange&key_id=5&page=1")
-    if "兑换成功" in D.html:
-        D.msg_append(D.find(r"侠士碎片</a><br />(.*?)<br />"))
-    else:
-        # 剩余兑换材料或者积分不足
-        # 该物品兑换次数已达上限
-        D.msg_append(D.find())
-
-    if _number == 0:
-        D.print_info("你设置不挑战柒承的忙碌日常")
-        D.msg_append("你设置不挑战柒承的忙碌日常")
-        return
-
-    for _ in range(_number):
-        # 开启副本
-        D.get("cmd=jianghudream&op=beginInstance&ins_id=1")
-        if "帮助" in D.html:
-            # 开启副本所需追忆香炉不足
-            # 您还未编辑副本队伍，无法开启副本
-            D.msg_append(D.find())
-            break
-
-        for _ in range(8):
-            if "进入下一天" in D.html:
-                # 进入下一天
-                D.get("cmd=jianghudream&op=goNextDay")
-            if msg1 := D.findall(r'event_id=(\d+)">战斗\(等级1\)'):
-                # 战斗
-                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={msg1[0]}")
-                # FIGHT!
-                D.get("cmd=jianghudream&op=doPveFight")
-                D.find(r"<p>(.*?)<br />")
-                if "战败" in D.html:
-                    break
-            elif msg2 := D.findall(r'event_id=(\d+)">奇遇\(等级1\)'):
-                # 奇遇
-                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={msg2[0]}")
-                # 视而不见
-                D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=2")
-                D.find(r"获得金币：\d+<br />(.*?)<br />")
-            elif msg3 := D.findall(r'event_id=(\d+)">商店\(等级1\)'):
-                # 商店
-                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={msg3[0]}")
-
-        # 结束回忆
-        D.get("cmd=jianghudream&op=endInstance")
-        D.msg_append(D.find())
-
-
 def 增强经脉():
     """
     每天传功至多12次
@@ -3184,5 +3128,241 @@ def 夺宝奇兵():
                 D.find(r"】<br />(.*?)<br />")
             # 选择太空探宝
             D.get("cmd=element&subtype=15&gameType=3")
+
+    return True
+
+
+def 柒承的忙碌日常(number: int):
+    """
+    挑战柒承的忙碌日常副本
+    """
+    for _ in range(number):
+        # 开启副本
+        D.get("cmd=jianghudream&op=beginInstance&ins_id=1")
+        if "帮助" in D.html:
+            # 开启副本所需追忆香炉不足
+            # 您还未编辑副本队伍，无法开启副本
+            D.msg_append(D.find())
+            break
+
+        for _ in range(8):
+            if "进入下一天" in D.html:
+                # 进入下一天
+                D.get("cmd=jianghudream&op=goNextDay")
+            if msg1 := D.findall(r'event_id=(\d+)">战斗\(等级1\)'):
+                # 战斗
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={msg1[0]}")
+                # FIGHT!
+                D.get("cmd=jianghudream&op=doPveFight")
+                D.find(r"<p>(.*?)<br />")
+                if "战败" in D.html:
+                    break
+            elif msg2 := D.findall(r'event_id=(\d+)">奇遇\(等级1\)'):
+                # 奇遇
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={msg2[0]}")
+                # 视而不见
+                D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=2")
+                D.find(r"获得金币：\d+<br />(.*?)<br />")
+            elif msg3 := D.findall(r'event_id=(\d+)">商店\(等级1\)'):
+                # 商店
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={msg3[0]}")
+
+        # 结束回忆
+        D.get("cmd=jianghudream&op=endInstance")
+        D.msg_append(D.find())
+
+
+class JiangHuChangMeng:
+    """
+    江湖长梦商店兑换
+    """
+
+    def __init__(self):
+        # 江湖长梦商店积分
+        self.points: int = get_store_points("cmd=longdreamexchange")
+        # 商店材料初始数据
+        self._init_data: dict = self._init_store_data(self._get_data())
+        # 输出商店数据
+        self._print_store_info()
+        # 用于储存用户添加的兑换材料id及数量
+        self.data = {}
+
+    @property
+    def init_data(self):
+        return self._init_data
+
+    def _init_store_data(self, data: list[tuple]) -> dict:
+        """
+        将售价、已售、限售str类型转为int
+        """
+        dict_data = {}
+        for d in data:
+            _id, name, 售价, 已售, 限售 = d
+            dict_data[name] = {
+                "id": _id,
+                "售价": int(售价),
+                "已售": int(已售),
+                "限售": int(限售),
+            }
+        return dict_data
+
+    def _get_data(self) -> list[tuple]:
+        """
+        获取江湖长梦商店数据
+        """
+        params = [
+            "cmd=longdreamexchange&page_type=0&page=1",
+            "cmd=longdreamexchange&page_type=0&page=2",
+            "cmd=longdreamexchange&page_type=1&page=1",
+            "cmd=longdreamexchange&page_type=1&page=2",
+        ]
+        data = []
+        for p in params:
+            D.get(p)
+            # id、名称、售价、已售、限售
+            data += D.findall(r"_id=(\d+).*?>(.*?)\*1.*?(\d+).*?(\d+)/(\d+)")
+        return data
+
+    def _print_store_info(self):
+        """
+        将商店中的材料名称、售价、已售、限售打印出来
+        """
+        headers = ["名称", "售价", "已售", "限售"]
+        # 打印表头
+        print("{:<12}{:<5}{:<4}{:<3}".format(*headers))
+        print("--" * 20)
+        for name, _dict in self.init_data.items():
+            售价 = _dict["售价"]
+            已售 = _dict["已售"]
+            限售 = _dict["限售"]
+            print(f"{name:<12}{售价:<5}{已售:<4}{限售:<3}")
+
+    def update_points(self, name: str, number: int) -> tuple:
+        """
+        更新商店积分，返回包含材料名称、材料id、可售数量、原始积分的元组
+        """
+        _dict = self.init_data[name]
+        _id: str = _dict["id"]
+        售价: int = _dict["售价"]
+        已售: int = _dict["已售"]
+        限售: int = _dict["限售"]
+
+        if number > (限售 - 已售):
+            number = 限售 - 已售
+
+        # 记录原始积分
+        original_points = self.points
+
+        # 更新积分
+        if value := self.data.get(name):
+            v: int = value["number"]
+            if number == v:
+                return name, _id, number
+            elif number > v:
+                self.points -= (number - v) * 售价
+            elif number < v:
+                self.points += (v - number) * 售价
+        else:
+            self.points -= number * 售价
+
+        return name, _id, number, original_points
+
+    @property
+    def 兑换(self):
+        """
+        执行商店材料兑换
+        """
+        for name, _dict in self.data.items():
+            _id = _dict["id"]
+            number: int = _dict["number"]
+            for _ in range(number):
+                D.get(f"cmd=longdreamexchange&op=exchange&key_id={_id}")
+                if "兑换成功" in D.html:
+                    D.find(r"侠士碎片</a><br />(.*?)<br />", name=f"{name}")
+                else:
+                    # 剩余兑换材料或者积分不足
+                    # 该物品兑换次数已达上限
+                    D.find(name=f"{name}")
+
+
+def 江湖长梦():
+    """
+    商店兑换及副本挑战（柒承的忙碌日常）
+    """
+    print("1：柒承的忙碌日常")
+    print("2：江湖长梦商店兑换")
+    print("其它任意键退出")
+    input_1 = input("输入选择：")
+    if input_1 not in ["1", "2"]:
+        return True
+    print("--" * 20)
+
+    if input_1 == "1":
+        # 追忆香炉数量
+        number = get_backpack_item_count(6477)
+        print(">>>柒承的忙碌日常")
+        print(f"追忆香炉数量：{number}")
+        input_2 = input("输入挑战次数：")
+        if not input_2.isdigit():
+            print("只能输入数字")
+            return True
+        柒承的忙碌日常(int(input_2))
+        return True
+
+    print(">>>江湖长梦商店兑换")
+    n = 1
+    j = JiangHuChangMeng()
+    while True:
+        print("--" * 20)
+        input_3 = input("输入y继续添加或其它任意键退出添加：")
+        if input_3 != "y":
+            break
+        print("--" * 20)
+
+        input_4 = input(f"添加第 {n} 个兑换材料名称：")
+        if input_4 not in j.init_data:
+            print(f"{input_3} 不存在")
+            continue
+        if j.data.get(input_4):
+            print(f"{input_4} 已添加过了，只会更新其值")
+
+        input_5 = input(f"添加第 {n} 个兑换材料数量：")
+        if not input_5.isdigit():
+            print("只能输入数字")
+            continue
+
+        name, _id, number, points = j.update_points(input_4, int(input_5))
+        if number == 0:
+            print("已达兑换上限或者输入数量不能为0")
+            continue
+        elif number != int(input_5):
+            print(f"{name} 超过剩余可售数量，已调整为：{number}")
+        if j.points < 0:
+            print(f"剩余积分还差 {j.points}")
+            # 撤销积分更新
+            j.points = points
+            continue
+
+        j.data[name] = {
+            "id": _id,
+            "number": number,
+        }
+
+        print(f"剩余积分：{j.points}")
+        n += 1
+
+    if not j.data:
+        return True
+
+    print("--" * 20)
+    for name, _dict in j.data.items():
+        print(f"{name}：{_dict['number']}")
+    print("--" * 20)
+    input_6 = input("是否确认兑换（y/n）：")
+    if input_6 != "y":
+        return True
+    print("--" * 20)
+
+    j.兑换
 
     return True

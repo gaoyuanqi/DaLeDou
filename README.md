@@ -5,6 +5,13 @@
 本项目适合等级战力高、有乐斗达人的普通玩家，活跃度通常80以上
 
 
+## 功能
+
+- [第一轮](https://www.gaoyuanqi.cn/python-daledou/?highlight=%E5%A4%A7%E4%B9%90%E6%96%97#%E7%AC%AC%E4%B8%80%E8%BD%AE) 
+- [第二轮](https://www.gaoyuanqi.cn/python-daledou/?highlight=%E5%A4%A7%E4%B9%90%E6%96%97#%E7%AC%AC%E4%BA%8C%E8%BD%AE)
+- [其它任务](https://www.gaoyuanqi.cn/python-daledou/?highlight=%E5%A4%A7%E4%B9%90%E6%96%97#%E5%85%B6%E5%AE%83%E4%BB%BB%E5%8A%A1)
+
+
 ## Python版本
 
 ```
@@ -95,19 +102,6 @@ python main.py dev -- 邪神秘宝
 
 # 依次运行 邪神秘宝、矿洞
 python main.py dev -- 邪神秘宝 矿洞
-```
-
-**9、其它大乐斗任务**
-
-这些任务只能通过 `dev` 命令模式执行，它们不在 **第一轮** 和 **第二轮** 中
-
-以下列出的清单表明已支持：
-- `神装`：自动兑换材料并进阶
-- `夺宝奇兵`：太空探宝场景投掷
-
-运行神装：
-```sh
-python main.py dev -- 神装
 ```
 
 
