@@ -3250,25 +3250,20 @@ class JiangHuChangMeng:
         if number > (限售 - 已售):
             number = 限售 - 已售
 
-        # 记录原始积分
-        original_points = self.points
-
-        # 计算积分
         if value := self.data.get(name):
             v: int = value["number"]
-            if number == v:
-                ...
-            elif number > v:
-                original_points -= (number - v) * 售价
-            elif number < v:
-                original_points += (v - number) * 售价
+            # 回滚到未购买前的积分
+            original_points = self.points + (v * 售价)
+            self.points = original_points
         else:
-            original_points -= number * 售价
+            # 记录原始积分
+            original_points = self.points
 
-        # 更新积分
+        original_points -= number * 售价
         if original_points >= 0:
             self.points = original_points
         else:
+            # 计算当前积分的最大可售数量
             number = int(self.points / 售价)
             self.points -= number * 售价
 
@@ -3348,10 +3343,10 @@ def 江湖长梦():
 
         input_number = int(input_5)
         name, _id, number = j.update_points(input_4, input_number)
+        if (number == 0) and (input_number != 0):
+            print(f"{name} 已达兑换上限")
         if number != input_number:
             print(f"{name} 最多可兑换：{number}")
-        elif (number == 0) and (input_number != 0):
-            print(f"{name} 已达兑换上限")
 
         j.data[name] = {
             "id": _id,
