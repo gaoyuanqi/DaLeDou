@@ -3277,14 +3277,9 @@ class JiangHuChangMeng:
         for name, _dict in self.data.items():
             _id = _dict["id"]
             number: int = _dict["number"]
-            for _ in range(number):
+            for i in range(number):
                 D.get(f"cmd=longdreamexchange&op=exchange&key_id={_id}")
-                if "兑换成功" in D.html:
-                    D.find(r"侠士碎片</a><br />(.*?)<br />", name=f"{name}")
-                else:
-                    # 剩余兑换材料或者积分不足
-                    # 该物品兑换次数已达上限
-                    D.find(name=f"{name}")
+                D.find(r"侠士碎片</a><br />(.*?)<br />", name=f"{name}-{i + 1}")
 
 
 def 江湖长梦():
