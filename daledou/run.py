@@ -3239,7 +3239,7 @@ class JiangHuChangMeng:
 
     def update_points(self, name: str, number: int) -> tuple:
         """
-        更新商店积分，返回包含材料名称、材料id、可售数量、原始积分的元组
+        更新商店积分，返回包含材料名称、材料id、可售数量的元组
         """
         _dict = self.init_data[name]
         _id: str = _dict["id"]
@@ -3253,19 +3253,26 @@ class JiangHuChangMeng:
         # 记录原始积分
         original_points = self.points
 
-        # 更新积分
+        # 计算积分
         if value := self.data.get(name):
             v: int = value["number"]
             if number == v:
-                return name, _id, number
+                ...
             elif number > v:
-                self.points -= (number - v) * 售价
+                original_points -= (number - v) * 售价
             elif number < v:
-                self.points += (v - number) * 售价
+                original_points += (v - number) * 售价
         else:
+            original_points -= number * 售价
+
+        # 更新积分
+        if original_points >= 0:
+            self.points = original_points
+        else:
+            number = int(self.points / 售价)
             self.points -= number * 售价
 
-        return name, _id, number, original_points
+        return name, _id, number
 
     @property
     def 兑换(self):
@@ -3289,18 +3296,18 @@ def 江湖长梦():
     """
     商店兑换及副本挑战（柒承的忙碌日常）
     """
-    print("1：柒承的忙碌日常")
-    print("2：江湖长梦商店兑换")
+    print("1：江湖长梦商店兑换")
+    print("2：柒承的忙碌日常")
     print("其它任意键退出")
     input_1 = input("输入选择：")
     if input_1 not in ["1", "2"]:
         return True
     print("--" * 20)
 
-    if input_1 == "1":
+    if input_1 == "2":
+        print(">>>柒承的忙碌日常")
         # 追忆香炉数量
         number = get_backpack_item_count(6477)
-        print(">>>柒承的忙碌日常")
         print(f"追忆香炉数量：{number}")
         input_2 = input("输入挑战次数：")
         if not input_2.isdigit():
@@ -3312,8 +3319,16 @@ def 江湖长梦():
     print(">>>江湖长梦商店兑换")
     n = 1
     j = JiangHuChangMeng()
+    if j.points < 240:
+        print("--" * 20)
+        print(f"积分过低：{j.points}")
+        return True
+
     while True:
         print("--" * 20)
+        print(f"剩余积分：{j.points}")
+        for name, _dict in j.data.items():
+            print(f"{name}：{_dict['number']}")
         input_3 = input("输入y继续添加或其它任意键退出添加：")
         if input_3 != "y":
             break
@@ -3331,32 +3346,22 @@ def 江湖长梦():
             print("只能输入数字")
             continue
 
-        name, _id, number, points = j.update_points(input_4, int(input_5))
-        if number == 0:
-            print("已达兑换上限或者输入数量不能为0")
-            continue
-        elif number != int(input_5):
-            print(f"{name} 超过剩余可售数量，已调整为：{number}")
-        if j.points < 0:
-            print(f"剩余积分还差 {j.points}")
-            # 撤销积分更新
-            j.points = points
-            continue
+        input_number = int(input_5)
+        name, _id, number = j.update_points(input_4, input_number)
+        if number != input_number:
+            print(f"{name} 最多可兑换：{number}")
+        elif (number == 0) and (input_number != 0):
+            print(f"{name} 已达兑换上限")
 
         j.data[name] = {
             "id": _id,
             "number": number,
         }
-
-        print(f"剩余积分：{j.points}")
         n += 1
 
     if not j.data:
         return True
 
-    print("--" * 20)
-    for name, _dict in j.data.items():
-        print(f"{name}：{_dict['number']}")
     print("--" * 20)
     input_6 = input("是否确认兑换（y/n）：")
     if input_6 != "y":
