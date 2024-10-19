@@ -2,6 +2,7 @@ import argparse
 import random
 import re
 import time
+from datetime import datetime, timedelta
 
 from schedule import every, repeat, run_pending
 
@@ -1772,9 +1773,9 @@ def 侠客岛():
         D.msg_append("没有可接受或可领取的任务（符合条件侠士数量不足、执行中、已完成）")
 
 
-def 时空遗迹():
+def 八卦迷阵():
     """
-    八卦迷阵根据首通提示通关并领取奖励
+    根据首通提示通关并领取奖励
     """
     _data = {
         "离": 1,
@@ -1790,14 +1791,14 @@ def 时空遗迹():
     D.get("cmd=spacerelic&op=goosip")
     result = D.find(r"([乾坤震巽坎离艮兑]{4})")
     if not result:
-        D.print_info("首通没有八卦提示")
+        D.print_info("首通没有八卦提示", "时空遗迹-八卦迷阵")
         D.msg_append("首通没有八卦提示")
         return
 
     for i in result:
         # 点击八卦
         D.get(f"cmd=spacerelic&op=goosip&id={_data[i]}")
-        D.msg_append(D.find(r"分钟<br /><br />(.*?)<br />"))
+        D.msg_append(D.find(r"分钟<br /><br />(.*?)<br />", "时空遗迹-八卦迷阵"))
         if "恭喜您" not in D.html:
             # 你被迷阵xx击败，停留在了本层
             # 耐力不足，无法闯关
@@ -1810,7 +1811,118 @@ def 时空遗迹():
     if "恭喜您已通关迷阵" in D.html:
         # 领取通关奖励
         D.get("cmd=spacerelic&op=goosipgift")
-        D.msg_append(D.find(r"分钟<br /><br />(.*?)<br />"))
+        D.msg_append(D.find(r"分钟<br /><br />(.*?)<br />", "时空遗迹-八卦迷阵"))
+
+
+def 遗迹商店():
+    """
+    遗迹征伐-遗迹商店特惠区兑换，只能10的倍数兑换
+    """
+    yaml: dict = D.yaml["时空遗迹"]
+
+    n = 0
+    for k, _dict in yaml.items():
+        name: str = _dict["name"]
+        number: int = _dict["number"]
+        number, _ = divmod(number, 10)
+        for _ in range(number):
+            D.get(f"cmd=spacerelic&op=buy&type=1&id={k}&num=10")
+            D.find(
+                r"售卖区</a><br /><br /><br />(.*?)<",
+                f"时空遗迹-遗迹商店-{name}",
+            )
+            if "兑换成功" in D.html:
+                n += 10
+            elif "上限" in D.html:
+                break
+            elif "积分不足" in D.html:
+                break
+        D.msg_append(f"{name}兑换*{n}")
+
+    # 遗迹商店积分
+    D.msg_append(D.find(r"规则</a><br />(.*?)<br />", "时空遗迹-遗迹商店"))
+
+
+def 遗迹征伐():
+    """
+    第七周的最后一个周三（含）之前：
+        异兽洞窟：从异兽母巢到异兽幼崽依次尝试；优先扫荡，否则挑战
+        联合征伐：每天挑战一次
+        悬赏任务：每天领取
+    第八周：
+        赛季排行：每天领取一次排行奖励
+        遗迹商店：每天特惠区兑换，详见yaml配置文件
+    """
+    # 遗迹征伐
+    D.get("cmd=spacerelic&op=relicindex")
+    # 赛季结束年
+    year = D.find(r"(\d+)年", "时空遗迹-遗迹征伐-结束年")
+    # 赛季结束月
+    month = D.find(r"(\d+)月", "时空遗迹-遗迹征伐-结束月")
+    # 赛季结束日
+    day = D.find(r"(\d+)日", "时空遗迹-遗迹征伐-结束日")
+
+    end_date = datetime(int(year), int(month), int(day))
+    # 计算第七周的最后一天（周三），即结束日期的前8天
+    seventh_week_last_day = (end_date - timedelta(days=8)).date()
+    # 获取当前日期
+    current_date = datetime.now().date()
+
+    # 判断当前日期是否在第八周
+    if current_date > seventh_week_last_day:
+        # 排行奖励
+        D.get("cmd=spacerelic&op=getrank")
+        D.msg_append(D.find(r"奖励</a><br /><br />(.*?)<", "时空遗迹-赛季排行"))
+
+        遗迹商店()
+        return
+
+    # 异兽洞窟挑战
+    for _id in [5, 4, 3, 2, 1]:
+        # 异兽幼崽 1
+        # 异兽战士 2
+        # 异兽将领 3
+        # 异兽元帅 4
+        # 异兽母巢 5
+        D.get(f"cmd=spacerelic&op=monsterdetail&id={_id}")
+        if "剩余挑战次数：0" in D.html:
+            D.print_info("没有挑战次数", "时空遗迹-异兽洞窟")
+            D.msg_append("异兽洞窟没有挑战次数")
+            break
+        if "剩余血量：0" in D.html:
+            # 扫荡
+            D.get(f"cmd=spacerelic&op=saodang&id={_id}")
+        else:
+            # 挑战
+            D.get(f"cmd=spacerelic&op=monsterfight&id={_id}")
+        msg = D.find(r"次数.*?<br /><br />(.*?)&", "时空遗迹-异兽洞窟")
+        if "请按顺序挑战异兽" in D.html:
+            continue
+        D.msg_append(msg)
+
+    # 联合征伐挑战
+    D.get("cmd=spacerelic&op=bossfight")
+    D.msg_append(D.find(r"挑战</a><br />(.*?)&", "时空遗迹-联合征伐"))
+
+    # 悬赏任务
+    data = []
+    for t in [1, 2]:
+        D.get(f"cmd=spacerelic&op=task&type={t}")
+        data += D.findall(r"type=(\d+)&amp;id=(\d+)")
+    if not data:
+        D.print_info("没有礼包可领取", "时空遗迹-悬赏任务")
+        D.msg_append("没有礼包可领取")
+    for t, _id in data:
+        D.get(f"cmd=spacerelic&op=task&type={t}&id={_id}")
+        D.msg_append(D.find(r"赛季任务</a><br /><br />(.*?)<", "时空遗迹-悬赏任务"))
+
+
+def 时空遗迹():
+    """
+    八卦迷阵、遗迹征伐
+    """
+    八卦迷阵()
+    遗迹征伐()
 
 
 def 兵法():
