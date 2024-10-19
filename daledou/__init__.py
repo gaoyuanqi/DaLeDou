@@ -2,29 +2,23 @@ from datetime import datetime
 
 
 # 获取当前日期和时间
-NOW = datetime.now()
+_NOW = datetime.now()
 # 1~7 对应 周一 ~ 周日
-WEEK: int = NOW.weekday() + 1
-DAY: int = NOW.day
-MONTH: int = NOW.month
-
-# 请求头
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
-}
+_WEEK: int = _NOW.weekday() + 1
+_DAY: int = _NOW.day
 
 # 第一轮任务
 _ONE = {
     "邪神秘宝": True,
-    "华山论剑": DAY <= 26,
+    "华山论剑": _DAY <= 26,
     "斗豆月卡": True,
     "分享": True,
     "乐斗": True,
     "报名": True,
     "巅峰之战进行中": True,
     "矿洞": True,
-    "掠夺": WEEK in [2, 3],
-    "踢馆": WEEK in [5, 6],
+    "掠夺": _WEEK in [2, 3],
+    "踢馆": _WEEK in [5, 6],
     "竞技场": True,
     "十二宫": True,
     "许愿": True,
@@ -32,7 +26,7 @@ _ONE = {
     "历练": True,
     "镖行天下": True,
     "幻境": True,
-    "群雄逐鹿": WEEK == 6,
+    "群雄逐鹿": _WEEK == 6,
     "画卷迷踪": True,
     "门派": True,
     "门派邀请赛": True,
@@ -55,12 +49,12 @@ _ONE = {
     "领取徒弟经验": True,
     "今日活跃度": True,
     "仙武修真": True,
-    "大侠回归三重好礼": WEEK == 4,
+    "大侠回归三重好礼": _WEEK == 4,
     "乐斗黄历": True,
     "器魂附魔": True,
     "侠客岛": True,
     "时空遗迹": True,
-    "兵法": WEEK in [4, 6],
+    "兵法": _WEEK in [4, 6],
     "幸运金蛋": True,
     "新春拜年": True,
     "乐斗大笨钟": True,
@@ -69,21 +63,21 @@ _ONE = {
 # 第二轮任务
 _TWO = {
     "邪神秘宝": True,
-    "问鼎天下": WEEK not in [6, 7],
+    "问鼎天下": _WEEK not in [6, 7],
     "帮派商会": True,
     "任务派遣中心": True,
     "侠士客栈": True,
     "深渊之潮": True,
     "侠客岛": True,
     "背包": True,
-    "镶嵌": WEEK == 4,
-    "神匠坊": WEEK == 4,
-    "每日宝箱": DAY == 20,
+    "镶嵌": _WEEK == 4,
+    "神匠坊": _WEEK == 4,
+    "每日宝箱": _DAY == 20,
     "商店": True,
     "猜单双": True,
     "煮元宵": True,
     "万圣节": True,
-    "元宵节": WEEK == 4,
+    "元宵节": _WEEK == 4,
     "神魔转盘": True,
     "乐斗驿站": True,
     "浩劫宝箱": True,
@@ -108,12 +102,12 @@ _TWO = {
     "春联大赛": True,
     "新春拜年": True,
     "喜从天降": True,
-    "5.1礼包": WEEK == 4,
-    "端午有礼": WEEK == 4,
-    "圣诞有礼": WEEK == 4,
-    "新春礼包": WEEK == 4,
-    "登录商店": WEEK == 4,
-    "盛世巡礼": WEEK == 4,
+    "5.1礼包": _WEEK == 4,
+    "端午有礼": _WEEK == 4,
+    "圣诞有礼": _WEEK == 4,
+    "新春礼包": _WEEK == 4,
+    "登录商店": _WEEK == 4,
+    "盛世巡礼": _WEEK == 4,
     "新春登录礼": True,
     "年兽大作战": True,
     "惊喜刮刮卡": True,
@@ -121,9 +115,9 @@ _TWO = {
     "好礼步步升": True,
     "企鹅吉利兑": True,
     "乐斗大笨钟": True,
-    "乐斗回忆录": WEEK == 4,
-    "爱的同心结": WEEK == 4,
-    "周年生日祝福": WEEK == 4,
+    "乐斗回忆录": _WEEK == 4,
+    "爱的同心结": _WEEK == 4,
+    "周年生日祝福": _WEEK == 4,
     "重阳太白诗会": True,
 }
 

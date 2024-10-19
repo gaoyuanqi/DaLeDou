@@ -10,7 +10,13 @@ import yaml
 from loguru import logger
 from requests import Session
 
-from daledou import HEADERS, MISSIONS_ONE, MISSIONS_TWO
+from daledou import MISSIONS_ONE, MISSIONS_TWO
+
+
+# 请求头
+_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+}
 
 
 def read_yaml(file: str, key: str | None = None):
@@ -126,7 +132,7 @@ class InItDaLeDou:
         with requests.Session() as session:
             session.cookies.set("Cookie", self._cookie)
             for _ in range(3):
-                res = session.get(url, headers=HEADERS, allow_redirects=False)
+                res = session.get(url, headers=_HEADERS, allow_redirects=False)
                 res.encoding = "utf-8"
                 if "商店" in res.text:
                     logger.success(f"{self.qq} | Cookie有效")
@@ -190,7 +196,7 @@ class InItDaLeDou:
         """
         url = "https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index"
         for _ in range(3):
-            response = self._session.get(url, headers=HEADERS)
+            response = self._session.get(url, headers=_HEADERS)
             response.encoding = "utf-8"
             if "商店" in response.text:
                 return response.text.split("【退出】")[0]
@@ -222,16 +228,38 @@ class DaLeDou:
 
     def __init__(self, qq: str, session: Session, yaml: dict, func_map: dict):
         self._start_time = time.time()
+        self._now = datetime.now()
+        self._month: int = self._now.month
+        self._day: int = self._now.day
+        self._week: int = self._now.weekday() + 1
+
         self._qq = qq
         self._session = session
         self._yaml = yaml
         self._func_map = func_map
+
         # 储存推送消息
         self._msg: list[str] = []
         # 大乐斗当前页面HTML
         self.html = None
         # 大乐斗日志任务名称
         self.func_name = None
+
+    @property
+    def now(self):
+        return self._now
+
+    @property
+    def month(self):
+        return self._month
+
+    @property
+    def day(self):
+        return self._day
+
+    @property
+    def week(self):
+        return self._week
 
     @property
     def qq(self):
@@ -269,7 +297,7 @@ class DaLeDou:
         """
         url = f"https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?{params}"
         for _ in range(3):
-            res = self._session.get(url, headers=HEADERS)
+            res = self._session.get(url, headers=_HEADERS)
             res.encoding = "utf-8"
             self.html = res.text
             if "系统繁忙" in self.html:
