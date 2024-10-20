@@ -1898,6 +1898,7 @@ def 遗迹征伐():
         if "请按顺序挑战异兽" in D.html:
             continue
         D.msg_append(msg)
+        break
 
     # 联合征伐挑战
     D.get("cmd=spacerelic&op=bossfight")
