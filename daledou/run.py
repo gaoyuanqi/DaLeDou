@@ -1304,12 +1304,13 @@ def 助阵():
                 yield (f_id, index)
 
     n = 0
-    for _id, _index in get_id_index():
+    for _id, _i in get_id_index():
         if n == 3:
             break
+        p = f"cmd=formation&type=4&formationid={_id}&attrindex={_i}&times=1"
         for _ in range(3):
             # 提升
-            D.get(f"cmd=formation&type=4&formationid={_id}&attrindex={_index}&times=1")
+            D.get(p)
             if "助阵组合所需佣兵不满足条件，不能提升助阵属性经验" in D.html:
                 D.find(r"<br /><br />(.*?)。", "任务-助阵")
                 return
@@ -1817,7 +1818,7 @@ def 遗迹商店():
     """
     遗迹征伐-遗迹商店特惠区兑换，只能10的倍数兑换
     """
-    _yaml: dict = D.yaml["时空遗迹"]
+    _yaml: dict = D.yaml["时空遗迹"]["遗迹商店"]
 
     n = 0
     for k, _dict in _yaml.items():
@@ -1845,13 +1846,15 @@ def 遗迹商店():
 def 遗迹征伐():
     """
     第七周的最后一个周三（含）之前：
-        异兽洞窟：按照异兽母巢到异兽幼崽顺序优先扫荡，否则挑战
+        异兽洞窟：优先扫荡，否则挑战；详见yaml配置文件
         联合征伐：每天挑战一次
         悬赏任务：每天领取
     第八周：
         赛季排行：每天领取一次排行奖励
         遗迹商店：每天特惠区兑换，详见yaml配置文件
     """
+    _yaml: list = D.yaml["时空遗迹"]["异兽洞窟"]
+
     # 遗迹征伐
     D.get("cmd=spacerelic&op=relicindex")
     # 赛季结束年
@@ -1876,13 +1879,8 @@ def 遗迹征伐():
         遗迹商店()
         return
 
-    # 异兽洞窟挑战
-    for _id in [5, 4, 3, 2, 1]:
-        # 异兽幼崽 1
-        # 异兽战士 2
-        # 异兽将领 3
-        # 异兽元帅 4
-        # 异兽母巢 5
+    # 异兽洞窟
+    for _id in _yaml:
         D.get(f"cmd=spacerelic&op=monsterdetail&id={_id}")
         if "剩余挑战次数：0" in D.html:
             D.print_info("没有挑战次数", "时空遗迹-异兽洞窟")
@@ -2100,7 +2098,7 @@ def 神匠坊():
             # 打造十次
             D.get("cmd=weapongod&sub=8&produce_type=1&times=10")
             D.msg_append(D.find(r"背包</a><br /></p>(.*?)<"))
-        for _ in range(int(remainder / 6)):
+        for _ in range(remainder // 6):
             # 打造一次
             D.get("cmd=weapongod&sub=8&produce_type=1&times=1")
             D.msg_append(D.find(r"背包</a><br /></p>(.*?)<"))
@@ -2435,12 +2433,11 @@ def 生肖福卡():
     if qq := D.yaml["生肖福卡"]:
         pattern = "[子丑寅卯辰巳午未申酉戌亥][鼠牛虎兔龙蛇马羊猴鸡狗猪]"
         data = D.findall(rf"({pattern})\s+(\d+).*?id=(\d+)")
-        name, max_number, card_id = max(data, key=lambda x: int(x[1]))
+        name, max_number, _id = max(data, key=lambda x: int(x[1]))
+        p = f"cmd=newAct&subtype=174&op=5&oppuin={qq}&card_id={_id}&confirm=1"
         if int(max_number) >= 2:
             # 分享福卡
-            D.get(
-                f"cmd=newAct&subtype=174&op=5&oppuin={qq}&card_id={card_id}&confirm=1"
-            )
+            D.get(p)
             D.msg_append(D.find(r"~<br /><br />(.*?)<br />", f"生肖福卡-{name}福卡"))
         else:
             D.print_info("你的福卡数量不足2", "生肖福卡-取消分享")
@@ -3017,6 +3014,9 @@ def 重阳太白诗会():
     D.msg_append(D.find(r"<br /><br />(.*?)<br />"))
 
 
+# ============================================================
+
+
 class ShenZhuang:
     """
     神装进阶
@@ -3169,14 +3169,14 @@ def 神装():
     print("日常失败祝福值是 2")
     print("活动期间是 2n 倍")
     print("输入其它非数字键退出")
-    _input_1 = input("输入神装失败祝福值：")
-    if not _input_1.isdigit():
-        print(f"{_input_1} 不是一个数字")
+    input_1 = input("输入神装失败祝福值：")
+    if not input_1.isdigit():
+        print(f"{input_1} 不是一个数字")
         return True
     print("--" * 20)
     print("开始查询神装资料")
 
-    s = ShenZhuang(int(_input_1))
+    s = ShenZhuang(int(input_1))
     data = s.data
     print("--" * 20)
 
@@ -3187,22 +3187,22 @@ def 神装():
     print("4：神饰")
     print("5：神履")
     print("其它任意键退出")
-    _input_2 = input("输入神装进阶代号：")
-    if _input_2 not in ["0", "1", "2", "3", "4", "5"]:
+    input_2 = input("输入神装进阶代号：")
+    if input_2 not in ["0", "1", "2", "3", "4", "5"]:
         return True
-    print(data[_input_2])
+    print(data[input_2])
 
-    if "已经满阶" in data[_input_2]:
+    if "已经满阶" in data[input_2]:
         return True
 
     print("脚本始终关闭自动斗豆兑换，不会扣除斗豆")
     print("然后积分商店自动兑换材料并进阶")
-    _input_3 = input("是否确认进阶？（y/n）：")
-    if _input_3 != "y":
+    input_3 = input("是否确认进阶？（y/n）：")
+    if input_3 != "y":
         return True
 
     # 进阶
-    s.神装进阶(_input_2)
+    s.神装进阶(input_2)
 
     return True
 
@@ -3470,5 +3470,215 @@ def 江湖长梦():
     print("--" * 20)
 
     j.兑换
+
+    return True
+
+
+class XingPanInfo:
+    """
+    获取星盘信息
+    """
+
+    def __init__(self):
+        self.data = {}
+        # 幻境商店积分
+        p = "cmd=exchange&subtype=10&costtype=9"
+        self._points: int = get_store_points(p)
+        print("--" * 20)
+        self._get_xingpan_data()
+        self._info()
+
+    def _get_store_max_number(self, name: str) -> int | None:
+        """
+        返回幻境商店星石最大兑换数量
+        """
+        data = {
+            "翡翠石": 32,
+            "玛瑙石": 40,
+            "迅捷石": 40,
+            "紫黑玉": 40,
+            "日曜石": 48,
+            "月光石": 32,
+        }
+        if price := data.get(name):
+            return self._points // price
+
+    def _get_xingpan_data(self):
+        """
+        获取1~6级星石数量及2~7级星石合成id
+        """
+        data = {
+            "日曜石": 1,
+            "玛瑙石": 2,
+            "迅捷石": 3,
+            "月光石": 4,
+            "翡翠石": 5,
+            "紫黑玉": 6,
+            "狂暴石": 7,
+            "神愈石": 8,
+        }
+        for name, gem in data.items():
+            D.get(f"cmd=astrolabe&op=showgemupgrade&gem_type={gem}")
+            result_1 = D.findall(r"（(\d+)）")[1:]
+            result_2 = D.findall(r"gem=(\d+)")[1:]
+            # 1~6级星石数量
+            data_1 = {i + 1: int(item) for i, item in enumerate(result_1)}
+            # 2~7级星石合成id
+            data_2 = {i + 2: item for i, item in enumerate(result_2)}
+            self.data[name] = {
+                "possess": data_1,
+                "合成id": data_2,
+                "store_max_number": self._get_store_max_number(name),
+            }
+
+    def _info(self):
+        """
+        显示星石信息
+        """
+        print("1~6级星石数量")
+        for name, v in self.data.items():
+            print(f"{name}：{v['possess']}")
+
+
+class XingPan:
+    """
+    星石兑换合成
+    """
+
+    def __init__(self, name: str, data: dict):
+        self._name = name
+        self.data = data
+        if data.get(name) is None:
+            self.possess = None
+        else:
+            self.possess = self.data[self._name]["possess"]
+            self.store_max_number = self.data[self._name]["store_max_number"]
+            self.合成次数 = {}
+            # 各级星石转换关系
+            self._level_ties = {
+                1: 5,  # 5个1级星石合成一个2级星石
+                2: 4,  # 4个2级星石合成一个3级星石
+                3: 4,  # 4个3级星石合成一个4级星石
+                4: 3,  # 3个4级星石合成一个5级星石
+                5: 3,  # 3个5级星石合成一个6级星石
+                6: 2,  # 2个6级星石合成一个7级星石
+            }
+
+    def compute(self, level: int, number: int) -> tuple[int, int]:
+        """
+        返回需兑换的1级星石数量及星石等级
+
+        Args:
+            level: 合成星石等级
+            number: 合成星石数量
+        """
+
+        level -= 1
+        if self.possess[level] >= self._level_ties[level] * number:
+            self.合成次数[level + 1] = number
+            return 0, level
+        else:
+            _number = self._level_ties[level] * number - self.possess[level]
+            self.合成次数[level + 1] = number
+            if level == 1:
+                return _number, level
+            else:
+                return self.compute(level, _number)
+
+    def 兑换(self, number: int):
+        """
+        幻境商店兑换材料
+        """
+        data = {
+            "翡翠石": 1233,
+            "玛瑙石": 1234,
+            "迅捷石": 1235,
+            "紫黑玉": 1236,
+            "日曜石": 1237,
+            "月光石": 1238,
+        }
+        t = data[self._name]
+        quotient, remainder = divmod(number, 10)
+        for _ in range(quotient):
+            # 兑换10个
+            D.get(f"cmd=exchange&subtype=2&type={t}&times=10&costtype=9")
+            D.find(name="幻境商店")
+        for _ in range(remainder):
+            # 兑换1个
+            D.get(f"cmd=exchange&subtype=2&type={t}&times=1&costtype=9")
+            D.find(name="幻境商店")
+
+    def 合成(self):
+        """
+        星石合成
+        """
+        data = dict(sorted(self.合成次数.items()))
+        for level, number in data.items():
+            gem = self.data[self._name]["合成id"][level]
+            for _ in range(number):
+                D.get(f"cmd=astrolabe&op=upgradegem&gem={gem}")
+                D.find(r"规则</a><br />(.*?)<", name=f"{level}级{self._name}")
+
+
+def 星盘():
+    """
+    星石自动兑换合成
+    """
+    print("任意位置输入exit退出当前账号任务")
+    while True:
+        print("--" * 20)
+        data = XingPanInfo().data
+        print("--" * 20)
+
+        while True:
+            input_1 = input("输入合成星石名称：")
+            if input_1 == "exit":
+                return True
+            x = XingPan(input_1, data)
+            if x.possess is None:
+                print(f"{input_1} 不存在，请重新输入")
+                continue
+            break
+        while True:
+            input_2 = input("输入合成星石等级（2~7）：")
+            if input_2 == "exit":
+                return True
+            if input_2 not in ["2", "3", "4", "5", "6", "7"]:
+                print("星石等级只能是2~7级")
+                continue
+            break
+        while True:
+            input_3 = input(f"输入合成{input_2}级星石数量：")
+            if input_3 == "exit":
+                return True
+            if not input_3.isdigit():
+                print("请输入数字")
+                continue
+            break
+        print("--" * 20)
+
+        number, level = x.compute(int(input_2), int(input_3))
+        if number != 0:
+            store_max_number = x.store_max_number
+            print(f"合成{input_3}个{input_2}级{input_1}还需兑换{number}个1级{input_1}")
+            if store_max_number is None:
+                print(f"幻境商店不可兑换{input_1}，请重新输入")
+                continue
+            print(f"幻境商店最多可兑换{store_max_number}个{input_1}")
+            if store_max_number < number:
+                print(f"还差{number - store_max_number}个，请重新输入")
+                continue
+
+            print("--" * 20)
+            input_4 = input("输入y确定兑换，否则重新开始：")
+            if input_4 == "exit":
+                return True
+            if input_4 != "y":
+                continue
+            x.兑换(number)
+        else:
+            print(f"{input_2}级{input_1}可直接从{level}级开始合成")
+
+        x.合成()
 
     return True

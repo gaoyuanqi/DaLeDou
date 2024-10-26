@@ -114,8 +114,8 @@ class InItDaLeDou:
 
         ck = ""
         for key in ["RK", "ptcz", "openId", "accessToken", "newuin"]:
-            result = re.search(f"{key}=(.*?); ", f"{dld_cookie}; ", re.S).group(0)
-            ck += f"{result}"
+            result = re.search(f"{key}=(.*?); ", f"{dld_cookie}; ", re.S)
+            ck += f"{result.group(0)}"
         return ck[:-2]
 
     def _get_qq(self) -> str:
@@ -204,7 +204,7 @@ class InItDaLeDou:
         logger.warning(f"{self.qq} | 大乐斗首页未找到，可能官方繁忙或者维护")
         push(f"{self.qq} 大乐斗首页未找到", "大乐斗首页未找到，可能官方繁忙或者维护")
 
-    def _map_mission_names_to_function_names(self, missions: list[str]) -> list[str]:
+    def _map_mission_names_to_function_names(self, missions: list) -> list:
         """
         将大乐斗首页任务名称映射为 run.py 中的函数名称
         """
@@ -308,7 +308,7 @@ class DaLeDou:
                 break
         return self.html
 
-    def print_info(self, message: str, name: str | None = None) -> None:
+    def print_info(self, message: str, name=None) -> None:
         """
         打印信息
         """
@@ -316,7 +316,7 @@ class DaLeDou:
             name = self.func_name
         logger.info(f"{self.qq} | {name}：{message}")
 
-    def find(self, mode: str = "<br />(.*?)<", name: str | None = None) -> str | None:
+    def find(self, mode="<br />(.*?)<", name=None) -> str | None:
         """
         匹配成功返回首个结果，匹配失败返回None
 
