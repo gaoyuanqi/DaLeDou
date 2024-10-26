@@ -3291,33 +3291,17 @@ class JiangHuChangMeng:
     def __init__(self):
         # 江湖长梦商店积分
         self.points: int = get_store_points("cmd=longdreamexchange")
+        print("--" * 20)
         # 商店材料初始数据
-        self._init_data: dict = self._init_store_data(self._get_data())
+        self._data: dict = self._get_store_data()
         # 输出商店数据
         self._print_store_info()
-        # 用于储存用户添加的兑换材料id及数量
-        self.data = {}
 
     @property
-    def init_data(self):
-        return self._init_data
+    def data(self):
+        return self._data
 
-    def _init_store_data(self, data: list[tuple]) -> dict:
-        """
-        将售价、已售、限售str类型转为int
-        """
-        dict_data = {}
-        for d in data:
-            _id, name, 售价, 已售, 限售 = d
-            dict_data[name] = {
-                "id": _id,
-                "售价": int(售价),
-                "已售": int(已售),
-                "限售": int(限售),
-            }
-        return dict_data
-
-    def _get_data(self) -> list[tuple]:
+    def _get_store_data(self) -> dict:
         """
         获取江湖长梦商店数据
         """
@@ -3328,11 +3312,22 @@ class JiangHuChangMeng:
             "cmd=longdreamexchange&page_type=1&page=2",
         ]
         data = []
+        data_dict = {}
+
         for p in params:
             D.get(p)
             # id、名称、售价、已售、限售
             data += D.findall(r"_id=(\d+).*?>(.*?)\*1.*?(\d+).*?(\d+)/(\d+)")
-        return data
+
+        for d in data:
+            _id, name, 售价, 已售, 限售 = d
+            data_dict[name] = {
+                "id": _id,
+                "售价": int(售价),
+                "已售": int(已售),
+                "限售": int(限售),
+            }
+        return data_dict
 
     def _print_store_info(self):
         """
@@ -3342,134 +3337,125 @@ class JiangHuChangMeng:
         # 打印表头
         print("{:<12}{:<5}{:<4}{:<3}".format(*headers))
         print("--" * 20)
-        for name, _dict in self.init_data.items():
+        for name, _dict in self.data.items():
             售价 = _dict["售价"]
             已售 = _dict["已售"]
             限售 = _dict["限售"]
             print(f"{name:<12}{售价:<5}{已售:<4}{限售:<3}")
 
-    def update_points(self, name: str, number: int) -> tuple:
+    def get_store_id_and_number(self, name: str) -> tuple:
         """
-        更新商店积分，返回包含材料名称、材料id、可售数量的元组
+        返回江湖长梦商店兑换id、可兑换数量
         """
-        _dict = self.init_data[name]
-        _id: str = _dict["id"]
-        售价: int = _dict["售价"]
-        已售: int = _dict["已售"]
-        限售: int = _dict["限售"]
+        data_dict = self.data[name]
+        _id: str = data_dict["id"]
+        售价: int = data_dict["售价"]
+        已售: int = data_dict["已售"]
+        限售: int = data_dict["限售"]
 
-        if number > (限售 - 已售):
-            number = 限售 - 已售
-
-        if value := self.data.get(name):
-            v: int = value["number"]
-            # 回滚到未购买前的积分
-            original_points = self.points + (v * 售价)
-            self.points = original_points
+        # 剩余兑换额度
+        number_1: int = 限售 - 已售
+        # 积分最多可兑换数量
+        number_2: int = self.points // 售价
+        if number_1 <= number_2:
+            number = number_1
         else:
-            # 记录原始积分
-            original_points = self.points
+            number = number_2
 
-        original_points -= number * 售价
-        if original_points >= 0:
-            self.points = original_points
-        else:
-            # 计算当前积分的最大可售数量
-            number = int(self.points / 售价)
-            self.points -= number * 售价
+        return _id, number
 
-        return name, _id, number
-
-    @property
-    def 兑换(self):
+    def 兑换(self, name: str, number: int):
         """
-        执行商店材料兑换
+        江湖长梦商店材料兑换
         """
-        for name, _dict in self.data.items():
-            _id = _dict["id"]
-            number: int = _dict["number"]
-            for i in range(number):
-                D.get(f"cmd=longdreamexchange&op=exchange&key_id={_id}")
-                D.find(r"侠士碎片</a><br />(.*?)<br />", name=f"{name}-{i + 1}")
+        _id: str = self.data[name]["id"]
+        for i in range(number):
+            D.get(f"cmd=longdreamexchange&op=exchange&key_id={_id}")
+            D.find(r"侠士碎片</a><br />(.*?)<", name=f"{name}-{i + 1}")
 
 
 def 江湖长梦():
     """
     商店兑换及副本挑战（柒承的忙碌日常）
     """
-    print("1：江湖长梦商店兑换")
-    print("2：柒承的忙碌日常")
-    print("其它任意键退出")
-    input_1 = input("输入选择：")
-    if input_1 not in ["1", "2"]:
-        return True
-    print("--" * 20)
-
-    if input_1 == "2":
-        print(">>>柒承的忙碌日常")
-        # 追忆香炉数量
-        number = get_backpack_item_count(6477)
-        print(f"追忆香炉数量：{number}")
-        input_2 = input("输入挑战次数：")
-        if not input_2.isdigit():
-            print("只能输入数字")
-            return True
-        柒承的忙碌日常(int(input_2))
-        return True
-
-    print(">>>江湖长梦商店兑换")
-    n = 1
-    j = JiangHuChangMeng()
-    if j.points < 240:
+    print("任意位置输入exit退出当前账号任务")
+    while True:
         print("--" * 20)
-        print(f"积分过低：{j.points}")
+        print("柒承的忙碌日常")
+        print("江湖长梦商店兑换")
+        input_1 = input("输入任务：")
+        if input_1 == "exit":
+            return True
+        if input_1 not in ["柒承的忙碌日常", "江湖长梦商店兑换"]:
+            print(f"{input_1} 不存在")
+            continue
+        break
+
+    if input_1 == "柒承的忙碌日常":
+        while True:
+            print("--" * 20)
+            # 追忆香炉数量
+            number_1 = get_backpack_item_count(6477)
+            print("--" * 20)
+            print(f"追忆香炉数量：{number_1}")
+            input_2 = input("输入挑战次数：")
+            if input_2 == "exit":
+                return True
+            if not input_2.isdigit():
+                print("只能输入数字")
+                continue
+
+            number_2 = int(input_2)
+            if number_1 < number_2:
+                print(f"最多可挑战{number_1}次，请重新输入")
+                continue
+            print("--" * 20)
+            柒承的忙碌日常(number_2)
+
+    if input_1 != "江湖长梦商店兑换":
         return True
 
     while True:
         print("--" * 20)
-        print(f"剩余积分：{j.points}")
-        for name, _dict in j.data.items():
-            print(f"{name}：{_dict['number']}")
-        input_3 = input("输入y继续添加或其它任意键退出添加：")
-        if input_3 != "y":
-            break
+        j = JiangHuChangMeng()
         print("--" * 20)
+        print(f"商店积分：{j.points}")
+        while True:
+            print("--" * 20)
+            input_3 = input("输入兑换材料名称：")
+            if input_3 == "exit":
+                return True
+            if input_3 not in j.data:
+                print(f"{input_3} 不存在，请重新输入")
+                continue
+            break
+        while True:
+            print("--" * 20)
+            input_4 = input("输入兑换材料数量：")
+            if input_4 == "exit":
+                return True
+            if not input_4.isdigit():
+                print("请输入数字")
+                continue
 
-        input_4 = input(f"添加第 {n} 个兑换材料名称：")
-        if input_4 not in j.init_data:
-            print(f"{input_3} 不存在")
-            continue
-        if j.data.get(input_4):
-            print(f"{input_4} 已添加过了，只会更新其值")
+            number_3 = int(input_4)
+            _id, number_4 = j.get_store_id_and_number(input_3)
+            print(f"{input_3}最多可兑换{number_1}个")
+            if number_4 == 0:
+                print("请更换兑换材料名称")
+                break
+            if number_3 > number_4:
+                print("超过可兑换数量，请重新输入")
+                continue
+            break
 
-        input_5 = input(f"添加第 {n} 个兑换材料数量：")
-        if not input_5.isdigit():
-            print("只能输入数字")
-            continue
-
-        input_number = int(input_5)
-        name, _id, number = j.update_points(input_4, input_number)
-        if (number == 0) and (input_number != 0):
-            print(f"{name} 已达兑换上限")
-        if number != input_number:
-            print(f"{name} 最多可兑换：{number}")
-
-        j.data[name] = {
-            "id": _id,
-            "number": number,
-        }
-        n += 1
-
-    if not j.data:
-        return True
-
-    print("--" * 20)
-    input_6 = input("是否确认兑换（y/n）：")
-    if input_6 != "y":
-        return True
-    print("--" * 20)
-
-    j.兑换
+        print(f"{input_3}：{number_3}")
+        input_5 = input("输入y确定兑换，否则重新开始：")
+        print("--" * 20)
+        if input_5 == "exit":
+            return True
+        if input_5 == "y":
+            j.兑换(input_3, number_4)
 
     return True
 
@@ -3628,9 +3614,9 @@ def 星盘():
     while True:
         print("--" * 20)
         data = XingPanInfo().data
-        print("--" * 20)
 
         while True:
+            print("--" * 20)
             input_1 = input("输入合成星石名称：")
             if input_1 == "exit":
                 return True
@@ -3640,6 +3626,7 @@ def 星盘():
                 continue
             break
         while True:
+            print("--" * 20)
             input_2 = input("输入合成星石等级（2~7）：")
             if input_2 == "exit":
                 return True
@@ -3648,6 +3635,7 @@ def 星盘():
                 continue
             break
         while True:
+            print("--" * 20)
             input_3 = input(f"输入合成{input_2}级星石数量：")
             if input_3 == "exit":
                 return True
@@ -3655,7 +3643,6 @@ def 星盘():
                 print("请输入数字")
                 continue
             break
-        print("--" * 20)
 
         number, level = x.compute(int(input_2), int(input_3))
         if number != 0:
@@ -3669,8 +3656,8 @@ def 星盘():
                 print(f"还差{number - store_max_number}个，请重新输入")
                 continue
 
-            print("--" * 20)
             input_4 = input("输入y确定兑换，否则重新开始：")
+            print("--" * 20)
             if input_4 == "exit":
                 return True
             if input_4 != "y":
