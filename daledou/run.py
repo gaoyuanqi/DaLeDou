@@ -74,12 +74,13 @@ def _run_func(mode: str, unknown_args=None):
             D.msg_append(f"\n【{func_name}】")
             result = globals()[func_name]()
         D.run_time()
-        print("--" * 20)
 
         if (mode == "dev") and (result is None):
+            print("--" * 20)
             print("--------------模拟微信信息--------------")
             print(D.msg_join)
         elif mode in ["one", "two"]:
+            print("--" * 20)
             # pushplus微信推送消息
             push(f"{D.qq} {mode}", D.msg_join)
 
@@ -3211,27 +3212,38 @@ def 夺宝奇兵():
     """
     夺宝奇兵选择太空探宝场景投掷
     """
-    # 合成
-    D.get("cmd=element&subtype=4")
-    result = D.find(r"拥有:(\d+)")
-    print("--" * 20)
+    print("任意位置输入exit退出当前账号任务")
+    while True:
+        print("--" * 20)
+        # 五行合成页面
+        D.get("cmd=element&subtype=4")
+        result = D.find(r"拥有:(\d+)", name="战功")
+        print("--" * 20)
 
-    print("夺宝奇兵太空探宝场景投掷")
-    print("任意非数字键退出")
-    _input = input("输入低于多少战功时结束投掷：")
-    if not _input.isdigit():
-        return True
-    print("--" * 20)
+        print("夺宝奇兵太空探宝16倍场景投掷")
+        _input = input("输入低于多少战功时结束投掷：")
+        print("--" * 20)
+        if _input == "exit":
+            return True
+        if not _input.isdigit():
+            print("只能输入数字")
+            continue
+        number_1 = int(result)
+        number_2 = int(_input)
+        if number_2 > number_1:
+            print(f"拥有战功{number_1}低于输入战功{number_2}")
+            continue
+        break
 
     while True:
-        if int(result) < int(_input):
+        if number_2 > int(result):
             break
 
         # 投掷
         D.get("cmd=element&subtype=7")
         if "【夺宝奇兵】" in D.html:
             D.find(r"<br /><br />(.*?)<br />")
-            result = D.find(r"拥有:(\d+)")
+            result = D.find(r"拥有:(\d+)", name="战功")
             if "您的战功不足" in D.html:
                 break
         elif "【选择场景】" in D.html:
