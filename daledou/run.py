@@ -90,31 +90,6 @@ def _run_func(mode: str, unknown_args=None):
 # ============================================================
 
 
-def get_backpack_item_count(item_id: str | int) -> int:
-    """
-    返回背包物品id数量
-    """
-    # 背包物品详情
-    D.get(f"cmd=owngoods&id={item_id}")
-    if "很抱歉" in D.html:
-        D.find(r"】</p><p>(.*?)<br />", f"背包-{item_id}-不存在")
-        result = 0
-    else:
-        result = D.find(r"数量：(\d+)", f"背包-{item_id}-数量")
-    return int(result)
-
-
-def get_store_points(params: str) -> int:
-    """
-    返回商店积分
-    """
-    # 商店
-    D.get(params)
-    result = D.find(name="商店积分")
-    _, store_points = result.split("：")
-    return int(store_points)
-
-
 def 邪神秘宝():
     """
     每天高级秘宝和极品秘宝免费一次或者抽奖一次
@@ -3018,6 +2993,30 @@ def 重阳太白诗会():
 # ============================================================
 
 
+def get_backpack_item_count(item_id: str | int) -> int:
+    """
+    返回背包物品id数量
+    """
+    # 背包物品详情
+    D.get(f"cmd=owngoods&id={item_id}")
+    if "很抱歉" in D.html:
+        number = 0
+    else:
+        number = D.findall(r"数量：(\d+)")[0]
+    return int(number)
+
+
+def get_store_points(params: str) -> int:
+    """
+    返回商店积分
+    """
+    # 商店
+    D.get(params)
+    result = D.findall(r"<br />(.*?)<")[0]
+    _, store_points = result.split("：")
+    return int(store_points)
+
+
 class ShenZhuang:
     """
     神装进阶
@@ -3303,8 +3302,7 @@ class JiangHuChangMeng:
     def __init__(self):
         # 江湖长梦商店积分
         self.points: int = get_store_points("cmd=longdreamexchange")
-        print("--" * 20)
-        # 商店材料初始数据
+        # 商店材料数据
         self._data: dict = self._get_store_data()
         # 输出商店数据
         self._print_store_info()
@@ -3408,9 +3406,10 @@ def 江湖长梦():
             print("--" * 20)
             # 追忆香炉数量
             number_1 = get_backpack_item_count(6477)
-            print("--" * 20)
             print(f"追忆香炉数量：{number_1}")
+            print("--" * 20)
             input_2 = input("输入挑战次数：")
+            print("--" * 20)
             if input_2 == "exit":
                 return True
             if not input_2.isdigit():
@@ -3421,7 +3420,6 @@ def 江湖长梦():
             if number_1 < number_2:
                 print(f"最多可挑战{number_1}次，请重新输入")
                 continue
-            print("--" * 20)
             柒承的忙碌日常(number_2)
 
     if input_1 != "江湖长梦商店兑换":
@@ -3447,12 +3445,12 @@ def 江湖长梦():
             if input_4 == "exit":
                 return True
             if not input_4.isdigit():
-                print("请输入数字")
+                print("只能输入数字")
                 continue
 
             number_3 = int(input_4)
             _id, number_4 = j.get_store_id_and_number(input_3)
-            print(f"{input_3}最多可兑换{number_1}个")
+            print(f"{input_3}最多可兑换{number_4}个")
             if number_4 == 0:
                 print("请更换兑换材料名称")
                 break
@@ -3478,13 +3476,12 @@ class XingPanInfo:
     """
 
     def __init__(self):
-        self.data = {}
         # 幻境商店积分
         p = "cmd=exchange&subtype=10&costtype=9"
-        self._points: int = get_store_points(p)
-        print("--" * 20)
+        self.points: int = get_store_points(p)
+        self.data = {}
         self._get_xingpan_data()
-        self._info()
+        self._print_info()
 
     def _get_store_max_number(self, name: str) -> int | None:
         """
@@ -3499,7 +3496,7 @@ class XingPanInfo:
             "月光石": 32,
         }
         if price := data.get(name):
-            return self._points // price
+            return self.points // price
 
     def _get_xingpan_data(self):
         """
@@ -3529,7 +3526,7 @@ class XingPanInfo:
                 "store_max_number": self._get_store_max_number(name),
             }
 
-    def _info(self):
+    def _print_info(self):
         """
         显示星石信息
         """
@@ -3625,14 +3622,15 @@ def 星盘():
     print("任意位置输入exit退出当前账号任务")
     while True:
         print("--" * 20)
-        data = XingPanInfo().data
-
+        x_info = XingPanInfo()
+        print("--" * 20)
+        print(f"商店积分：{x_info.points}")
         while True:
             print("--" * 20)
             input_1 = input("输入合成星石名称：")
             if input_1 == "exit":
                 return True
-            x = XingPan(input_1, data)
+            x = XingPan(input_1, x_info.data)
             if x.possess is None:
                 print(f"{input_1} 不存在，请重新输入")
                 continue
@@ -3652,10 +3650,11 @@ def 星盘():
             if input_3 == "exit":
                 return True
             if not input_3.isdigit():
-                print("请输入数字")
+                print("只能输入数字")
                 continue
             break
 
+        print("--" * 20)
         number, level = x.compute(int(input_2), int(input_3))
         if number != 0:
             store_max_number = x.store_max_number
