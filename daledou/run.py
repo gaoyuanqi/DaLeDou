@@ -2972,6 +2972,56 @@ def 爱的同心结():
                 break
 
 
+def 乐斗能量棒():
+    """
+    至多领取3次能量棒
+    每领取一次能量棒，从高到低等级场景乐斗每关BOSS（每关最后两个BOSS，不会自动使用活力药水）
+    """
+    # 乐斗能量棒
+    D.get("cmd=newAct&subtype=108&op=0")
+    data = D.findall(r"id=(\d+)")
+    if not data:
+        D.print_info("没有可领取的能量棒")
+        D.msg_append("没有可领取的能量棒")
+        return
+
+    # 乐斗助手
+    D.get("cmd=view&type=6")
+    if "取消自动使用活力药水" in D.html:
+        # 取消自动使用活力药水
+        D.get("cmd=set&type=11")
+        D.print_info("取消自动使用活力药水")
+        D.msg_append("取消自动使用活力药水")
+
+    def generate_ids():
+        # 返回高等级到低等级场景每关最后两个BOSS的id
+        for _id in range(6394, 6013, -20):
+            yield _id
+            yield (_id - 1)
+
+    for _id in generate_ids():
+        n = 3
+        while n:
+            D.get(f"cmd=mappush&subtype=3&npcid={_id}&pageid=2")
+            if "您还没有打到该历练场景" in D.html:
+                D.msg_append(D.find(r"介绍</a><br />(.*?)<br />"))
+                break
+            msg = D.find(r"\d+<br />(.*?)<", name="历练")
+            if "活力不足" in D.html:
+                if not data:
+                    return
+                # 领取活力能量棒
+                D.get(f"cmd=newAct&subtype=108&op=1&id={data.pop()}")
+                D.msg_append(D.find(r"<br /><br />(.*?)<"))
+                continue
+            elif "挑战次数已经达到上限了，请明天再来挑战吧" in D.html:
+                break
+            elif "还不能挑战" in D.html:
+                break
+            D.msg_append(msg)
+            n -= 1
+
+
 def 周年生日祝福():
     """
     周四领取
