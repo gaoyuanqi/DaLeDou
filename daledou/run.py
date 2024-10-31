@@ -2902,7 +2902,7 @@ def 好礼步步升():
 
 def 企鹅吉利兑():
     """
-    每天领取、活动截止日的前一天兑换材料（每种至多兑换100次）
+    每天领取、活动截止日的前一天兑换材料，详见yaml配置文件
     """
     # 企鹅吉利兑
     D.get("cmd=geelyexchange")
@@ -2916,20 +2916,35 @@ def 企鹅吉利兑():
         D.get(f"cmd=geelyexchange&op=GetTaskReward&id={_id}")
         D.msg_append(D.find(r"】<br /><br />(.*?)<br /><br />"))
 
-    day: str = D.find(r"至\d+月(\d+)日")
-    if D.day != (int(day) - 1):
+    _year = D.year
+    # 赛季结束月
+    _month = D.findall(r"至(\d+)月")[0]
+    # 赛季结束日
+    _day = D.findall(r"至\d+月(\d+)日")[0]
+    end_date = datetime(int(_year), int(_month), int(_day))
+    # 计算结束日期的前1天，即最后一个周四
+    seventh_week_last_day = (end_date - timedelta(days=1)).date()
+    # 获取当前日期
+    current_date = datetime.now().date()
+
+    # 判断当前日期是否在结束日期的前一天
+    if current_date != seventh_week_last_day:
         return
 
-    _yaml: list = D.yaml["企鹅吉利兑"]
-    for _id in _yaml:
-        for _ in range(100):
+    _yaml: dict = D.yaml["企鹅吉利兑"]
+    for name, number in _yaml.items():
+        _id = D.find(rf"{name}.*?id=(\d+)")
+        for _ in range(number):
             D.get(f"cmd=geelyexchange&op=ExchangeProps&id={_id}")
+            msg = D.find(r"】<br /><br />(.*?)<br />")
             if "你的精魄不足，快去完成任务吧~" in D.html:
                 break
             elif "该物品已达兑换上限~" in D.html:
                 break
-            D.msg_append(D.find(r"】<br /><br />(.*?)<br />"))
+            D.msg_append(msg)
         if "当前精魄：0" in D.html:
+            D.print_info("当前精魄：0")
+            D.msg_append("当前精魄：0")
             break
 
 

@@ -229,6 +229,7 @@ class DaLeDou:
     def __init__(self, qq: str, session: Session, yaml: dict, func_map: dict):
         self._start_time = time.time()
         self._now = datetime.now()
+        self._year: int = self._now.year
         self._month: int = self._now.month
         self._day: int = self._now.day
         self._week: int = self._now.weekday() + 1
@@ -248,6 +249,10 @@ class DaLeDou:
     @property
     def now(self):
         return self._now
+
+    @property
+    def year(self):
+        return self._year
 
     @property
     def month(self):
