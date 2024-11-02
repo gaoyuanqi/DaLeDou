@@ -1842,12 +1842,12 @@ def 遗迹征伐():
 
     end_date = datetime(int(_year), int(_month), int(_day))
     # 计算第七周的最后一天（周三），即结束日期的前8天
-    seventh_week_last_day = (end_date - timedelta(days=8)).date()
+    last_day_date = (end_date - timedelta(days=8)).date()
     # 获取当前日期
     current_date = datetime.now().date()
 
     # 判断当前日期是否在第八周
-    if current_date > seventh_week_last_day:
+    if current_date > last_day_date:
         # 排行奖励
         D.get("cmd=spacerelic&op=getrank")
         D.msg_append(D.find(r"奖励</a><br /><br />(.*?)<", "时空遗迹-赛季排行"))
@@ -2184,13 +2184,24 @@ def 万圣节():
         if "请领取今日的活跃度礼包来获得蜡烛吧" in D.html:
             break
 
-    # 兑换奖励
-    D.get("cmd=hallowmas&gb_id=0")
-    day: str = D.find(r"至\d+月(\d+)日")
-    if D.day != (int(day) - 1):
+    # 万圣节
+    D.get("cmd=hallowmas")
+    _year = D.year
+    # 赛季结束月
+    _month = D.findall(r"~(\d+)月")[0]
+    # 赛季结束日
+    _day = D.findall(r"~\d+月(\d+)日")[0]
+    end_date = datetime(int(_year), int(_month), int(_day))
+    # 计算结束日期的前1天，即最后一个周四
+    last_day_date = (end_date - timedelta(days=1)).date()
+    # 获取当前日期
+    current_date = datetime.now().date()
+
+    # 判断当前日期是否在结束日期的前一天
+    if current_date != last_day_date:
         return
 
-    number: str = D.find(r"南瓜灯：(\d+)个")
+    number: str = D.findall(r"南瓜灯：(\d+)个")[0]
     number_int = int(number)
     b = number_int // 40
     a = (number_int - b * 40) // 20
