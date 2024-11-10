@@ -2,8 +2,6 @@
 
 **为了保险起见，斗豆及鹅币最好手动使用掉，以免使用脚本时被意外消耗**
 
-本项目适合等级战力高、有乐斗达人的普通玩家，活跃度通常80以上
-
 
 ## 功能
 
@@ -63,45 +61,47 @@ python main.py check
 ```
 这会在 `config` 目录下创建一个以 `QQ` 命名的yaml配置文件（大乐斗Cookie有效才会创建）
 
-**7、定时运行大乐斗任务**
+**7、定时任务**
 
 启动定时命令：
 ```sh
-python main.py timing
-```
-脚本将在 `13:10` 运行 [第一轮](https://www.gaoyuanqi.cn/python-daledou/?highlight=%E5%A4%A7%E4%B9%90%E6%96%97#%E7%AC%AC%E4%B8%80%E8%BD%AE)，`20:01` 运行 [第二轮](https://www.gaoyuanqi.cn/python-daledou/?highlight=%E5%A4%A7%E4%B9%90%E6%96%97#%E7%AC%AC%E4%BA%8C%E8%BD%AE)
-
-`timing` 参数可以省略，上面命令等同于：
-```sh
 python main.py
 ```
+脚本将在 `13:10` 运行 `第一轮`，`20:01` 运行 `第二轮`
 
-还会每隔2小时检查大乐斗Cookie有效期
+期间还会每隔2小时检查大乐斗Cookie有效期
 
-**8、其它命令**
+**8、其它任务**
 
-立即运行 [第一轮](https://www.gaoyuanqi.cn/python-daledou/?highlight=%E5%A4%A7%E4%B9%90%E6%96%97#%E7%AC%AC%E4%B8%80%E8%BD%AE)，建议 `13:10` 后运行：
+指 `第一轮` 和 `第二轮` 之外的任务
+
+```sh
+# 比如立即运行 神装
+python main.py other -- 神装
+```
+
+**9、其它命令**
+
+立即运行 `第一轮`，建议 `13:10` 后运行：
 ```sh
 python main.py one
 ```
 
-立即运行 [第二轮](https://www.gaoyuanqi.cn/python-daledou/?highlight=%E5%A4%A7%E4%B9%90%E6%96%97#%E7%AC%AC%E4%BA%8C%E8%BD%AE)，建议 `20:01` 后运行：
+可以携带额外参数：
+```sh
+# 立即运行第一轮的邪神秘宝
+python main.py one -- 邪神秘宝
+```
+
+立即运行 `第二轮`，建议 `20:01` 后运行：
 ```sh
 python main.py two
 ```
 
-运行 `run.py` 中的一个或多个函数：
+可以携带额外参数：
 ```sh
-python main.py dev -- [func_name]
-```
-
-例如：
-```sh
-# 运行 邪神秘宝
-python main.py dev -- 邪神秘宝
-
-# 依次运行 邪神秘宝、矿洞
-python main.py dev -- 邪神秘宝 矿洞
+# 立即运行第二轮的邪神秘宝
+python main.py two -- 邪神秘宝
 ```
 
 

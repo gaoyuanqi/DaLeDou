@@ -1,7 +1,7 @@
 import re
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from shutil import copy
 
@@ -308,7 +308,7 @@ class DaLeDou:
             if "系统繁忙" in self.html:
                 time.sleep(0.2)
             elif "操作频繁" in self.html:
-                time.sleep(0.4)
+                time.sleep(0.8)
             else:
                 break
         return self.html
@@ -337,6 +337,30 @@ class DaLeDou:
         查找大乐斗HTML字符串源码中所有匹配正则表达式的子串
         """
         return re.findall(mode, self.html, re.S)
+
+    def is_arrive_date(self, days: int, year_month_day: tuple) -> bool:
+        """
+        判断当前日期是否大于等于预定的结束日期
+
+        Arg:
+            days：结束日期的前 days 天
+            year_month_day：结束日期
+
+        举例：
+            任务结束日期为 2024-11-8
+            判断当前日期是否为2024-11-7：D.is_target_date_reached(1, (2024, 11, 8))
+            判断当前日期是否为2024-11-2：D.is_target_date_reached(6, (2024, 11, 8))
+        """
+        year, month, day = year_month_day
+        # 获取当前日期
+        current_date = self.now.date()
+        # 获取结束日期
+        end_date = datetime(year, month, day).date()
+        # 计算结束日期的前 days 天日期
+        target_date = end_date - timedelta(days=days)
+
+        # 比较当前日期和目标日期
+        return current_date >= target_date
 
     def run_time(self):
         """
