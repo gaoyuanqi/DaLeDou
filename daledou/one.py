@@ -525,22 +525,24 @@ def 竞技场():
 
 def 十二宫():
     """
-    每天请猴王扫荡，详见yaml配置文件
+    每天自动选择最高场景请猴王扫荡
     """
-    _id: int = D.yaml["十二宫"]
-    # 请猴王扫荡
-    D.get(f"cmd=zodiacdungeon&op=autofight&scene_id={_id}")
-    if "恭喜你" in D.html:
-        D.msg_append(D.find(r"恭喜你，(.*?)！"))
-        return
-    elif "是否复活再战" in D.html:
-        D.msg_append(D.find(r"<br.*>(.*?)，"))
-        return
-
-    # 你已经不幸阵亡，请复活再战！
-    # 挑战次数不足
-    # 当前场景进度不足以使用自动挑战功能
-    D.msg_append(D.find(r"<p>(.*?)<br />"))
+    # 十二宫
+    D.get("cmd=zodiacdungeon")
+    if scene_id := D.findall(r"scene_id=(\d+)\">扫荡"):
+        _id = scene_id[-1]
+        # 请猴王扫荡
+        D.get(f"cmd=zodiacdungeon&op=autofight&scene_id={_id}")
+        if "恭喜你" in D.html:
+            D.msg_append(D.find(r"恭喜你，(.*?)！"))
+            return
+        elif "是否复活再战" in D.html:
+            D.msg_append(D.find(r"<br.*>(.*?)，"))
+            return
+        # 你已经不幸阵亡，请复活再战！
+        # 挑战次数不足
+        # 当前场景进度不足以使用自动挑战功能
+        D.msg_append(D.find(r"<p>(.*?)<br />"))
 
 
 def 许愿():
@@ -626,32 +628,31 @@ def 镖行天下():
 
 def 幻境():
     """
-    每天乐斗至多5次，详见yaml配置文件
+    每天自动选择最高场景乐斗至多5次
     """
-    stage_id: int = D.yaml["幻境"]
     # 幻境
     D.get("cmd=misty")
     if "【飘渺幻境】" not in D.html:
         # 返回飘渺幻境
         D.get("cmd=misty&op=return")
+    if stage_id := D.findall(r"op=start&amp;stage_id=(\d+)"):
+        D.get(f"cmd=misty&op=start&stage_id={stage_id[-1]}")
+        if "您的挑战次数已用完" in D.html:
+            D.msg_append(D.find(r"0/1<br />(.*?)<"))
+            return
+        for _ in range(5):
+            # 乐斗
+            D.get("cmd=misty&op=fight")
+            D.msg_append(D.find(r"星数.*?<br />(.*?)<br />"))
+            if "尔等之才" in D.html:
+                break
 
-    D.get(f"cmd=misty&op=start&stage_id={stage_id}")
-    if "您的挑战次数已用完" in D.html:
-        D.msg_append(D.find(r"0/1<br />(.*?)<"))
-        return
-    for _ in range(5):
-        # 乐斗
-        D.get("cmd=misty&op=fight")
-        D.msg_append(D.find(r"星数.*?<br />(.*?)<br />"))
-        if "尔等之才" in D.html:
-            break
-
-    # 领取奖励
-    while _id := D.findall(r"box_id=(\d+)"):
-        D.get(f"cmd=misty&op=reward&box_id={_id[0]}")
-        D.msg_append(D.find(r"星数.*?<br />(.*?)<br />"))
-    # 返回飘渺幻境
-    D.get("cmd=misty&op=return")
+        # 领取奖励
+        while _id := D.findall(r"box_id=(\d+)"):
+            D.get(f"cmd=misty&op=reward&box_id={_id[0]}")
+            D.msg_append(D.find(r"星数.*?<br />(.*?)<br />"))
+        # 返回飘渺幻境
+        D.get("cmd=misty&op=return")
 
 
 def 群雄逐鹿():
