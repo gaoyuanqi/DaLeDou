@@ -15,6 +15,7 @@ _FUNC_NAME = [
     "夺宝奇兵",
     "江湖长梦",
     "星盘",
+    "新元婴神器",
 ]
 
 
@@ -816,3 +817,168 @@ def 星盘():
             print(f"{input_2}级{input_1}可直接从{level}级开始合成")
 
         x.合成()
+
+
+class XinYuanYingShenQi:
+    """
+    新元婴神器
+    """
+
+    def __init__(self, name: str):
+        self._name = name
+        self._number = self._get_number()
+        self.data = self._get_data(self._name)
+        self._print_info(self.data)
+
+    def _get_data(self, name: str) -> dict:
+        """
+        获取神器数据
+        """
+        params_data = {
+            "投掷武器": "op=1&type=0",
+            "小型武器": "op=1&type=1",
+            "中型武器": "op=1&type=2",
+            "大型武器": "op=1&type=3",
+            "被动技能": "op=2&type=4",
+            "伤害技能": "op=2&type=5",
+            "特殊技能": "op=2&type=6",
+        }
+        params = params_data[name]
+        D.get(f"cmd=newAct&subtype=104&{params}")
+        D.html = D.html.split("|")[-1]
+        # 获取神器名称
+        result_1 = D.findall(r"([\u4e00-\u9fff]+)&nbsp;\d+星")
+        # 获取神器星级
+        result_2 = D.findall(r"(\d+)星")
+        # 获取神器id
+        result_3 = D.findall(r"item_id=(\d+).*?一键")
+        # 获取消耗
+        result_4 = D.findall(r":(\d+)")
+        # 获取祝福值进度
+        result_5 = D.findall(r"(\d+)/")
+        # 获取祝福值满值
+        result_6 = D.findall(r"/(\d+)")
+
+        # 过滤5星
+        result_7 = [(k, v) for k, v in zip(result_1, result_2) if v != "5"]
+        data = {}
+        for index, t in enumerate(result_7):
+            name, level = t
+            number_1 = int(result_4[index])
+            number_2 = int(result_5[index])
+            number_3 = int(result_6[index])
+            number_4 = self._compute(number_1, number_2, number_3)
+            data[name] = {
+                "神器星级": level,
+                "id": result_3[index],
+                "神器消耗": number_1,
+                "神器祝福值进度": number_2,
+                "神器满祝福值": number_3,
+                "真黄金卷轴数量": self._number,
+                "满祝福消耗数量": number_4,
+                "是否升级": self._number >= number_4,
+            }
+        return data
+
+    def _get_number(self) -> int:
+        """
+        获取真黄金卷轴数量
+        """
+        # 新元婴神器
+        D.get("cmd=newAct&subtype=104&op=1&type=3")
+        result = D.findall(r"真黄金卷轴：(\d+)")[0]
+        return int(result)
+
+    def _compute(self, n_1: int, n_2: int, n_3: int) -> int:
+        """
+        计算神器升级至满祝福消耗所需材料数量（额外增加一次升级消耗）
+
+        Args:
+            n_1: 升级一次消耗数量
+            n_2: 当前祝福值
+            n_3: 满祝福值
+        """
+        # 失败祝福值
+        fail_value = 2
+        return (((n_3 - n_2) // fail_value) + 1) * n_1
+
+    def _print_info(self, data: dict):
+        """
+        打印神器信息
+        """
+        for name, _dict in data.items():
+            print("--" * 20)
+            print(f"神器名称：{name}")
+            for k, v in _dict.items():
+                print(f"{k}：{v}")
+
+    def upgrade(self, name: str):
+        """
+        升级神器
+        """
+        params_data = {
+            "投掷武器": "0",
+            "小型武器": "1",
+            "中型武器": "2",
+            "大型武器": "3",
+            "被动技能": "4",
+            "伤害技能": "5",
+            "特殊技能": "6",
+        }
+        _id = self.data[name]["id"]
+        t = params_data[self._name]
+        p = f"cmd=newAct&subtype=104&op=3&one_click=0&item_id={_id}&type={t}"
+        while True:
+            # 升级一次
+            D.get(p)
+            D.find(name=name)
+            D.find(rf"{name}.*?:\d+ [\u4e00-\u9fff]+ (.*?)<br />", name=name)
+            if "恭喜您" in D.html:
+                break
+
+
+def 新元婴神器():
+    """
+    自动升级神器
+    """
+    print("任意位置输入exit退出当前账号任务")
+    print("--" * 20)
+    print("三星（含）以下必成，最好去手动升级")
+    print("三星以上失败祝福值 2")
+    print("--" * 20)
+    category = [
+        "投掷武器",
+        "小型武器",
+        "中型武器",
+        "大型武器",
+        "被动技能",
+        "伤害技能",
+        "特殊技能",
+    ]
+    print("神器类别：")
+    for n in category:
+        print(n)
+    while True:
+        while True:
+            print("--" * 20)
+            input_1 = input("输入神器类别：")
+            if input_1 == "exit":
+                return
+            if input_1 in category:
+                break
+            print(f"不存在神器类别：{input_1}")
+
+        x = XinYuanYingShenQi(input_1)
+        while True:
+            print("--" * 20)
+            input_2 = input("输入升级神器名称：")
+            if input_2 == "exit":
+                return
+            if input_2 not in x.data:
+                print(f"不存在神器名称：{input_2}")
+                continue
+            if x.data[input_2]["是否升级"]:
+                x.upgrade(input_2)
+                break
+            else:
+                print(f"{input_2}：满祝福材料不足")
