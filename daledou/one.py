@@ -1769,12 +1769,12 @@ def 悬赏任务():
     for t in [1, 2]:
         D.get(f"cmd=spacerelic&op=task&type={t}")
         data += D.findall(r"type=(\d+)&amp;id=(\d+)")
-    if not data:
-        D.print_info("没有礼包可领取", "时空遗迹-悬赏任务")
-        D.msg_append("没有礼包可领取")
     for t, _id in data:
         D.get(f"cmd=spacerelic&op=task&type={t}&id={_id}")
-        D.msg_append(D.find(r"赛季任务</a><br /><br />(.*?)<", "时空遗迹-悬赏任务"))
+        msg = D.find(r"赛季任务</a><br /><br />(.*?)<", "时空遗迹-悬赏任务")
+        if "您未完成该任务" in D.html:
+            continue
+        D.msg_append(msg)
 
 
 def 遗迹征伐():
@@ -1785,8 +1785,9 @@ def 遗迹征伐():
     3.悬赏任务：每天领取
 
     赛季结束日期的前一天执行：
-    1.领取赛季排行奖励
-    2.悬赏商店兑换，详见yaml配置文件
+    1.领取悬赏任务登录奖励
+    2.领取赛季排行奖励
+    3.悬赏商店兑换，详见yaml配置文件
     """
     # 遗迹征伐
     D.get("cmd=spacerelic&op=relicindex")
@@ -1796,6 +1797,9 @@ def 遗迹征伐():
 
     # 判断当前日期是否到达结束日期的前一天
     if D.is_arrive_date(1, (int(_year), int(_month), int(_day))):
+        # 悬赏任务-登录奖励
+        D.get("cmd=spacerelic&op=task&type=1&id=1")
+        D.msg_append(D.find(r"赛季任务</a><br /><br />(.*?)<", "时空遗迹-悬赏任务"))
         # 排行奖励
         D.get("cmd=spacerelic&op=getrank")
         D.msg_append(D.find(r"奖励</a><br /><br />(.*?)<", "时空遗迹-赛季排行"))
@@ -1805,8 +1809,8 @@ def 遗迹征伐():
 
     # 判断当前日期是否到达第八周
     if D.is_arrive_date(7, (int(_year), int(_month), int(_day))):
-        D.print_info("当前处于休赛期")
-        D.msg_append("当前处于休赛期")
+        D.print_info("当前处于休赛期，结束前一天领取赛季奖励和悬赏商店兑换")
+        D.msg_append("当前处于休赛期，结束前一天领取赛季奖励和悬赏商店兑换")
         return
 
     异兽洞窟()

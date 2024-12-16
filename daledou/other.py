@@ -72,6 +72,38 @@ def get_store_points(params: str) -> int:
     return int(store_points)
 
 
+def store_exchange(ten_p: str, one_p: str, number: int):
+    """
+    积分商店兑换材料
+    """
+    ten_number, one_number = divmod(number, 10)
+    while ten_number:
+        D.get(ten_p)
+        D.find()
+        if "成功" in D.html:
+            ten_number -= 1
+        if "不足" in D.html:
+            return
+    while one_number:
+        D.get(one_p)
+        D.find()
+        if "成功" in D.html:
+            one_number -= 1
+        if "不足" in D.html:
+            return
+
+
+def print_info(data: dict):
+    """
+    打印信息
+    """
+    for name, _dict in data.items():
+        print("--" * 20)
+        print(f"名称：{name}")
+        for k, v in _dict.items():
+            print(f"{k}：{v}")
+
+
 class ShenZhuang:
     """
     神装自动兑换进阶
@@ -80,177 +112,140 @@ class ShenZhuang:
     def __init__(self, fail_value: int):
         # 失败祝福值
         self.fail_value = fail_value
-        self.data = {}
+        self.data = self._get_data()
+        self._print_info(self.data)
 
-        for name in ["神兵", "神铠", "神羽", "神兽", "神饰", "神履"]:
-            self._get_data(name)
-
-        self._print_info()
-
-    def _get_data(self, name: str):
+    def _get_data(self) -> dict:
         """
-        获取神装数据
+        获取神装数据，不包含满阶和必成数据
         """
         data_dict = {
             "神兵": {
-                "outfit_id": 0,
+                "id": 0,
                 "backpack_id": 3573,
                 "store_params": "cmd=arena&op=queryexchange",
             },
             "神铠": {
-                "outfit_id": 1,
+                "id": 1,
                 "backpack_id": 3574,
                 "store_params": "cmd=arena&op=queryexchange",
             },
             "神羽": {
-                "outfit_id": 2,
+                "id": 2,
                 "backpack_id": 3575,
                 "store_params": "cmd=exchange&subtype=10&costtype=1",
             },
             "神兽": {
-                "outfit_id": 3,
+                "id": 3,
                 "backpack_id": 3576,
                 "store_params": "cmd=exchange&subtype=10&costtype=2",
             },
             "神饰": {
-                "outfit_id": 4,
+                "id": 4,
                 "backpack_id": 3631,
                 "store_params": "cmd=exchange&subtype=10&costtype=2",
             },
             "神履": {
-                "outfit_id": 5,
+                "id": 5,
                 "backpack_id": 3636,
                 "store_params": "cmd=exchange&subtype=10&costtype=3",
             },
         }
+        data = {}
+        for name, _dict in data_dict.items():
+            _id = _dict["id"]
+            b_id = _dict["backpack_id"]
+            store_params = _dict["store_params"]
 
-        outfit_id = data_dict[name]["outfit_id"]
-        backpack_id = data_dict[name]["backpack_id"]
-        store_params = data_dict[name]["store_params"]
-
-        # 神装
-        D.get(f"cmd=outfit&op=0&magic_outfit_id={outfit_id}")
-        if "10阶" in D.html:
-            self.data[name] = {}
-        else:
-            result_1 = D.findall(r"阶层：(.*?)<")[0]
-            result_2 = D.findall(r"进阶消耗：(.*?)<")[0]
-            result_3 = D.findall(r"祝福值：(.*?)<")[0]
-            self.data[name] = {
-                "outfit_id": outfit_id,
-                "神装": name,
-                "阶层": result_1,
-                "进阶消耗": result_2,
-                "祝福值": result_3,
-            }
-
-            # 进阶一次消耗材料数量
-            number_1 = int(result_2.split("*")[1])
-            # 当前祝福值、最大祝福值
-            number_2, number_3 = result_3.split("/")
-            # 最大祝福值与当前祝福值之差
-            number_4 = int(number_3) - int(number_2)
-            # 进阶到满祝福所需材料数量，2 是额外的冗余进阶次数
-            number_5 = ((number_4 // self.fail_value) + 2) * number_1
-            self.data[name]["满祝福进阶消耗"] = number_5
-
-            # 获取背包进阶材料数量
-            number_6: int = get_backpack_item_count(backpack_id)
-            # 获取进阶材料的商店积分
-            number_7: int = get_store_points(store_params)
-            # 计算进阶材料背包数量与商店积分可兑换数量之和
-            number_8: int = number_6 + (number_7 // 40)
-            self.data[name]["积分与背包数量之和"] = number_8
-            self.data[name]["商店积分"] = number_7
-            self.data[name]["背包数量"] = number_6
-
-    def _print_info(self):
-        """
-        打印神装数据
-        """
-        for name, _dict in self.data.items():
-            if not _dict:
+            # 神装
+            D.get(f"cmd=outfit&op=0&magic_outfit_id={_id}")
+            if "10阶" in D.html:
                 continue
-            for k, v in _dict.items():
-                print(f"{k}：{v}")
-            print("--" * 20)
+            if "必成" in D.html:
+                continue
+
+            # 获取阶层
+            result_1 = D.findall(r"阶层：(.*?)<")[0]
+            # 获取进阶消耗材料名称、数量
+            result_2, result_3 = D.findall(r"进阶消耗：(.*?)\*(\d+)")[0]
+            # 获取当前祝福值、满祝福值
+            result_4, result_5 = D.findall(r"祝福值：(\d+)/(\d+)")[0]
+
+            number_1 = int(result_3)
+            number_2 = int(result_4)
+            number_3 = int(result_5)
+            number_4 = self._compute(number_1, number_2, number_3)
+            # 获取背包进阶材料数量
+            number_5 = get_backpack_item_count(b_id)
+            # 获取进阶材料的商店积分
+            number_6 = get_store_points(store_params)
+            data[name] = {
+                "id": _id,
+                "阶层": result_1,
+                "进阶消耗材料": result_2,
+                "进阶消耗数量": number_1,
+                "祝福值": f"{number_2}/{number_3}",
+                "升级至满祝福消耗": number_4,
+                "背包数量": number_5,
+                "商店积分": number_6,
+                "是否升级": number_4 <= (number_5 + (number_6 // 40)),
+            }
+        return data
+
+    def _compute(self, n_1: int, n_2: int, n_3: int) -> int:
+        """
+        计算神装升级至满祝福消耗所需材料数量（额外增加两次升级消耗）
+
+        Args:
+            n_1: 升级一次消耗数量
+            n_2: 当前祝福值
+            n_3: 满祝福值
+        """
+        return (((n_3 - n_2) // self.fail_value) + 2) * n_1
+
+    def _print_info(self, data: dict):
+        """
+        打印神装信息
+        """
+        print_info(data)
+        print("--" * 20)
         print(f"失败祝福值：{self.fail_value}")
 
-        print("--" * 20)
-        for name, value in self.data.items():
-            if not value:
-                continue
-            number = self.compute_difference(name)
-            if number < 0:
-                print(f"{name}：还差 {number} 个")
-            else:
-                print(f"{name}：余出 {number} 个")
-
-    def run(self, name: str) -> bool:
+    def upgrade(self, name: str):
         """
         神装进阶
-        如果失败祝福值一致则返回True，否则返回False
         """
-        outfit_id = self.data[name]["outfit_id"]
-        while True:
-            print("--" * 20)
-            祝福值 = self.data[name]["祝福值"]
-            进阶消耗: str = self.data[name]["进阶消耗"]
-            number_1: int = self.data[name]["背包数量"]
-            # 当前祝福值
-            old_value = int(祝福值.split("/")[0])
-            # 进阶材料名称、数量
-            _name, number_2 = 进阶消耗.split("*")
-            # 补齐进阶材料
-            if int(number_2) > number_1:
-                number_3 = int(number_2) - number_1
-                self.兑换(_name, number_3)
+        _id: int = self.data[name]["id"]
+        result: str = self.data[name]["进阶消耗材料"]
+        number_1: int = self.data[name]["进阶消耗数量"]
+        number_2: int = self.data[name]["背包数量"]
 
-            if self.进阶(outfit_id):
-                break
-
-            print("--" * 20)
-            # 获取神装数据
-            self._get_data(name)
-            for k, v in self.data[name].items():
-                print(f"{k}：{v}")
-
-            # 进阶后的祝福值
-            祝福值 = self.data[name]["祝福值"]
-            new_value = int(祝福值.split("/")[0])
-            value = new_value - old_value
-            if value != self.fail_value:
-                print("--" * 20)
-                print(f"你输入的祝福值：{self.fail_value}")
-                print(f"实际祝福值：{value}")
-                return False
-
-        return True
-
-    def 进阶(self, outfit_id: int) -> bool:
-        """
-        神装进阶，始终不会使用斗豆兑换
-        如果进阶成功则返回True，否则返回False
-        """
         # 神装
         D.get("cmd=outfit")
         if "关闭自动斗豆兑换神装进阶材料" in D.html:
-            D.get(f"cmd=outfit&op=4&auto_buy=2&magic_outfit_id={outfit_id}")
-            D.find(r"\|<br />(.*?)<br />")
-        if "关闭自动斗豆兑换神技升级材料" in D.html:
-            D.get(f"cmd=outfit&op=8&auto_buy=2&magic_outfit_id={outfit_id}")
+            D.get(f"cmd=outfit&op=4&auto_buy=2&magic_outfit_id={_id}")
             D.find(r"\|<br />(.*?)<br />")
 
-        # 进阶
-        D.get(f"cmd=outfit&op=1&magic_outfit_id={outfit_id}")
-        D.find(r"神履.*?<br />(.*?)<br />")
-        if "成功" in D.html:
-            return True
-        return False
+        while True:
+            print("--" * 20)
+            if number_1 > number_2:
+                self._store_exchange(result, (number_1 - number_2))
+                number_2 = number_1
 
-    def 兑换(self, name: str, number: int):
+            # 进阶
+            D.get(f"cmd=outfit&op=1&magic_outfit_id={_id}")
+            D.find(r"神履.*?<br />(.*?)<br />", name)
+            D.find(r"祝福值：(.*?)<", name)
+            if "进阶失败" in D.html:
+                # 更新背包材料数量
+                if (number_2 - number_1) >= 0:
+                    number_2 -= number_1
+            else:
+                break
+
+    def _store_exchange(self, name: str, number: int):
         """
-        兑换神装材料
+        神装积分商店兑换
         """
         data = {
             "凤凰羽毛": {
@@ -278,25 +273,200 @@ class ShenZhuang:
                 "one": "cmd=arena&op=exchange&id=3574&times=1",
             },
         }
-        ten, one = divmod(number, 10)
-        for _ in range(ten):
-            D.get(data[name]["ten"])
-            D.find()
-            if "不足" in D.html:
-                break
-        for _ in range(one):
-            D.get(data[name]["one"])
-            D.find()
-            if "不足" in D.html:
+        ten_p = data[name]["ten"]
+        one_p = data[name]["one"]
+        store_exchange(ten_p, one_p, number)
+
+
+class ShenJi:
+    """
+    神技自动兑换升级
+    """
+
+    def __init__(self, number: int):
+        # 升级次数
+        self.upgrade_number = number
+        # 神秘精华背包数量
+        self.backpack_number = get_backpack_item_count(3567)
+        self.data = self._get_data(self._get_data_id())
+        self._print_info(self.data)
+
+    def _get_data_id(self) -> list:
+        """
+        获取神装附带技能id，不包含满级id
+        """
+        data = []
+        for _id in range(6):
+            # 神装
+            D.get(f"cmd=outfit&op=0&magic_outfit_id={_id}")
+            data += D.findall(r'skill_id=(\d+)">升级十次.*?等级：(\d+)')
+
+        data_id = []
+        for _id, level in data:
+            if level != "10":
+                data_id.append(_id)
+        return data_id
+
+    def _get_data(self, data_id: str) -> dict:
+        """
+        获取神技详情数据
+        """
+        data = {}
+        for _id in data_id:
+            D.get(f"cmd=outfit&op=2&magic_skill_id={_id}")
+            # 神技名称
+            result_1 = D.findall(r"<br />=(.*?)=<a")[0]
+            # 当前等级
+            result_2 = D.findall(r"当前等级：(\d+)")[0]
+            # 升级消耗
+            result_3 = D.findall(r"\*(\d+)<")[0]
+            # 升级成功率
+            result_4 = D.findall(r"升级成功率：(.*?)<")[0]
+            # 当前效果
+            result_5 = D.findall(r"当前效果：(.*?)<")[0]
+            data[result_1] = {
+                "id": _id,
+                "当前等级": int(result_2),
+                "升级消耗": int(result_3),
+                "升级成功率": result_4,
+                "当前效果": result_5,
+            }
+        return data
+
+    def _print_info(self, data: dict):
+        """
+        打印神技信息
+        """
+        print_info(data)
+        print("--" * 20)
+        print(f"神秘精华数量：{self.backpack_number}")
+
+    def upgrade(self, name: str, store: str):
+        """
+        神技升级
+        """
+        _id = self.data[name]["id"]
+        # 升级消耗
+        number = self.data[name]["升级消耗"]
+        # 神装
+        D.get("cmd=outfit")
+        if "关闭自动斗豆兑换神技升级材料" in D.html:
+            D.get(f"cmd=outfit&op=8&auto_buy=2&magic_outfit_id={_id}")
+            D.find(r"\|<br />(.*?)<br />")
+
+        for _ in range(self.upgrade_number):
+            print("--" * 20)
+            if number > self.backpack_number:
+                self._store_exchange(store, (number - self.backpack_number))
+                self.backpack_number = get_backpack_item_count(3567)
+
+            # 升级
+            D.get(f"cmd=outfit&op=3&magic_skill_id={_id}")
+            D.find(r"套装强化</a><br />(.*?)<br />", name)
+            if "升级失败" in D.html:
+                # 更新背包材料数量
+                if (self.backpack_number - number) >= 0:
+                    self.backpack_number -= number
+            else:
                 break
 
-    def compute_difference(self, name: str) -> int:
+    def _store_exchange(self, name: str, number: int):
         """
-        计算满祝福进阶消耗与积分和背包数量之差
+        积分商店兑换神秘精华
         """
-        number_1 = self.data[name]["满祝福进阶消耗"]
-        number_2 = self.data[name]["积分与背包数量之和"]
-        return number_2 - number_1
+        data = {
+            "矿洞": {
+                "ten": "cmd=exchange&subtype=2&type=1206&times=10&costtype=3",
+                "one": "cmd=exchange&subtype=2&type=1206&times=1&costtype=3",
+            },
+            "掠夺": {
+                "ten": "cmd=exchange&subtype=2&type=1202&times=10&costtype=2",
+                "one": "cmd=exchange&subtype=2&type=1202&times=1&costtype=2",
+            },
+            "踢馆": {
+                "ten": "cmd=exchange&subtype=2&type=1101&times=10&costtype=1",
+                "one": "cmd=exchange&subtype=2&type=1101&times=1&costtype=1",
+            },
+            "竞技场": {
+                "ten": "cmd=arena&op=exchange&id=3567&times=10",
+                "one": "cmd=arena&op=exchange&id=3567&times=1",
+            },
+        }
+        ten_p = data[name]["ten"]
+        one_p = data[name]["one"]
+        store_exchange(ten_p, one_p, number)
+
+
+def 神装进阶():
+    while True:
+        print("--" * 20)
+        print("基本失败祝福值是 2，活动期间是 2n 倍")
+        input_1 = input("输入神装失败祝福值：")
+        if input_1 == "exit":
+            return True
+        if input_1.isdigit():
+            break
+        print(">>>只能输入数字")
+
+    while True:
+        s = ShenZhuang(int(input_1))
+        while True:
+            print("--" * 20)
+            input_2 = input("选择进阶神装名称：")
+            if input_2 == "exit":
+                return True
+            if input_2 not in s.data:
+                print(f">>>不存在：{input_2}")
+                continue
+            if s.data[input_2]["是否升级"]:
+                s.upgrade(input_2)
+                break
+            else:
+                print(f">>>{input_2}材料不足以满祝福，不能升级")
+
+
+def shenji_category() -> dict:
+    return {
+        "矿洞": get_store_points("cmd=exchange&subtype=10&costtype=3"),
+        "掠夺": get_store_points("cmd=exchange&subtype=10&costtype=2"),
+        "踢馆": get_store_points("cmd=exchange&subtype=10&costtype=1"),
+        "竞技场": get_store_points("cmd=arena&op=queryexchange"),
+    }
+
+
+def 神技升级():
+    while True:
+        print("--" * 20)
+        input_1 = input("输入神技升级次数，若升级成功或材料不足则终止：")
+        if input_1 == "exit":
+            return True
+        if input_1.isdigit():
+            break
+        print(">>>只能输入数字")
+
+    while True:
+        category = shenji_category()
+        while True:
+            print("--" * 20)
+            for k, v in category.items():
+                print(f"{k}：{v}")
+            input_2 = input("选择积分兑换商店：")
+            if input_2 == "exit":
+                return True
+            if input_2 in category:
+                break
+            print(f">>>不存在：{input_2}")
+
+        s = ShenJi(int(input_1))
+        while True:
+            print("--" * 20)
+            input_3 = input("选择升级神技名称：")
+            if input_3 == "exit":
+                return True
+            if input_3 in s.data:
+                s.upgrade(input_3, input_2)
+                break
+            print(f">>>不存在：{input_3}")
 
 
 def 神装():
@@ -304,133 +474,90 @@ def 神装():
     神装自动积分兑换材料并进阶，始终不会使用斗豆兑换
     """
     print("任意位置输入exit退出当前账号任务")
-    print("--" * 20)
-    print("日常失败祝福值是 2")
-    print("活动期间是 2n 倍")
-    print("始终不会使用斗豆自动兑换")
+    category = ["神装进阶", "神技升级"]
     while True:
         print("--" * 20)
-        input_1 = input("输入神装失败祝福值：")
-        if input_1 == "exit":
-            return
-        if not input_1.isdigit():
-            print("只能输入数字")
-            continue
-
+        print("始终不会使用斗豆自动兑换")
         while True:
             print("--" * 20)
-            s = ShenZhuang(int(input_1))
+            for i, n in enumerate(category):
+                print(f"{i + 1}.{n}")
+            _input = input("选择神装类别：")
+            if _input == "exit":
+                return
+            if _input in category:
+                break
+            print(f">>>不存在神装类别：{_input}")
 
-            while True:
-                print("--" * 20)
-                input_2 = input("输入进阶神装名称：")
-                if input_2 == "exit":
-                    return
-                if input_2 not in s.data:
-                    print(f"{input_2} 不存在")
-                    continue
+        if _input == "神装进阶":
+            if 神装进阶():
+                return
+        elif _input == "神技升级":
+            if 神技升级():
+                return
 
-                number = s.compute_difference(input_2)
-                if number < 0:
-                    print(f"{input_2}满祝福材料还差 {number}")
-                    continue
 
-                print("--" * 20)
-                input_3 = input("输入y确定进阶：")
-                if input_3 == "exit":
-                    return
-                if input_3 != "y":
-                    continue
+class DuoBaoQiBing:
+    """
+    五行夺宝奇兵自动投掷
+    """
+
+    def __init__(self):
+        self.exploits = self._get_exploits()
+
+    def _get_exploits(self) -> int:
+        """
+        获取五行战功
+        """
+        # 五行-合成
+        D.get("cmd=element&subtype=4")
+        exploits = D.findall(r"拥有:(\d+)")[0]
+        return int(exploits)
+
+    def pelted(self, input_exploits: int):
+        """
+        太空探宝16倍场景投掷
+        """
+        while True:
+            if input_exploits > self.exploits:
                 break
 
-            if not s.run(input_2):
-                break
+            # 投掷
+            D.get("cmd=element&subtype=7")
+            if "【夺宝奇兵】" in D.html:
+                D.find(r"<br /><br />(.*?)<br />")
+                result = D.find(r"拥有:(\d+)", "战功")
+                D.find(r"进度：(.*?)<", "进度")
+                self.exploits = int(result)
+                if "您的战功不足" in D.html:
+                    break
+            elif "【选择场景】" in D.html:
+                if "你掷出了" in D.html:
+                    D.find(r"】<br />(.*?)<br />")
+                # 选择太空探宝
+                D.get("cmd=element&subtype=15&gameType=3")
+                print("--" * 20)
 
 
 def 夺宝奇兵():
     """
-    夺宝奇兵选择太空探宝场景投掷
+    五行夺宝奇兵选择太空探宝场景投掷
     """
     print("任意位置输入exit退出当前账号任务")
-    print("--" * 20)
-    print("夺宝奇兵太空探宝16倍场景投掷")
     while True:
         print("--" * 20)
-        # 五行合成页面
-        D.get("cmd=element&subtype=4")
-        result = D.findall(r"拥有:(\d+)")[0]
-        print(f"战功：{result}")
-        print("--" * 20)
-
-        _input = input("输入低于多少战功时结束投掷：")
-        if _input == "exit":
-            return
-        if not _input.isdigit():
-            print("只能输入数字")
-            continue
-        number_1 = int(result)
-        number_2 = int(_input)
-        if number_2 > number_1:
-            print(f"拥有战功{number_1}已经低于输入战功{number_2}")
-            continue
-        break
-
-    while True:
-        if number_2 > int(result):
-            break
-
-        # 投掷
-        D.get("cmd=element&subtype=7")
-        if "【夺宝奇兵】" in D.html:
-            D.find(r"<br /><br />(.*?)<br />")
-            result = D.find(r"拥有:(\d+)", name="战功")
-            if "您的战功不足" in D.html:
+        print("夺宝奇兵太空探宝16倍场景投掷")
+        d = DuoBaoQiBing()
+        while True:
+            print("--" * 20)
+            print(f"战功：{d.exploits}")
+            _input = input("输入低于多少战功时结束投掷：")
+            if _input == "exit":
+                return
+            if _input.isdigit():
+                d.pelted(int(_input))
                 break
-        elif "【选择场景】" in D.html:
-            if "你掷出了" in D.html:
-                D.find(r"】<br />(.*?)<br />")
-            # 选择太空探宝
-            D.get("cmd=element&subtype=15&gameType=3")
-
-
-def 柒承的忙碌日常(number: int):
-    """
-    挑战柒承的忙碌日常副本
-    """
-    for _ in range(number):
-        # 开启副本
-        D.get("cmd=jianghudream&op=beginInstance&ins_id=1")
-        if "帮助" in D.html:
-            # 开启副本所需追忆香炉不足
-            # 您还未编辑副本队伍，无法开启副本
-            D.msg_append(D.find())
-            break
-
-        for _ in range(8):
-            if "进入下一天" in D.html:
-                # 进入下一天
-                D.get("cmd=jianghudream&op=goNextDay")
-            if msg1 := D.findall(r'event_id=(\d+)">战斗\(等级1\)'):
-                # 战斗
-                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={msg1[0]}")
-                # FIGHT!
-                D.get("cmd=jianghudream&op=doPveFight")
-                D.find(r"<p>(.*?)<br />")
-                if "战败" in D.html:
-                    break
-            elif msg2 := D.findall(r'event_id=(\d+)">奇遇\(等级1\)'):
-                # 奇遇
-                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={msg2[0]}")
-                # 视而不见
-                D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=2")
-                D.find(r"获得金币：\d+<br />(.*?)<br />")
-            elif msg3 := D.findall(r'event_id=(\d+)">商店\(等级1\)'):
-                # 商店
-                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={msg3[0]}")
-
-        # 结束回忆
-        D.get("cmd=jianghudream&op=endInstance")
-        D.msg_append(D.find())
+            print(">>>只能输入数字")
 
 
 class JiangHuChangMeng:
@@ -442,15 +569,11 @@ class JiangHuChangMeng:
         # 江湖长梦商店积分
         self.points: int = get_store_points("cmd=longdreamexchange")
         # 商店材料数据
-        self._data: dict = self._get_store_data()
-        # 输出商店数据
-        self._print_store_info()
+        self.data = self._get_data()
+        # 打印商店数据
+        self._print_info(self.data)
 
-    @property
-    def data(self):
-        return self._data
-
-    def _get_store_data(self) -> dict:
+    def _get_data(self) -> dict:
         """
         获取江湖长梦商店数据
         """
@@ -470,57 +593,129 @@ class JiangHuChangMeng:
 
         for d in data:
             _id, name, 售价, 已售, 限售 = d
+            if 已售 == 限售:
+                continue
             data_dict[name] = {
                 "id": _id,
-                "售价": int(售价),
-                "已售": int(已售),
-                "限售": int(限售),
+                "售价": 售价,
+                "购买次数": f"{已售}/{限售}",
             }
         return data_dict
 
-    def _print_store_info(self):
+    def _print_info(self, data: dict):
         """
-        将商店中的材料名称、售价、已售、限售打印出来
+        打印江湖长梦商店材料数据
         """
-        headers = ["名称", "售价", "已售", "限售"]
-        # 打印表头
-        print("{:<12}{:<5}{:<4}{:<3}".format(*headers))
+        print_info(data)
         print("--" * 20)
-        for name, _dict in self.data.items():
-            售价 = _dict["售价"]
-            已售 = _dict["已售"]
-            限售 = _dict["限售"]
-            print(f"{name:<12}{售价:<5}{已售:<4}{限售:<3}")
+        print(f"商店积分：{self.points}")
 
-    def get_store_id_and_number(self, name: str) -> tuple:
-        """
-        返回江湖长梦商店兑换id、可兑换数量
-        """
-        data_dict = self.data[name]
-        _id: str = data_dict["id"]
-        售价: int = data_dict["售价"]
-        已售: int = data_dict["已售"]
-        限售: int = data_dict["限售"]
-
-        # 剩余兑换额度
-        number_1: int = 限售 - 已售
-        # 积分最多可兑换数量
-        number_2: int = self.points // 售价
-        if number_1 <= number_2:
-            number = number_1
-        else:
-            number = number_2
-
-        return _id, number
-
-    def 兑换(self, name: str, number: int):
+    def exchange(self, name: str, number: int):
         """
         江湖长梦商店材料兑换
         """
         _id: str = self.data[name]["id"]
         for i in range(number):
+            _name = f"{name}-{i + 1}"
             D.get(f"cmd=longdreamexchange&op=exchange&key_id={_id}")
-            D.find(r"侠士碎片</a><br />(.*?)<", name=f"{name}-{i + 1}")
+            if "成功" not in D.html:
+                D.find(r"】<br />(.*?)<", _name)
+                break
+            D.find(r"侠士碎片</a><br />(.*?)<", _name)
+
+
+class QiCheng:
+    """
+    挑战副本柒承的忙碌日常
+    """
+
+    def __init__(self):
+        # 追忆香炉数量
+        self.backpack_number = get_backpack_item_count(6477)
+        # 江湖长梦商店积分
+        self.points: int = get_store_points("cmd=longdreamexchange")
+
+    def challenge(self, number: int):
+        """
+        优先级：战斗 > 奇遇（视而不见）> 商店（不购买）
+        """
+        p = "cmd=jianghudream&op=chooseEvent&event_id="
+        for _ in range(number):
+            print("--" * 20)
+            # 开启副本
+            D.get("cmd=jianghudream&op=beginInstance&ins_id=1")
+            if "帮助" in D.html:
+                # 开启副本所需追忆香炉不足
+                # 您还未编辑副本队伍，无法开启副本
+                D.msg_append(D.find())
+                break
+
+            for _ in range(8):
+                if "进入下一天" in D.html:
+                    # 进入下一天
+                    D.get("cmd=jianghudream&op=goNextDay")
+                    result_1 = D.findall(r'event_id=(\d+)">战斗')
+                    result_2 = D.findall(r'event_id=(\d+)">奇遇')
+                    result_3 = D.findall(r'event_id=(\d+)">商店')
+                if result_1:
+                    # 战斗
+                    D.get(f"{p}{result_1[0]}")
+                    # FIGHT!
+                    D.get("cmd=jianghudream&op=doPveFight")
+                    D.find(r"<p>(.*?)<br />")
+                    if "战败" in D.html:
+                        break
+                elif result_2:
+                    # 奇遇
+                    D.get(f"{p}{result_2[0]}")
+                    # 视而不见
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=2")
+                    D.find(r"获得金币：\d+<br />(.*?)<br />")
+                elif result_3:
+                    # 商店
+                    D.get(f"{p}{result_3[0]}")
+
+            # 结束回忆
+            D.get("cmd=jianghudream&op=endInstance")
+            D.msg_append(D.find())
+
+
+def 江湖长梦_商店兑换():
+    while True:
+        j = JiangHuChangMeng()
+        while True:
+            print("--" * 20)
+            input_1 = input("输入兑换材料名称：")
+            if input_1 == "exit":
+                return True
+            if input_1 in j.data:
+                break
+            print(f">>>不存在：{input_1}")
+        while True:
+            print("--" * 20)
+            input_2 = input("输入兑换数量：")
+            if input_2 == "exit":
+                return True
+            if input_2.isdigit():
+                j.exchange(input_1, int(input_2))
+                break
+            print(">>>只能输入数字")
+
+
+def 柒承的忙碌日常():
+    while True:
+        q = QiCheng()
+        while True:
+            print("--" * 20)
+            print(f"追忆香炉数量：{q.backpack_number}")
+            print(f"商店积分：{q.points}")
+            _input = input("输入开启次数：")
+            if _input == "exit":
+                return True
+            if _input.isdigit():
+                q.challenge(int(_input))
+                break
+            print(">>>只能输入数字")
 
 
 def 江湖长梦():
@@ -528,97 +723,47 @@ def 江湖长梦():
     商店兑换及副本挑战（柒承的忙碌日常）
     """
     print("任意位置输入exit退出当前账号任务")
+    category = ["江湖长梦商店兑换", "柒承的忙碌日常"]
     while True:
         print("--" * 20)
-        print("柒承的忙碌日常")
-        print("江湖长梦商店兑换")
-        input_1 = input("输入任务：")
-        if input_1 == "exit":
+        for i, n in enumerate(category):
+            print(f"{i + 1}.{n}")
+        _input = input("选择任务：")
+        if _input == "exit":
             return
-        if input_1 not in ["柒承的忙碌日常", "江湖长梦商店兑换"]:
-            print(f"{input_1} 不存在")
-            continue
-        break
-
-    if input_1 == "柒承的忙碌日常":
-        while True:
-            print("--" * 20)
-            number_1 = get_backpack_item_count(6477)
-            print(f"追忆香炉数量：{number_1}")
-            print("--" * 20)
-            input_2 = input("输入挑战次数：")
-            if input_2 == "exit":
-                return
-            if not input_2.isdigit():
-                print("只能输入数字")
-                continue
-
-            number_2 = int(input_2)
-            if number_1 < number_2:
-                print(f"最多可挑战{number_1}次，请重新输入")
-                continue
-            柒承的忙碌日常(number_2)
-
-    if input_1 != "江湖长梦商店兑换":
-        return
-
-    while True:
-        print("--" * 20)
-        j = JiangHuChangMeng()
-        print("--" * 20)
-        print(f"商店积分：{j.points}")
-        while True:
-            print("--" * 20)
-            input_3 = input("输入兑换材料名称：")
-            if input_3 == "exit":
-                return
-            if input_3 not in j.data:
-                print(f"{input_3} 不存在，请重新输入")
-                continue
+        if _input in category:
             break
-        while True:
-            print("--" * 20)
-            input_4 = input("输入兑换材料数量：")
-            if input_4 == "exit":
-                return
-            if not input_4.isdigit():
-                print("只能输入数字")
-                continue
+        print(f">>>不存在：{_input}")
 
-            number_3 = int(input_4)
-            _id, number_4 = j.get_store_id_and_number(input_3)
-            print(f"{input_3}最多可兑换{number_4}个")
-            if number_4 == 0:
-                print("请更换兑换材料名称")
-                break
-            if number_3 > number_4:
-                print("超过可兑换数量，请重新输入")
-                continue
-            break
-
-        print(f"{input_3}：{number_3}")
-        input_5 = input("输入y确定兑换：")
-        print("--" * 20)
-        if input_5 == "exit":
+    if _input == "江湖长梦商店兑换":
+        if 江湖长梦_商店兑换():
             return
-        if input_5 == "y":
-            j.兑换(input_3, number_4)
+    elif _input == "柒承的忙碌日常":
+        if 柒承的忙碌日常():
+            return
 
 
-class XingPanInfo:
+class XingPan:
     """
-    获取星盘信息
+    星石兑换合成
     """
 
     def __init__(self):
         # 幻境商店积分
-        p = "cmd=exchange&subtype=10&costtype=9"
-        self.points: int = get_store_points(p)
-        self.data = {}
-        self._get_xingpan_data()
-        self._print_info()
+        self.points = get_store_points("cmd=exchange&subtype=10&costtype=9")
+        self.data = self._get_data()
+        self._print_info(self.data)
+        self.合成次数 = {}
+        self._level_ties = {
+            1: 5,  # 5个1级星石合成一个2级星石
+            2: 4,  # 4个2级星石合成一个3级星石
+            3: 4,  # 4个3级星石合成一个4级星石
+            4: 3,  # 3个4级星石合成一个5级星石
+            5: 3,  # 3个5级星石合成一个6级星石
+            6: 2,  # 2个6级星石合成一个7级星石
+        }
 
-    def _get_store_max_number(self, name: str) -> int | None:
+    def _get_store_max_number(self, name: str) -> int:
         """
         返回幻境商店星石最大兑换数量
         """
@@ -632,12 +777,13 @@ class XingPanInfo:
         }
         if price := data.get(name):
             return self.points // price
+        return 0
 
-    def _get_xingpan_data(self):
+    def _get_data(self) -> dict:
         """
         获取1~6级星石数量及2~7级星石合成id
         """
-        data = {
+        data_dict = {
             "日曜石": 1,
             "玛瑙石": 2,
             "迅捷石": 3,
@@ -647,75 +793,72 @@ class XingPanInfo:
             "狂暴石": 7,
             "神愈石": 8,
         }
-        for name, gem in data.items():
+        data = {}
+        for name, gem in data_dict.items():
             D.get(f"cmd=astrolabe&op=showgemupgrade&gem_type={gem}")
-            result_1 = D.findall(r"（(\d+)）")[1:]
-            result_2 = D.findall(r"gem=(\d+)")[1:]
-            # 1~6级星石数量
-            data_1 = {i + 1: int(item) for i, item in enumerate(result_1)}
+            result_1 = D.findall(r"gem=(\d+)")[1:]
+            result_2 = D.findall(r"（(\d+)）")[1:]
             # 2~7级星石合成id
-            data_2 = {i + 2: item for i, item in enumerate(result_2)}
-            self.data[name] = {
-                "possess": data_1,
-                "合成id": data_2,
-                "store_max_number": self._get_store_max_number(name),
+            data_id = {i + 2: item for i, item in enumerate(result_1)}
+            # 1~6级星石数量
+            data_number = {i + 1: int(item) for i, item in enumerate(result_2)}
+            data[name] = {
+                "id": data_id,
+                "number": data_number,
+                "幻境可兑换数量": self._get_store_max_number(name),
             }
+        return data
 
-    def _print_info(self):
+    def _print_info(self, data: dict):
         """
-        显示星石信息
+        打印星石数据
         """
-        print("1~6级星石数量")
-        for name, v in self.data.items():
-            print(f"{name}：{v['possess']}")
+        for name, _dict in data.items():
+            print("--" * 20)
+            print(f"名称：{name}")
+            for k, v in _dict.items():
+                if k == "id":
+                    continue
+                elif k == "number":
+                    for level, number in v.items():
+                        print(f"{level}级：{number}")
+                else:
+                    print(f"{k}：{v}")
+        print("--" * 20)
+        print(f"商店积分：{self.points}")
 
-
-class XingPan:
-    """
-    星石兑换合成
-    """
-
-    def __init__(self, name: str, data: dict):
-        self._name = name
-        self.data = data
-        if data.get(name) is None:
-            self.possess = None
-        else:
-            self.possess = self.data[self._name]["possess"]
-            self.store_max_number = self.data[self._name]["store_max_number"]
-            self.合成次数 = {}
-            # 各级星石转换关系
-            self._level_ties = {
-                1: 5,  # 5个1级星石合成一个2级星石
-                2: 4,  # 4个2级星石合成一个3级星石
-                3: 4,  # 4个3级星石合成一个4级星石
-                4: 3,  # 3个4级星石合成一个5级星石
-                5: 3,  # 3个5级星石合成一个6级星石
-                6: 2,  # 2个6级星石合成一个7级星石
-            }
-
-    def compute(self, level: int, number: int) -> tuple[int, int]:
+    def _get_level_number(self, name: str, level: int) -> int:
         """
-        返回需兑换的1级星石数量及星石等级
+        获取星石某级数量
+        """
+        return self.data[name]["number"][level]
+
+    def compute(self, name: str, level: int, number: int) -> tuple[int, int]:
+        """
+        返回星石等级及兑换数量
 
         Args:
+            name: 星石名称
             level: 合成星石等级
             number: 合成星石数量
         """
-
         level -= 1
-        if self.possess[level] >= self._level_ties[level] * number:
+        # 拥有数量
+        possess_number = self._get_level_number(name, level)
+        # 消耗数量
+        deplete_number = self._level_ties[level] * number
+        if possess_number >= deplete_number:
             self.合成次数[level + 1] = number
-            return 0, level
+            return level, 0
         else:
-            _number = self._level_ties[level] * number - self.possess[level]
+            exchange_number = deplete_number - possess_number
             self.合成次数[level + 1] = number
             if level == 1:
-                return _number, level
+                return level, exchange_number
             else:
-                return self.compute(level, _number)
+                return self.compute(name, level, exchange_number)
 
-    def 兑换(self, number: int):
+    def exchange(self, name: str, number: int):
         """
         幻境商店兑换材料
         """
@@ -727,7 +870,10 @@ class XingPan:
             "日曜石": 1237,
             "月光石": 1238,
         }
-        t = data[self._name]
+        if name not in data:
+            return
+
+        t = data[name]
         quotient, remainder = divmod(number, 10)
         for _ in range(quotient):
             # 兑换10个
@@ -737,17 +883,19 @@ class XingPan:
             # 兑换1个
             D.get(f"cmd=exchange&subtype=2&type={t}&times=1&costtype=9")
             D.find(name="幻境商店")
+        print("--" * 20)
 
-    def 合成(self):
+    def 合成(self, name: str):
         """
         星石合成
         """
+        id_dict = self.data[name]["id"]
         data = dict(sorted(self.合成次数.items()))
         for level, number in data.items():
-            gem = self.data[self._name]["合成id"][level]
+            _id = id_dict[level]
             for _ in range(number):
-                D.get(f"cmd=astrolabe&op=upgradegem&gem={gem}")
-                D.find(r"规则</a><br />(.*?)<", name=f"{level}级{self._name}")
+                D.get(f"cmd=astrolabe&op=upgradegem&gem={_id}")
+                D.find(r"规则</a><br />(.*?)<", f"{level}级{name}")
 
 
 def 星盘():
@@ -755,73 +903,53 @@ def 星盘():
     星石自动兑换合成
     """
     print("任意位置输入exit退出当前账号任务")
+    print("--" * 20)
     while True:
-        print("--" * 20)
-        x_info = XingPanInfo()
-        print("--" * 20)
-        print(f"商店积分：{x_info.points}")
-
+        x = XingPan()
         while True:
             print("--" * 20)
             input_1 = input("输入合成星石名称：")
             if input_1 == "exit":
                 return
-            x = XingPan(input_1, x_info.data)
-            if x.possess:
+            if input_1 in x.data:
                 break
-            print(f"{input_1} 不存在，请重新输入")
-
+            print(f">>>不存在：{input_1}")
         while True:
             print("--" * 20)
             input_2 = input("输入合成星石等级（2~7）：")
             if input_2 == "exit":
                 return
+            if not input_2.isdigit():
+                print(">>>只能输入数字")
+                continue
             if input_2 in ["2", "3", "4", "5", "6", "7"]:
                 break
-            print("星石等级只能是2~7级")
-
+            else:
+                print(">>>合成星石等级只能是2~7级")
         while True:
             print("--" * 20)
             input_3 = input(f"输入合成{input_2}级星石数量：")
             if input_3 == "exit":
                 return
             if not input_3.isdigit():
-                print("只能输入数字")
+                print(">>>只能输入数字")
                 continue
             if input_3 == "0":
-                print("输入数字不能为0")
-                continue
-            break
+                break
 
-        print("--" * 20)
-        number, level = x.compute(int(input_2), int(input_3))
-        if number != 0:
-            store_max_number = x.store_max_number
-            print(f"合成{input_3}个{input_2}级{input_1}还需兑换{number}个1级{input_1}")
-            if store_max_number is None:
-                print(f"幻境商店不可兑换{input_1}，请重新输入")
-                continue
-
-            print(f"幻境商店最多可兑换{store_max_number}个{input_1}")
-            if store_max_number < number:
-                print(f"还差{number - store_max_number}个，请重新输入")
-                continue
-
-            input_4 = input("输入y确定兑换：")
-            if input_4 == "exit":
-                return
-            if input_4 != "y":
-                continue
-            x.兑换(number)
-        else:
-            print(f"{input_2}级{input_1}可直接从{level}级开始合成")
-
-        x.合成()
+            store_number = x.data[input_1]["幻境可兑换数量"]
+            level, number = x.compute(input_1, int(input_2), int(input_3))
+            if store_number >= number:
+                x.exchange(input_1, int(number))
+                x.合成(input_1)
+                break
+            print(">>>幻境商店兑换积分不足或不可兑换")
+            print(">>>输入 0 重新开始")
 
 
 class XinYuanYingShenQi:
     """
-    新元婴神器
+    新元婴神器自动升级
     """
 
     def __init__(self, name: str):
@@ -843,9 +971,11 @@ class XinYuanYingShenQi:
             "伤害技能": "op=2&type=5",
             "特殊技能": "op=2&type=6",
         }
+        data = {}
         params = params_data[name]
         D.get(f"cmd=newAct&subtype=104&{params}")
         D.html = D.html.split("|")[-1]
+
         # 获取神器名称
         result_1 = D.findall(r"([\u4e00-\u9fff]+)&nbsp;\d+星")
         # 获取神器星级
@@ -854,14 +984,13 @@ class XinYuanYingShenQi:
         result_3 = D.findall(r"item_id=(\d+).*?一键")
         # 获取消耗
         result_4 = D.findall(r":(\d+)")
-        # 获取祝福值进度
+        # 获取当前祝福值
         result_5 = D.findall(r"(\d+)/")
-        # 获取祝福值满值
+        # 获取满祝福值
         result_6 = D.findall(r"/(\d+)")
 
         # 过滤5星
         result_7 = [(k, v) for k, v in zip(result_1, result_2) if v != "5"]
-        data = {}
         for index, t in enumerate(result_7):
             name, level = t
             number_1 = int(result_4[index])
@@ -869,14 +998,13 @@ class XinYuanYingShenQi:
             number_3 = int(result_6[index])
             number_4 = self._compute(number_1, number_2, number_3)
             data[name] = {
-                "神器星级": level,
+                "星级": level,
                 "id": result_3[index],
-                "神器消耗": number_1,
-                "神器祝福值进度": number_2,
-                "神器满祝福值": number_3,
-                "真黄金卷轴数量": self._number,
-                "满祝福消耗数量": number_4,
-                "是否升级": self._number >= number_4,
+                "升级消耗": number_1,
+                "祝福值": f"{number_2}/{number_3}",
+                "升级至满祝福消耗": number_4,
+                "真黄金卷轴": self._number,
+                "是否升级": number_4 <= self._number,
             }
         return data
 
@@ -908,7 +1036,6 @@ class XinYuanYingShenQi:
         """
         for name, _dict in data.items():
             print("--" * 20)
-            print(f"神器名称：{name}")
             for k, v in _dict.items():
                 print(f"{k}：{v}")
 
@@ -932,7 +1059,7 @@ class XinYuanYingShenQi:
             # 升级一次
             D.get(p)
             D.find(name=name)
-            D.find(rf"{name}.*?:\d+ [\u4e00-\u9fff]+ (.*?)<br />", name=name)
+            D.find(rf"{name}.*?:\d+ [\u4e00-\u9fff]+ (.*?)<br />", name)
             if "恭喜您" in D.html:
                 break
 
@@ -955,18 +1082,17 @@ def 新元婴神器():
         "伤害技能",
         "特殊技能",
     ]
-    print("神器类别：")
-    for n in category:
-        print(n)
     while True:
         while True:
             print("--" * 20)
-            input_1 = input("输入神器类别：")
+            for i, n in enumerate(category):
+                print(f"{i + 1}.{n}")
+            input_1 = input("选择神器类别：")
             if input_1 == "exit":
                 return
             if input_1 in category:
                 break
-            print(f"不存在神器类别：{input_1}")
+            print(f">>>不存在：{input_1}")
 
         x = XinYuanYingShenQi(input_1)
         while True:
@@ -975,10 +1101,10 @@ def 新元婴神器():
             if input_2 == "exit":
                 return
             if input_2 not in x.data:
-                print(f"不存在神器名称：{input_2}")
+                print(f">>>不存在：{input_2}")
                 continue
             if x.data[input_2]["是否升级"]:
                 x.upgrade(input_2)
                 break
             else:
-                print(f"{input_2}：满祝福材料不足")
+                print(f">>>{input_2} 满祝福材料不足")

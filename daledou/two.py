@@ -351,8 +351,8 @@ def 猜单双():
     for _ in range(5):
         value = D.findall(r'value=(\d+)">.*?数')
         if not value:
-            D.print_info("猜单双已经做过了")
-            D.msg_append("猜单双已经做过了")
+            D.print_info("猜单双已经结束")
+            D.msg_append("猜单双已经结束")
             break
 
         value = random.choice(value)
