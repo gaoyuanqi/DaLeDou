@@ -1232,43 +1232,16 @@ def 查看好友资料():
 
 def 徽章进阶():
     """
-    勤劳徽章  1
-    好友徽章  2
-    等级徽章  3
-    长者徽章  4
-    时光徽章  5
-    常胜徽章  6
-    财富徽章  7
-    达人徽章  8
-    武林徽章  9
-    分享徽章  10
-    金秋徽章  11
-    武器徽章  12
-    金秋富豪  13
-    佣兵徽章  14
-    斗神徽章  15
-    圣诞徽章  16
-    春节徽章  17
-    春节富豪  18
-    技能徽章  19
-    一掷千金  20
-    劳动徽章  21
-    周年富豪  22
-    国旗徽章  23
-    七周年徽章  24
-    八周年徽章  25
-    九周年徽章  26
-    魅力徽章  27
-    威望徽章  28
-    十周年徽章  29
-    十一周年徽章  30
-    仙武徽章  31
-    荣耀徽章  32
-    十二周年徽章  33
+    进阶一次
     """
-    for _id in range(1, 34):
+    # 关闭道具不足自动购买
+    D.get("cmd=achievement&op=setautobuy&enable=0&achievement_id=12")
+    for _id in range(1, 41):
         D.get(f"cmd=achievement&op=upgradelevel&achievement_id={_id}&times=1")
-        D.find(r";<br />(.*?)<br />", "任务-徽章进阶")
+        if "【徽章馆】" in D.html:
+            D.find("<br /><br />(.*?)<", "任务-徽章进阶")
+            continue
+        D.find(name="任务-徽章进阶")
         if "进阶失败" in D.html:
             break
         elif "进阶成功" in D.html:

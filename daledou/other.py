@@ -16,6 +16,7 @@ _FUNC_NAME = [
     "江湖长梦",
     "星盘",
     "新元婴神器",
+    "深渊之潮",
 ]
 
 
@@ -91,6 +92,7 @@ def store_exchange(ten_p: str, one_p: str, number: int):
             one_number -= 1
         if "不足" in D.html:
             return
+    print("--" * 20)
 
 
 def print_info(data: dict):
@@ -166,7 +168,7 @@ class ShenZhuang:
 
             # 获取阶层
             result_1 = D.findall(r"阶层：(.*?)<")[0]
-            # 获取进阶消耗材料名称、数量
+            # 获取进阶消耗名称、数量
             result_2, result_3 = D.findall(r"进阶消耗：(.*?)\*(\d+)")[0]
             # 获取当前祝福值、满祝福值
             result_4, result_5 = D.findall(r"祝福值：(\d+)/(\d+)")[0]
@@ -182,13 +184,13 @@ class ShenZhuang:
             data[name] = {
                 "id": _id,
                 "阶层": result_1,
-                "进阶消耗材料": result_2,
+                "进阶消耗名称": result_2,
                 "进阶消耗数量": number_1,
                 "祝福值": f"{number_2}/{number_3}",
-                "升级至满祝福消耗": number_4,
-                "背包数量": number_5,
+                "满祝福消耗数量": number_4,
+                "材料数量": number_5,
                 "商店积分": number_6,
-                "是否升级": number_4 <= (number_5 + (number_6 // 40)),
+                "是否升级": (number_5 + (number_6 // 40)) >= number_4,
             }
         return data
 
@@ -216,15 +218,13 @@ class ShenZhuang:
         神装进阶
         """
         _id: int = self.data[name]["id"]
-        result: str = self.data[name]["进阶消耗材料"]
+        result: str = self.data[name]["进阶消耗名称"]
         number_1: int = self.data[name]["进阶消耗数量"]
-        number_2: int = self.data[name]["背包数量"]
+        number_2: int = self.data[name]["材料数量"]
 
-        # 神装
-        D.get("cmd=outfit")
-        if "关闭自动斗豆兑换神装进阶材料" in D.html:
-            D.get(f"cmd=outfit&op=4&auto_buy=2&magic_outfit_id={_id}")
-            D.find(r"\|<br />(.*?)<br />")
+        # 关闭自动斗豆兑换神装进阶材料
+        D.get(f"cmd=outfit&op=4&auto_buy=2&magic_outfit_id={_id}")
+        D.find(r"\|<br />(.*?)<br />")
 
         while True:
             print("--" * 20)
@@ -286,7 +286,7 @@ class ShenJi:
     def __init__(self, number: int):
         # 升级次数
         self.upgrade_number = number
-        # 神秘精华背包数量
+        # 神秘精华数量
         self.backpack_number = get_backpack_item_count(3567)
         self.data = self._get_data(self._get_data_id())
         self._print_info(self.data)
@@ -348,11 +348,10 @@ class ShenJi:
         _id = self.data[name]["id"]
         # 升级消耗
         number = self.data[name]["升级消耗"]
-        # 神装
-        D.get("cmd=outfit")
-        if "关闭自动斗豆兑换神技升级材料" in D.html:
-            D.get(f"cmd=outfit&op=8&auto_buy=2&magic_outfit_id={_id}")
-            D.find(r"\|<br />(.*?)<br />")
+
+        # 关闭自动斗豆兑换神技升级材料
+        D.get(f"cmd=outfit&op=8&auto_buy=2&magic_outfit_id={_id}")
+        D.find(r"\|<br />(.*?)<br />")
 
         for _ in range(self.upgrade_number):
             print("--" * 20)
@@ -1002,9 +1001,9 @@ class XinYuanYingShenQi:
                 "id": result_3[index],
                 "升级消耗": number_1,
                 "祝福值": f"{number_2}/{number_3}",
-                "升级至满祝福消耗": number_4,
-                "真黄金卷轴": self._number,
-                "是否升级": number_4 <= self._number,
+                "满祝福消耗数量": number_4,
+                "真黄金卷轴数量": self._number,
+                "是否升级": self._number >= number_4,
             }
         return data
 
@@ -1034,10 +1033,7 @@ class XinYuanYingShenQi:
         """
         打印神器信息
         """
-        for name, _dict in data.items():
-            print("--" * 20)
-            for k, v in _dict.items():
-                print(f"{k}：{v}")
+        print_info(data)
 
     def upgrade(self, name: str):
         """
@@ -1108,3 +1104,166 @@ def 新元婴神器():
                 break
             else:
                 print(f">>>{input_2} 满祝福材料不足")
+
+
+class SanHun:
+    """
+    灵枢精魄三魂自动兑换进阶
+    """
+
+    def __init__(self):
+        self.points = get_store_points("cmd=abysstide&op=viewabyssshop")
+        self.data = self._get_data()
+        self._print_info(self.data)
+
+    def _compute(self, n_1: int, n_2: int, n_3: int) -> int:
+        """
+        计算三魂进阶至满进度消耗所需材料数量
+
+        Args:
+            n_1: 进阶一次消耗数量
+            n_2: 当前进度
+            n_3: 总进度
+        """
+        return ((n_3 - n_2) // 2) * n_1
+
+    def _get_data(self) -> dict:
+        """
+        获取三魂数据
+        """
+        data_dict = {"天魂": 1, "地魂": 2, "命魂": 3}
+        data = {}
+        for name, _id in data_dict.items():
+            D.get(f"cmd=abysstide&op=showsoul&soul_id={_id}")
+            if "五阶五星" in D.html:
+                continue
+            # 阶段
+            result_1 = D.findall(r"阶段：(.*?)<")[0]
+            # 消耗名称
+            result_2 = D.findall(r"消耗：(.*?)\*")[0]
+            # 消耗数量
+            result_3 = D.findall(r"消耗：.*?\*(\d+)")[0]
+            # 材料数量
+            result_4 = D.findall(r"\((\d+)\)")[0]
+            # 当前进度
+            result_5 = D.findall(r"进度：(\d+)/")[0]
+            # 总进度
+            result_6 = D.findall(r"进度：\d+/(\d+)")[0]
+
+            number_1 = int(result_3)
+            number_2 = int(result_4)
+            number_3 = int(result_5)
+            number_4 = int(result_6)
+            number_5 = self._compute(number_1, number_3, number_4)
+            data[name] = {
+                "id": _id,
+                "阶段": result_1,
+                "消耗名称": result_2,
+                "消耗数量": number_1,
+                "当前进度": number_3,
+                "总进度": number_4,
+                "满进度消耗数量": number_5,
+                "材料数量": number_2,
+                "是否升级": (number_2 + (self.points // 90)) >= number_5,
+            }
+        return data
+
+    def _print_info(self, data: dict):
+        """
+        打印三魂数据
+        """
+        print_info(data)
+        print("--" * 20)
+        print(f"商店积分：{self.points}")
+
+    def upgrade(self, name: str):
+        """
+        三魂进阶
+        """
+        _id: int = self.data[name]["id"]
+        result: str = self.data[name]["消耗名称"]
+        number_1: int = self.data[name]["消耗数量"]
+        number_2: int = self.data[name]["材料数量"]
+        number_3: int = self.data[name]["当前进度"]
+        number_4: int = self.data[name]["总进度"]
+
+        # 关闭斗豆自动兑换
+        D.get(f"cmd=abysstide&op=setauto&value=0&soul_id={_id}")
+
+        while True:
+            print("--" * 20)
+            if (number_4 - number_3) >= 20:
+                t = 10
+                number_5 = number_1 * 10
+            else:
+                t = 1
+                number_5 = number_1
+
+            if number_5 > number_2:
+                self._store_exchange(result, (number_5 - number_2))
+                number_2 = number_5
+
+            # 进阶十次
+            D.get(f"cmd=abysstide&op=upgradesoul&soul_id={_id}&times={t}")
+            if "恭喜您升级成功" in D.html:
+                D.find(name=name)
+                break
+            elif "道具不足" in D.html:
+                D.find(name=name)
+                break
+
+            result_1 = D.find(r"进度：(.*?)&", f"{name}-进度")
+            # 当前进度、总进度
+            result_2, result_3 = result_1.split("/")
+            number_3 = int(result_2)
+            number_4 = int(result_3)
+            # 更新背包材料数量
+            if (number_2 - number_5) >= 0:
+                number_2 -= number_5
+
+    def _store_exchange(self, name: str, number: int):
+        """
+        深渊黑商兑换材料
+        """
+        data = {
+            "御魂丹-天": {
+                "ten": "cmd=abysstide&op=abyssexchange&id=1&times=10",
+                "one": "cmd=abysstide&op=abyssexchange&id=1&times=1",
+            },
+            "御魂丹-地": {
+                "ten": "cmd=abysstide&op=abyssexchange&id=2&times=10",
+                "one": "cmd=abysstide&op=abyssexchange&id=2&times=1",
+            },
+            "御魂丹-命": {
+                "ten": "cmd=abysstide&op=abyssexchange&id=3&times=10",
+                "one": "cmd=abysstide&op=abyssexchange&id=3&times=1",
+            },
+        }
+        ten_p = data[name]["ten"]
+        one_p = data[name]["one"]
+        store_exchange(ten_p, one_p, number)
+
+
+def 深渊之潮():
+    """
+    灵枢精魄三魂自动兑换进阶
+    """
+    print("任意位置输入exit退出当前账号任务")
+    print("--" * 20)
+    print("优先进阶十次，尾数进阶一次")
+    print("始终不会使用斗豆自动兑换")
+    while True:
+        s = SanHun()
+        while True:
+            print("--" * 20)
+            _input = input("选择进阶三魂名称：")
+            if _input == "exit":
+                return True
+            if _input not in s.data:
+                print(f">>>不存在：{_input}")
+                continue
+            if s.data[_input]["是否升级"]:
+                s.upgrade(_input)
+                break
+            else:
+                print(">>>材料不足以满进度，不能进阶")
