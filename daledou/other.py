@@ -283,9 +283,7 @@ class ShenJi:
     神技自动兑换升级
     """
 
-    def __init__(self, number: int):
-        # 升级次数
-        self.upgrade_number = number
+    def __init__(self):
         # 神秘精华数量
         self.backpack_number = get_backpack_item_count(3567)
         self.data = self._get_data(self._get_data_id())
@@ -353,7 +351,7 @@ class ShenJi:
         D.get(f"cmd=outfit&op=8&auto_buy=2&magic_outfit_id={_id}")
         D.find(r"\|<br />(.*?)<br />")
 
-        for _ in range(self.upgrade_number):
+        while True:
             print("--" * 20)
             if number > self.backpack_number:
                 self._store_exchange(store, (number - self.backpack_number))
@@ -401,7 +399,7 @@ def 神装进阶():
         print("--" * 20)
         print("基本失败祝福值是 2，活动期间是 2n 倍")
         input_1 = input("输入神装失败祝福值：")
-        if input_1 == "exit":
+        if input_1 == "q":
             return True
         if input_1.isdigit():
             break
@@ -409,10 +407,14 @@ def 神装进阶():
 
     while True:
         s = ShenZhuang(int(input_1))
+        if not s.data:
+            print("--" * 20)
+            print(">>>神装全部已满级")
+            break
         while True:
             print("--" * 20)
             input_2 = input("选择进阶神装名称：")
-            if input_2 == "exit":
+            if input_2 == "q":
                 return True
             if input_2 not in s.data:
                 print(f">>>不存在：{input_2}")
@@ -424,65 +426,55 @@ def 神装进阶():
                 print(f">>>{input_2}材料不足以满祝福，不能升级")
 
 
-def shenji_category() -> dict:
-    return {
+def 神技升级():
+    store_category = {
         "矿洞": get_store_points("cmd=exchange&subtype=10&costtype=3"),
         "掠夺": get_store_points("cmd=exchange&subtype=10&costtype=2"),
         "踢馆": get_store_points("cmd=exchange&subtype=10&costtype=1"),
         "竞技场": get_store_points("cmd=arena&op=queryexchange"),
     }
-
-
-def 神技升级():
     while True:
-        print("--" * 20)
-        input_1 = input("输入神技升级次数，若升级成功或材料不足则终止：")
-        if input_1 == "exit":
-            return True
-        if input_1.isdigit():
+        s = ShenJi()
+        if not s.data:
+            print("--" * 20)
+            print(">>>神技全部已满级")
             break
-        print(">>>只能输入数字")
-
-    while True:
-        category = shenji_category()
         while True:
             print("--" * 20)
-            for k, v in category.items():
+            input_1 = input("选择升级神技名称：")
+            if input_1 == "q":
+                return True
+            if input_1 in s.data:
+                break
+            print(f">>>不存在：{input_1}")
+        while True:
+            print("--" * 20)
+            for k, v in store_category.items():
                 print(f"{k}：{v}")
             input_2 = input("选择积分兑换商店：")
-            if input_2 == "exit":
+            if input_2 == "q":
                 return True
-            if input_2 in category:
+            if input_2 in store_category:
+                s.upgrade(input_1, input_2)
                 break
             print(f">>>不存在：{input_2}")
-
-        s = ShenJi(int(input_1))
-        while True:
-            print("--" * 20)
-            input_3 = input("选择升级神技名称：")
-            if input_3 == "exit":
-                return True
-            if input_3 in s.data:
-                s.upgrade(input_3, input_2)
-                break
-            print(f">>>不存在：{input_3}")
 
 
 def 神装():
     """
     神装自动积分兑换材料并进阶，始终不会使用斗豆兑换
     """
-    print("任意位置输入exit退出当前账号任务")
+    print("任意位置输入 q 退出当前账号任务")
+    print("--" * 20)
+    print("始终不会使用斗豆自动兑换")
     category = ["神装进阶", "神技升级"]
     while True:
-        print("--" * 20)
-        print("始终不会使用斗豆自动兑换")
         while True:
             print("--" * 20)
             for i, n in enumerate(category):
                 print(f"{i + 1}.{n}")
             _input = input("选择神装类别：")
-            if _input == "exit":
+            if _input == "q":
                 return
             if _input in category:
                 break
@@ -542,7 +534,7 @@ def 夺宝奇兵():
     """
     五行夺宝奇兵选择太空探宝场景投掷
     """
-    print("任意位置输入exit退出当前账号任务")
+    print("任意位置输入 q 退出当前账号任务")
     while True:
         print("--" * 20)
         print("夺宝奇兵太空探宝16倍场景投掷")
@@ -551,7 +543,7 @@ def 夺宝奇兵():
             print("--" * 20)
             print(f"战功：{d.exploits}")
             _input = input("输入低于多少战功时结束投掷：")
-            if _input == "exit":
+            if _input == "q":
                 return
             if _input.isdigit():
                 d.pelted(int(_input))
@@ -685,7 +677,7 @@ def 江湖长梦_商店兑换():
         while True:
             print("--" * 20)
             input_1 = input("输入兑换材料名称：")
-            if input_1 == "exit":
+            if input_1 == "q":
                 return True
             if input_1 in j.data:
                 break
@@ -693,7 +685,7 @@ def 江湖长梦_商店兑换():
         while True:
             print("--" * 20)
             input_2 = input("输入兑换数量：")
-            if input_2 == "exit":
+            if input_2 == "q":
                 return True
             if input_2.isdigit():
                 j.exchange(input_1, int(input_2))
@@ -709,7 +701,7 @@ def 柒承的忙碌日常():
             print(f"追忆香炉数量：{q.backpack_number}")
             print(f"商店积分：{q.points}")
             _input = input("输入开启次数：")
-            if _input == "exit":
+            if _input == "q":
                 return True
             if _input.isdigit():
                 q.challenge(int(_input))
@@ -721,14 +713,14 @@ def 江湖长梦():
     """
     商店兑换及副本挑战（柒承的忙碌日常）
     """
-    print("任意位置输入exit退出当前账号任务")
+    print("任意位置输入 q 退出当前账号任务")
     category = ["江湖长梦商店兑换", "柒承的忙碌日常"]
     while True:
         print("--" * 20)
         for i, n in enumerate(category):
             print(f"{i + 1}.{n}")
         _input = input("选择任务：")
-        if _input == "exit":
+        if _input == "q":
             return
         if _input in category:
             break
@@ -901,14 +893,14 @@ def 星盘():
     """
     星石自动兑换合成
     """
-    print("任意位置输入exit退出当前账号任务")
+    print("任意位置输入 q 退出当前账号任务")
     print("--" * 20)
     while True:
         x = XingPan()
         while True:
             print("--" * 20)
             input_1 = input("输入合成星石名称：")
-            if input_1 == "exit":
+            if input_1 == "q":
                 return
             if input_1 in x.data:
                 break
@@ -916,7 +908,7 @@ def 星盘():
         while True:
             print("--" * 20)
             input_2 = input("输入合成星石等级（2~7）：")
-            if input_2 == "exit":
+            if input_2 == "q":
                 return
             if not input_2.isdigit():
                 print(">>>只能输入数字")
@@ -928,7 +920,7 @@ def 星盘():
         while True:
             print("--" * 20)
             input_3 = input(f"输入合成{input_2}级星石数量：")
-            if input_3 == "exit":
+            if input_3 == "q":
                 return
             if not input_3.isdigit():
                 print(">>>只能输入数字")
@@ -995,15 +987,20 @@ class XinYuanYingShenQi:
             number_1 = int(result_4[index])
             number_2 = int(result_5[index])
             number_3 = int(result_6[index])
-            number_4 = self._compute(number_1, number_2, number_3)
+
+            if level in ["0", "1", "2"]:
+                number = number_1
+            else:
+                number = self._compute(number_1, number_2, number_3)
+
             data[name] = {
-                "星级": level,
                 "id": result_3[index],
+                "星级": level,
                 "升级消耗": number_1,
                 "祝福值": f"{number_2}/{number_3}",
-                "满祝福消耗数量": number_4,
+                "满祝福消耗数量": number,
                 "真黄金卷轴数量": self._number,
-                "是否升级": self._number >= number_4,
+                "是否升级": self._number >= number,
             }
         return data
 
@@ -1064,11 +1061,7 @@ def 新元婴神器():
     """
     自动升级神器
     """
-    print("任意位置输入exit退出当前账号任务")
-    print("--" * 20)
-    print("三星（含）以下必成，最好去手动升级")
-    print("三星以上失败祝福值 2")
-    print("--" * 20)
+    print("任意位置输入 q 退出当前账号任务")
     category = [
         "投掷武器",
         "小型武器",
@@ -1079,22 +1072,25 @@ def 新元婴神器():
         "特殊技能",
     ]
     while True:
-        while True:
-            print("--" * 20)
-            for i, n in enumerate(category):
-                print(f"{i + 1}.{n}")
-            input_1 = input("选择神器类别：")
-            if input_1 == "exit":
-                return
-            if input_1 in category:
-                break
-            print(f">>>不存在：{input_1}")
-
+        print("--" * 20)
+        for i, n in enumerate(category):
+            print(f"{i + 1}.{n}")
+        input_1 = input("选择神器类别：")
+        if input_1 == "q":
+            return
+        if input_1 in category:
+            break
+        print(f">>>不存在：{input_1}")
+    while True:
         x = XinYuanYingShenQi(input_1)
+        if not x.data:
+            print("--" * 20)
+            print(f">>>{input_1}全部已满级")
+            break
         while True:
             print("--" * 20)
             input_2 = input("输入升级神器名称：")
-            if input_2 == "exit":
+            if input_2 == "q":
                 return
             if input_2 not in x.data:
                 print(f">>>不存在：{input_2}")
@@ -1248,16 +1244,20 @@ def 深渊之潮():
     """
     灵枢精魄三魂自动兑换进阶
     """
-    print("任意位置输入exit退出当前账号任务")
+    print("任意位置输入 q 退出当前账号任务")
     print("--" * 20)
     print("优先进阶十次，尾数进阶一次")
     print("始终不会使用斗豆自动兑换")
     while True:
         s = SanHun()
+        if not s.data:
+            print("--" * 20)
+            print(">>>三魂全部已满级")
+            break
         while True:
             print("--" * 20)
             _input = input("选择进阶三魂名称：")
-            if _input == "exit":
+            if _input == "q":
                 return True
             if _input not in s.data:
                 print(f">>>不存在：{_input}")
