@@ -17,6 +17,16 @@ Python 3.12
 ```
 
 
+## Python依赖
+
+```
+loguru
+pyyaml
+requests
+schedule
+```
+
+
 ## 快速开始
 
 **1、下载脚本**
@@ -29,17 +39,29 @@ git clone https://github.com/gaoyuanqi/DaLeDou.git
 cd DaLeDou
 ```
 
-**3、安装依赖**
+**3、安装依赖（三选一）**
+
+第一种方式：
 ```sh
-make install
+pip3 install -r requirements.txt
 ```
 
-**4、激活虚拟环境**
+第二种方式：
 ```sh
+pip3 install requests
+pip3 install pyyaml
+pip3 install schedule
+pip3 install loguru
+```
+
+第三种方式（如果你熟悉 `pipenv`）：
+```sh
+pip3 install pipenv -i https://pypi.tuna.tsinghua.edu.cn/simple
+pipenv install
 pipenv shell
 ```
 
-**5、`config/settings.yaml` 配置**
+**4、`config/settings.yaml` 配置**
 
 添加大乐斗Cookie（必须）：
 ```yaml
@@ -53,7 +75,7 @@ DALEDOU_ACCOUNT:
 PUSHPLUS_TOKEN: ""
 ```
 
-**6、创建大乐斗任务配置文件**
+**5、创建大乐斗任务配置文件**
 
 如果你第一次使用，运行以下命令：
 ```sh
@@ -61,7 +83,7 @@ python main.py check
 ```
 这会在 `config` 目录下创建一个以 `QQ` 命名的yaml配置文件（大乐斗Cookie有效才会创建）
 
-**7、定时任务**
+**6、定时任务**
 
 启动定时命令：
 ```sh
@@ -71,7 +93,7 @@ python main.py
 
 期间还会每隔2小时检查大乐斗Cookie有效期
 
-**8、其它任务**
+**7、其它任务**
 
 指 `第一轮` 和 `第二轮` 之外的任务
 
@@ -80,7 +102,7 @@ python main.py
 python main.py other -- 神装
 ```
 
-**9、其它命令**
+**8、其它命令**
 
 立即运行 `第一轮`，建议 `13:10` 后运行：
 ```sh
@@ -107,4 +129,6 @@ python main.py two -- 邪神秘宝
 
 ## 大乐斗Cookie有效期
 
-目前测试的通过 **一键登录** 获得的Cookie有效期可以永久，但需要每隔几天手动登录大乐斗
+目前测试的通过 **一键登录** 获得的Cookie有效期可以永久
+
+保险起见最好每隔几天手动登录一次大乐斗
