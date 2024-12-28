@@ -60,6 +60,15 @@ def run_one(unknown_args: list):
 # ============================================================
 
 
+def get_boss_id():
+    """
+    返回历练高等级到低等级场景每关最后两个BOSS的id
+    """
+    for _id in range(6394, 6013, -20):
+        yield _id
+        yield (_id - 1)
+
+
 def 邪神秘宝():
     c_邪神秘宝(D)
 
@@ -573,32 +582,41 @@ def 抢地盘():
 
 def 历练():
     """
-    取消自动使用活力药水
-    每天乐斗至多两个关卡BOSS，详见yaml配置文件
+    每天乐斗BOSS，详见yaml配置文件
     """
     _yaml: list = D.yaml["历练"]
+    level: bool = _yaml["level"]
 
     # 乐斗助手
     D.get("cmd=view&type=6")
-    if "取消自动使用活力药水" in D.html:
-        #  取消自动使用活力药水
-        D.get("cmd=set&type=11")
-        D.print_info("取消自动使用活力药水")
-        D.msg_append("取消自动使用活力药水")
+    if level:
+        boss_id = get_boss_id()
+        if "开启自动使用活力药水" in D.html:
+            # 开启自动使用活力药水
+            D.get("cmd=set&type=11")
+            D.print_info("开启自动使用活力药水")
+    else:
+        boss_id: list = _yaml["id"]
+        if "取消自动使用活力药水" in D.html:
+            # 取消自动使用活力药水
+            D.get("cmd=set&type=11")
+            D.print_info("取消自动使用活力药水")
 
-    for _id in _yaml:
+    for _id in boss_id:
         for _ in range(3):
             D.get(f"cmd=mappush&subtype=3&mapid=6&npcid={_id}&pageid=2")
             if "您还没有打到该历练场景" in D.html:
-                D.find(r"介绍</a><br />(.*?)<br />")
+                D.msg_append(D.find(r"介绍</a><br />(.*?)<br />"))
                 break
-
-            msg = D.find(r"阅历值：\d+<br />(.*?)<br />")
+            D.msg_append(D.find(r"阅历值：\d+<br />(.*?)<br />"))
             if "活力不足" in D.html:
                 return
+            elif "活力药水使用次数已达到每日上限" in D.html:
+                return
             elif "BOSS" not in D.html:
+                # 你今天和xx挑战次数已经达到上限了，请明天再来挑战吧
+                # 还不能挑战
                 break
-            D.msg_append(msg)
 
 
 def 镖行天下():
@@ -1835,13 +1853,6 @@ def 兵法():
             return
 
 
-def boss_id():
-    # 返回高等级到低等级场景每关最后两个BOSS的id
-    for _id in range(6394, 6013, -20):
-        yield _id
-        yield (_id - 1)
-
-
 def 点亮() -> bool:
     # 点亮南瓜灯
     D.get("cmd=hallowmas&gb_id=1")
@@ -1862,23 +1873,28 @@ def 点亮南瓜灯():
     """
     万圣节-点亮南瓜灯
     """
-    for _id in boss_id():
+    # 乐斗助手
+    D.get("cmd=view&type=6")
+    if "取消自动使用活力药水" in D.html:
+        # 取消自动使用活力药水
+        D.get("cmd=set&type=11")
+        D.print_info("取消自动使用活力药水")
+    for _id in get_boss_id():
         n = 3
         while n:
             D.get(f"cmd=mappush&subtype=3&npcid={_id}&pageid=2")
             if "您还没有打到该历练场景" in D.html:
-                D.msg_append(D.find(r"介绍</a><br />(.*?)<br />"))
+                D.msg_append(D.find(r"介绍</a><br />(.*?)<br />", "历练"))
                 break
-            msg = D.find(r"\d+<br />(.*?)<", name="历练")
+            D.msg_append(D.find(r"\d+<br />(.*?)<", "历练"))
             if "活力不足" in D.html:
                 if not 点亮():
                     return
                 continue
-            elif "挑战次数已经达到上限了，请明天再来挑战吧" in D.html:
+            elif "BOSS" not in D.html:
+                # 你今天和xx挑战次数已经达到上限了，请明天再来挑战吧
+                # 还不能挑战
                 break
-            elif "还不能挑战" in D.html:
-                break
-            D.msg_append(msg)
             n -= 1
 
 
@@ -1947,14 +1963,20 @@ def 乐斗能量棒():
         D.msg_append("没有可领取的能量棒")
         return
 
-    for _id in boss_id():
+    # 乐斗助手
+    D.get("cmd=view&type=6")
+    if "取消自动使用活力药水" in D.html:
+        # 取消自动使用活力药水
+        D.get("cmd=set&type=11")
+        D.print_info("取消自动使用活力药水")
+    for _id in get_boss_id():
         n = 3
         while n:
             D.get(f"cmd=mappush&subtype=3&npcid={_id}&pageid=2")
             if "您还没有打到该历练场景" in D.html:
-                D.msg_append(D.find(r"介绍</a><br />(.*?)<br />"))
+                D.msg_append(D.find(r"介绍</a><br />(.*?)<br />", "历练"))
                 break
-            msg = D.find(r"\d+<br />(.*?)<", name="历练")
+            D.msg_append(D.find(r"\d+<br />(.*?)<", "历练"))
             if "活力不足" in D.html:
                 if not data:
                     return
@@ -1962,9 +1984,8 @@ def 乐斗能量棒():
                 D.get(f"cmd=newAct&subtype=108&op=1&id={data.pop()}")
                 D.msg_append(D.find(r"<br /><br />(.*?)<"))
                 continue
-            elif "挑战次数已经达到上限了，请明天再来挑战吧" in D.html:
+            elif "BOSS" not in D.html:
+                # 你今天和xx挑战次数已经达到上限了，请明天再来挑战吧
+                # 还不能挑战
                 break
-            elif "还不能挑战" in D.html:
-                break
-            D.msg_append(msg)
             n -= 1
