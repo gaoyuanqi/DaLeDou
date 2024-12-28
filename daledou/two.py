@@ -723,17 +723,15 @@ def 中秋礼盒():
 
 def 双节签到():
     """
-    领取签到奖励
+    每天领取签到奖励
     活动截止日的前一天领取奖励金
     """
-    # 双节签到
-    D.get("cmd=newAct&subtype=144")
-    day: str = D.find(r"至\d+月(\d+)日")
-    if "op=1" in D.html:
-        # 领取
-        D.get("cmd=newAct&subtype=144&op=1")
-        D.msg_append(D.find())
-    if D.day == (int(day) - 1):
+    # 领取签到奖励
+    D.get("cmd=newAct&subtype=144&op=1")
+    D.msg_append(D.find())
+
+    month, day = D.findall(r"至(\d+)月(\d+)日")[0]
+    if (D.month == int(month)) and (D.day == (int(day) - 1)):
         # 奖励金
         D.get("cmd=newAct&subtype=144&op=3")
         D.msg_append(D.find())
@@ -1129,10 +1127,10 @@ def 乐斗大笨钟():
 
 def 乐斗回忆录():
     """
-    周四领取回忆礼包
+    周四领取回忆礼包、进阶礼包
     """
-    for _id in [1, 3, 5, 7, 9]:
-        # 回忆礼包
+    for _id in range(1, 11):
+        # 领取
         D.get(f"cmd=newAct&subtype=171&op=3&id={_id}")
         D.msg_append(D.find(r"6点<br />(.*?)<br />"))
 
