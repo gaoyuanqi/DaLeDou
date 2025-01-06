@@ -1125,6 +1125,22 @@ def 乐斗大笨钟():
     c_乐斗大笨钟(D)
 
 
+def 乐斗激运牌():
+    """
+    每天领取激运牌、翻牌
+    """
+    for _id in [0, 1]:
+        # 领取
+        D.get(f"cmd=realgoods&op=getTaskReward&id={_id}")
+        D.msg_append(D.find(r"<br /><br />(.*?)<br />"))
+
+    number = D.find(r"我的激运牌：(\d+)")
+    for _ in range(int(number)):
+        # 我要翻牌
+        D.get("cmd=realgoods&op=lotteryDraw")
+        D.msg_append(D.find(r"<br /><br />(.*?)<br />"))
+
+
 def 乐斗回忆录():
     """
     周四领取回忆礼包、进阶礼包
