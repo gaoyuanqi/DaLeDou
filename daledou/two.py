@@ -31,7 +31,6 @@ from daledou.common import (
 def run_two(unknown_args: list):
     global D
     for D in yield_dld_objects():
-        print("--" * 20)
         if unknown_args:
             func_name_list = unknown_args
             is_push = False
@@ -40,6 +39,7 @@ def run_two(unknown_args: list):
             is_push = True
 
         for func_name in func_name_list:
+            print("--" * 20)
             D.func_name = func_name
             D.msg_append(f"\n【{func_name}】")
             globals()[func_name]()

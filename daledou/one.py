@@ -31,7 +31,6 @@ from daledou.common import (
 def run_one(unknown_args: list):
     global D
     for D in yield_dld_objects():
-        print("--" * 20)
         if unknown_args:
             func_name_list = unknown_args
             is_push = False
@@ -40,6 +39,7 @@ def run_one(unknown_args: list):
             is_push = True
 
         for func_name in func_name_list:
+            print("--" * 20)
             D.func_name = func_name
             D.msg_append(f"\n【{func_name}】")
             globals()[func_name]()
@@ -918,13 +918,74 @@ def 梦想之旅():
         梦幻旅行()
 
 
+def 问鼎天下_商店兑换():
+    """ "
+    积分商店兑换碎片
+    """
+
+    def get_number(name: str, item_id: int):
+        """
+        获取背包物品数量
+        """
+        # 背包物品详情
+        D.get(f"cmd=owngoods&id={item_id}")
+        if "很抱歉" in D.html:
+            number = 0
+        else:
+            number = D.find(r"数量：(\d+)", f"{name}背包数量")
+        return int(number)
+
+    def exchange(name: str, t: int, number: int):
+        """
+        问鼎天下商店兑换
+        """
+        q, r = divmod((int(result) - backpack_number), 10)
+        if q:
+            # 兑换10个
+            D.get(f"cmd=exchange&subtype=2&type={t}&times=10&costtype=14")
+            D.msg_append(D.find())
+            return
+        for _ in range(r):
+            # 兑换1个
+            D.get(f"cmd=exchange&subtype=2&type={t}&times=1&costtype=14")
+            D.msg_append(D.find())
+
+    data = {
+        "夔牛碎片": {"id": 1, "t": 1270, "backpack_id": 5154, "name": "夔牛鼓"},
+        "饕餮碎片": {"id": 2, "t": 1271, "backpack_id": 5155, "name": "饕餮鼎"},
+        "烛龙碎片": {"id": 3, "t": 1268, "backpack_id": 5156, "name": "烛龙印"},
+        "黄鸟碎片": {"id": 4, "t": 1269, "backpack_id": 5157, "name": "黄鸟伞"},
+    }
+    for name, _dict in data.items():
+        _id = _dict["id"]
+        t = _dict["t"]
+        backpack_id = _dict["backpack_id"]
+        _name = _dict["name"]
+        backpack_number = get_number(name, backpack_id)
+
+        # 神魔录古阵篇宝物详情
+        D.get(f"cmd=ancient_gods&op=4&id={_id}")
+        # 当前等级
+        now_level = D.find(r"等级：(\d+)", f"{_name}等级")
+        if now_level == "15":
+            continue
+        # 碎片消耗数量
+        result = D.find(r"碎片\*(\d+)", f"{_name}突破数量")
+
+        if int(result) > backpack_number:
+            exchange(name, t, (int(result) - backpack_number))
+
+
 def 问鼎天下():
     """
+    每天商店兑换碎片，不足神魔录古阵篇碎片突破数量则兑换（15级不兑换）
     周一领取奖励
     周一~周五领取帮资或放弃资源点、东海攻占倒数第一个
     周六淘汰赛助威yaml配置的帮派
     周日排名赛助威yaml配置的帮派
     """
+    问鼎天下_商店兑换()
+
     if D.week == 6:
         # 淘汰赛助威
         _id = D.yaml["问鼎天下"]["淘汰赛"]
@@ -1965,6 +2026,7 @@ def 节日福利_历练():
 
 
 def 节日福利_斗神塔():
+    n = 0
     for _ in range(16):
         # 自动挑战
         D.get("cmd=towerfight&type=11")
@@ -1976,6 +2038,8 @@ def 节日福利_斗神塔():
             time.sleep(3)
         else:
             break
+        n += 1
+    D.msg_append(f"斗神塔自动挑战*{n}")
 
 
 def 节日福利():

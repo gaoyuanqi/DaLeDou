@@ -17,6 +17,7 @@ _FUNC_NAME = [
     "星盘",
     "新元婴神器",
     "深渊之潮",
+    "神魔录",
 ]
 
 
@@ -112,7 +113,6 @@ class ShenZhuang:
     """
 
     def __init__(self, fail_value: int):
-        # 失败祝福值
         self.fail_value = fail_value
         self.data = self._get_data()
         self._print_info(self.data)
@@ -473,12 +473,12 @@ def 神装():
             print("--" * 20)
             for i, n in enumerate(category):
                 print(f"{i + 1}.{n}")
-            _input = input("选择神装类别：")
+            _input = input("选择神装类别名称：")
             if _input == "q":
                 return
             if _input in category:
                 break
-            print(f">>>不存在神装类别：{_input}")
+            print(f">>>不存在：{_input}")
 
         if _input == "神装进阶":
             if 神装进阶():
@@ -973,7 +973,7 @@ class XinYuanYingShenQi:
         result_2 = D.findall(r"(\d+)星")
         # 获取神器id
         result_3 = D.findall(r"item_id=(\d+).*?一键")
-        # 获取消耗
+        # 获取消耗数量
         result_4 = D.findall(r":(\d+)")
         # 获取当前祝福值
         result_5 = D.findall(r"(\d+)/")
@@ -996,10 +996,9 @@ class XinYuanYingShenQi:
             data[name] = {
                 "id": result_3[index],
                 "星级": level,
-                "升级消耗": number_1,
+                "升级消耗": f"真黄金卷轴*{number_1}（{self._number}）",
                 "祝福值": f"{number_2}/{number_3}",
                 "满祝福消耗数量": number,
-                "真黄金卷轴数量": self._number,
                 "是否升级": self._number >= number,
             }
         return data
@@ -1075,7 +1074,7 @@ def 新元婴神器():
         print("--" * 20)
         for i, n in enumerate(category):
             print(f"{i + 1}.{n}")
-        input_1 = input("选择神器类别：")
+        input_1 = input("选择神器类别名称：")
         if input_1 == "q":
             return
         if input_1 in category:
@@ -1111,17 +1110,6 @@ class SanHun:
         self.points = get_store_points("cmd=abysstide&op=viewabyssshop")
         self.data = self._get_data()
         self._print_info(self.data)
-
-    def _compute(self, n_1: int, n_2: int, n_3: int) -> int:
-        """
-        计算三魂进阶至满进度消耗所需材料数量
-
-        Args:
-            n_1: 进阶一次消耗数量
-            n_2: 当前进度
-            n_3: 总进度
-        """
-        return ((n_3 - n_2) // 2) * n_1
 
     def _get_data(self) -> dict:
         """
@@ -1163,6 +1151,17 @@ class SanHun:
                 "是否升级": (number_2 + (self.points // 90)) >= number_5,
             }
         return data
+
+    def _compute(self, n_1: int, n_2: int, n_3: int) -> int:
+        """
+        计算三魂进阶至满进度消耗所需材料数量
+
+        Args:
+            n_1: 进阶一次消耗数量
+            n_2: 当前进度
+            n_3: 总进度
+        """
+        return ((n_3 - n_2) // 2) * n_1
 
     def _print_info(self, data: dict):
         """
@@ -1267,3 +1266,318 @@ def 深渊之潮():
                 break
             else:
                 print(">>>材料不足以满进度，不能进阶")
+
+
+class LingShouPian:
+    """
+    神魔录灵兽篇自动兑换提升
+    """
+
+    def __init__(self, fail_value: int):
+        # 问鼎天下商店积分
+        self.points = get_store_points("cmd=exchange&subtype=10&costtype=14")
+        self.fail_value = fail_value
+        self.data = self._get_data()
+        self._print_info(self.data)
+
+    def _get_data(self) -> dict:
+        """
+        获取灵兽篇数据
+        """
+        data_dict = {"夔牛经": 1, "饕餮经": 2, "烛龙经": 3, "黄鸟经": 4}
+        data = {}
+        for name, _id in data_dict.items():
+            D.get(f"cmd=ancient_gods&op=1&id={_id}")
+            if "五阶五级" in D.html:
+                continue
+            # 等级
+            result_1 = D.findall(r"等级：(.*?)&")[0]
+            # 消耗数量
+            result_2 = D.findall(r"\*(\d+)")[0]
+            # 神魔残卷数量
+            result_3 = D.findall(r"（(\d+)）")[0]
+            # 当前祝福值
+            result_4 = D.findall(r"祝福值：(\d+)")[0]
+            # 总祝福值
+            result_5 = D.findall(r"祝福值：\d+/(\d+)")[0]
+
+            number = self._compute(int(result_2), int(result_4), int(result_5))
+            data[name] = {
+                "id": _id,
+                "等级": result_1,
+                "消耗数量": int(result_2),
+                "祝福值": f"{result_4}/{result_5}",
+                "满祝福消耗数量": number,
+                "材料数量": int(result_3),
+                "是否升级": (int(result_3) + (self.points // 40)) >= number,
+            }
+        return data
+
+    def _compute(self, n_1: int, n_2: int, n_3: int) -> int:
+        """
+        计算灵兽提升至满祝福值消耗所需材料数量（额外提升两次）
+
+        Args:
+            n_1: 提升一次消耗数量
+            n_2: 当前祝福值
+            n_3: 总祝福值
+        """
+        return (((n_3 - n_2) // self.fail_value) + 2) * n_1
+
+    def _print_info(self, data: dict):
+        """
+        打印灵兽篇数据
+        """
+        print_info(data)
+        print("--" * 20)
+        print(f"问鼎天下商店积分：{self.points}")
+        print(f"失败祝福值：{self.fail_value}")
+
+    def upgrade(self, name: str):
+        """
+        灵兽篇提升
+        """
+        _id: int = self.data[name]["id"]
+        number_1: int = self.data[name]["消耗数量"]
+        number_2: int = self.data[name]["材料数量"]
+
+        # 关闭斗豆自动兑换
+        D.get(f"cmd=ancient_gods&op=5&autoBuy=0&id={_id}")
+
+        while True:
+            print("--" * 20)
+            if number_1 > number_2:
+                self._store_exchange("神魔残卷", (number_1 - number_2))
+                number_2 = number_1
+
+            # 提升一次
+            D.get(f"cmd=ancient_gods&op=6&id={_id}&times=1")
+            D.find(name=name)
+            D.find(r"祝福值：(.*?)<", name=name)
+            if "升级成功" in D.html:
+                break
+            elif "所需材料不足" in D.html:
+                break
+
+            # 升级失败更新背包材料数量
+            if (number_2 - number_1) >= 0:
+                number_2 -= number_1
+
+    def _store_exchange(self, name: str, number: int):
+        """
+        问鼎天下兑换材料
+        """
+        data = {
+            "神魔残卷": {
+                "ten": "cmd=exchange&subtype=2&type=1267&times=10&costtype=14",
+                "one": "cmd=exchange&subtype=2&type=1267&times=1&costtype=14",
+            }
+        }
+        ten_p = data[name]["ten"]
+        one_p = data[name]["one"]
+        store_exchange(ten_p, one_p, number)
+
+
+class GuZhenPian:
+    """
+    古阵篇自动兑换突破
+    """
+
+    def __init__(self):
+        # 问鼎天下商店积分
+        self.points = get_store_points("cmd=exchange&subtype=10&costtype=14")
+        # 突破石数量
+        self.number = get_backpack_item_count(5153)
+        self.data = self._get_data()
+        self._print_info(self.data)
+
+    def _get_data(self) -> dict:
+        """
+        获取古阵篇数据
+        """
+        data_dict = {"夔牛鼓": 1, "饕餮鼎": 2, "烛龙印": 3, "黄鸟伞": 4}
+        data = {}
+        for name, _id in data_dict.items():
+            D.get(f"cmd=ancient_gods&op=4&id={_id}")
+            # 当前等级
+            now_level = D.findall(r"等级：(\d+)")[0]
+            # 最高等级
+            highest_level = D.findall(r"至(\d+)")[0]
+            if now_level == highest_level:
+                continue
+            # 突破石消耗数量
+            result_1 = D.findall(r"突破石\*(\d+)")[0]
+            # 碎片消耗名称
+            result_2 = D.findall(r"\+ (.*?)\*")[0]
+            # 碎片消耗数量
+            result_3 = D.findall(r"碎片\*(\d+)")[0]
+
+            _number = self._get_backpack_number(result_2)
+            result_4 = f"突破石*{result_1}（{self.number}）"
+            result_5 = f"{result_2}*{result_3}（{_number}）"
+            data[name] = {
+                "id": _id,
+                "等级": now_level,
+                "消耗": f"{result_4}+ {result_5}",
+                "突破石消耗数量": int(result_1),
+                "是否升级": self._compute(int(result_1), int(result_3), _number),
+            }
+        return data
+
+    def _get_backpack_number(self, name: str) -> int:
+        """
+        获取碎片背包数量
+        """
+        data = {
+            "夔牛碎片": 5154,
+            "饕餮碎片": 5155,
+            "烛龙碎片": 5156,
+            "黄鸟碎片": 5157,
+        }
+        return get_backpack_item_count(data[name])
+
+    def _compute(self, n_1: int, n_2: int, n_3: int) -> bool:
+        """
+        计算材料数量是否充足
+
+        Args:
+            n_1: 突破石消耗数量
+            n_2: 碎片消耗数量
+            n_3: 碎片背包数量
+        """
+        number_1 = (self.number + (self.points // 40)) - n_1
+        number_2 = n_3 - n_2
+        if number_1 >= 0 and number_2 >= 0:
+            return True
+        return False
+
+    def _print_info(self, data: dict):
+        """
+        打印灵兽篇数据
+        """
+        print_info(data)
+        print("--" * 20)
+        print(f"问鼎天下商店积分：{self.points}")
+
+    def upgrade(self, name: str):
+        """
+        古阵篇突破
+        """
+        _id: int = self.data[name]["id"]
+        number: int = self.data[name]["突破石消耗数量"]
+
+        while True:
+            print("--" * 20)
+            if number > self.number:
+                self._store_exchange("突破石", (number - self.number))
+
+            # 突破等级
+            D.get(f"cmd=ancient_gods&op=7&id={_id}")
+            D.find(name=name)
+            if "升级成功" in D.html:
+                break
+            elif "升级所需碎片不足" in D.html:
+                break
+
+    def _store_exchange(self, name: str, number: int):
+        """
+        问鼎天下兑换材料
+        """
+        data = {
+            "突破石": {
+                "ten": "cmd=exchange&subtype=2&type=1266&times=10&costtype=14",
+                "one": "cmd=exchange&subtype=2&type=1266&times=1&costtype=14",
+            }
+        }
+        ten_p = data[name]["ten"]
+        one_p = data[name]["one"]
+        store_exchange(ten_p, one_p, number)
+
+
+def 灵兽篇():
+    """
+    自动兑换材料提升
+    """
+    while True:
+        print("--" * 20)
+        input_1 = input("输入失败祝福值：")
+        if input_1 == "q":
+            return True
+        if input_1.isdigit():
+            break
+        print(">>>只能输入数字")
+
+    while True:
+        ling = LingShouPian(int(input_1))
+        if not ling.data:
+            print("--" * 20)
+            print(">>>灵兽篇全部已满级")
+            break
+        while True:
+            print("--" * 20)
+            input_2 = input("选择提升灵兽名称：")
+            if input_2 == "q":
+                return True
+            if input_2 not in ling.data:
+                print(f">>>不存在：{input_2}")
+                continue
+            if ling.data[input_2]["是否升级"]:
+                ling.upgrade(input_2)
+                break
+            else:
+                print(f">>>{input_2}材料不足以满祝福，不能升级")
+
+
+def 古阵篇():
+    """
+    古阵篇自动兑换突破
+    """
+    while True:
+        g = GuZhenPian()
+        if not g.data:
+            print("--" * 20)
+            print(">>>古阵篇全部已满级")
+            break
+        while True:
+            print("--" * 20)
+            print("只会兑换突破石，碎片由于兑换上限无法兑换")
+            _input = input("选择突破古阵名称：")
+            if _input == "q":
+                return True
+            if _input not in g.data:
+                print(f">>>不存在：{_input}")
+                continue
+            if g.data[_input]["是否升级"]:
+                g.upgrade(_input)
+                break
+            else:
+                print(f">>>{_input}材料不足，不能升级")
+
+
+def 神魔录():
+    """
+    神魔录自动兑换提升、突破等级
+    """
+    print("任意位置输入 q 退出当前账号任务")
+    category = [
+        "灵兽篇",
+        "古阵篇",
+    ]
+    while True:
+        while True:
+            print("--" * 20)
+            for i, n in enumerate(category):
+                print(f"{i + 1}.{n}")
+            _input = input("选择神魔录类别名称：")
+            if _input == "q":
+                return
+            if _input in category:
+                break
+            print(f">>>不存在：{_input}")
+
+        if _input == "灵兽篇":
+            if 灵兽篇():
+                return
+        elif _input == "古阵篇":
+            if 古阵篇():
+                return
