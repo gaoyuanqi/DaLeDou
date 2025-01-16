@@ -55,6 +55,7 @@ _ONE = {
     "侠客岛": True,
     "时空遗迹": True,
     "兵法": _WEEK in [4, 6],
+    "世界树": True,
     "万圣节": True,
     "幸运金蛋": True,
     "新春拜年": True,
