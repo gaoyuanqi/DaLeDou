@@ -951,10 +951,30 @@ def 问鼎天下_商店兑换():
             D.msg_append(D.find())
 
     data = {
-        "夔牛碎片": {"id": 1, "t": 1270, "backpack_id": 5154, "name": "夔牛鼓"},
-        "饕餮碎片": {"id": 2, "t": 1271, "backpack_id": 5155, "name": "饕餮鼎"},
-        "烛龙碎片": {"id": 3, "t": 1268, "backpack_id": 5156, "name": "烛龙印"},
-        "黄鸟碎片": {"id": 4, "t": 1269, "backpack_id": 5157, "name": "黄鸟伞"},
+        "夔牛碎片": {
+            "id": 1,
+            "t": 1270,
+            "backpack_id": 5154,
+            "name": "夔牛鼓",
+        },
+        "饕餮碎片": {
+            "id": 2,
+            "t": 1271,
+            "backpack_id": 5155,
+            "name": "饕餮鼎",
+        },
+        "烛龙碎片": {
+            "id": 3,
+            "t": 1268,
+            "backpack_id": 5156,
+            "name": "烛龙印",
+        },
+        "黄鸟碎片": {
+            "id": 4,
+            "t": 1269,
+            "backpack_id": 5157,
+            "name": "黄鸟伞",
+        },
     }
     for name, _dict in data.items():
         _id = _dict["id"]

@@ -202,7 +202,10 @@ class InItDaLeDou:
                 return response.text.split("【退出】")[0]
 
         logger.warning(f"{self.qq} | 大乐斗首页未找到，可能官方繁忙或者维护")
-        push(f"{self.qq} 大乐斗首页未找到", "大乐斗首页未找到，可能官方繁忙或者维护")
+        push(
+            f"{self.qq} 大乐斗首页未找到",
+            "大乐斗首页未找到，可能官方繁忙或者维护",
+        )
 
     def _map_mission_names_to_function_names(self, missions: list) -> list:
         """
