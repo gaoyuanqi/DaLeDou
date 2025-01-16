@@ -962,19 +962,16 @@ class XinYuanYingShenQi:
     新元婴神器一键升级
     """
 
-    def __init__(self, name: str):
-        self._name = name
+    def __init__(self, mission_name: str):
+        self.mission_name = mission_name
 
-        # 真黄金卷轴拥有数量
-        self.possess_num = get_backpack_item_count(5089)
-
-        self.data = self.get_data(self._name)
+        self.data = self.get_data(self.mission_name)
 
     def get_data(self, name: str) -> dict:
         """
         获取神器数据
         """
-        params_data = {
+        url_params = {
             "投掷武器": "op=1&type=0",
             "小型武器": "op=1&type=1",
             "中型武器": "op=1&type=2",
@@ -984,47 +981,49 @@ class XinYuanYingShenQi:
             "特殊技能": "op=2&type=6",
         }
         data = {}
-        params = params_data[name]
+        params = url_params[name]
         D.get(f"cmd=newAct&subtype=104&{params}")
         D.html = D.html.split("|")[-1]
 
         # 获取神器名称
-        result_1 = D.findall(r"([\u4e00-\u9fff]+)&nbsp;\d+星")
+        name_list = D.findall(r"([\u4e00-\u9fff]+)&nbsp;\d+星")
         # 获取神器星级
-        result_2 = D.findall(r"(\d+)星")
+        level_list = D.findall(r"(\d+)星")
         # 获取神器id
-        result_3 = D.findall(r"item_id=(\d+).*?一键")
-        # 获取消耗数量
-        result_4 = D.findall(r":(\d+)")
-        # 获取当前祝福值
-        result_5 = D.findall(r"(\d+)/")
-        # 获取满祝福值
-        result_6 = D.findall(r"/(\d+)")
+        id_list = D.findall(r"item_id=(\d+).*?一键")
+        # 材料消耗数量
+        consume_num_list = D.findall(r":(\d+)")
+        # 当前祝福值
+        now_value_list = D.findall(r"(\d+)/")
+        # 满祝福值
+        total_value_list = D.findall(r"/(\d+)")
+        # 材料拥有数量
+        possess_num = get_backpack_item_count(5089)
 
         # 过滤5星
-        result_7 = [(k, v) for k, v in zip(result_1, result_2) if v != "5"]
-        for index, t in enumerate(result_7):
+        result = [(k, v) for k, v in zip(name_list, level_list) if v != "5"]
+        for index, t in enumerate(result):
             name, level = t
-            number_1 = int(result_4[index])
-            number_2 = int(result_5[index])
-            number_3 = int(result_6[index])
+            consume_num = int(consume_num_list[index])
+            now_value = int(now_value_list[index])
+            total_value = int(total_value_list[index])
 
             if level in ["0", "1", "2"]:
-                number = number_1
+                number = consume_num
             else:
-                number = compute(2, number_1, number_2, number_3)
+                number = compute(2, consume_num, now_value, total_value)
 
             data[name] = {
                 "名称": name,
-                "id": result_3[index],
+                "id": id_list[index],
                 "星级": level,
-                "升级消耗": f"真黄金卷轴*{number_1}（{self.possess_num}）",
-                "祝福值": f"{number_2}/{number_3}",
+                "升级消耗": f"真黄金卷轴*{consume_num}（{possess_num}）",
+                "祝福值": f"{now_value}/{total_value}",
                 "材料消耗名称": "真黄金卷轴",
-                "材料消耗数量": number_1,
-                "材料拥有数量": self.possess_num,
-                "满进度消耗数量": number,
-                "是否升级": self._number >= number,
+                "材料消耗数量": consume_num,
+                "材料拥有数量": possess_num,
+                "满祝福消耗数量": number,
+                "是否升级": possess_num >= number,
             }
         return data
 
@@ -1041,10 +1040,17 @@ class XinYuanYingShenQi:
             "伤害技能": "5",
             "特殊技能": "6",
         }
+
         _id: str = self.data[name]["id"]
-        t = params_data[self._name]
+        t = params_data[self.mission_name]
         p = f"cmd=newAct&subtype=104&op=3&one_click=0&item_id={_id}&type={t}"
+        
+        # 关闭自动斗豆兑换
+        D.get("cmd=newAct&subtype=104&op=4&autoBuy=0&type=1")
+        D.print_info("关闭自动斗豆兑换")
+
         while True:
+            print("--" * 20)
             # 升级一次
             D.get(p)
             D.find(name=name)
