@@ -619,6 +619,69 @@ def 夺宝奇兵():
         o.pelted(input_exploits)
 
 
+class JiangHuChangMeng:
+    """
+    江湖长梦商店兑换
+    """
+
+    def __init__(self):
+        # 江湖长梦商店积分
+        self.points: int = get_store_points("cmd=longdreamexchange")
+
+        self.data = self.get_data()
+        for _, _dict in self.data.items():
+            print("--" * 20)
+            for k, v in _dict.items():
+                print(f"{k}：{v}")
+
+    def get_data(self) -> dict:
+        """
+        获取江湖长梦商店数据
+        """
+        url = [
+            "cmd=longdreamexchange&page_type=0&page=1",
+            "cmd=longdreamexchange&page_type=0&page=2",
+            "cmd=longdreamexchange&page_type=1&page=1",
+            "cmd=longdreamexchange&page_type=1&page=2",
+        ]
+        data = []
+        data_dict = {}
+
+        for p in url:
+            D.get(p)
+            # id、名称、售价、已售、限售
+            data += D.findall(r"_id=(\d+).*?>(.*?)\*1.*?(\d+).*?(\d+)/(\d+)")
+
+        for d in data:
+            _id, name, 售价, 已售, 限售 = d
+            if 已售 == 限售:
+                continue
+            # 商店可兑换数量
+            store_num = min((self.points // int(售价)), (int(限售) - int(已售)))
+
+            data_dict[name] = {
+                "名称": name,
+                "id": _id,
+                "售价": 售价,
+                "购买次数": f"{已售}/{限售}",
+                "积分": f"{self.points}（{store_num}）",
+            }
+        return data_dict
+
+    def exchange(self, name: str, number: int):
+        """
+        江湖长梦商店材料兑换
+        """
+        _id: str = self.data[name]["id"]
+        for i in range(number):
+            _name = f"{name}-{i + 1}"
+            D.get(f"cmd=longdreamexchange&op=exchange&key_id={_id}")
+            if "成功" not in D.html:
+                D.find(r"】<br />(.*?)<", _name)
+                break
+            D.find(r"侠士碎片</a><br />(.*?)<", _name)
+
+
 class QiCheng:
     """
     挑战柒承的忙碌日常
@@ -676,15 +739,39 @@ class QiCheng:
 
 def 江湖长梦():
     """
-    挑战柒承的忙碌日常
+    江湖长梦：积分商店兑换、挑战柒承的忙碌日常
     """
+    mission_list = ["江湖长梦商店兑换", "柒承的忙碌日常"]
+
     i = Input()
-    while True:
-        o = QiCheng()
-        challenge_count = i.get_number("输入挑战次数：")
-        if challenge_count is None:
-            break
-        o.challenge(challenge_count)
+
+    mission_name = i.select_mission(mission_list, "选择任务名称：")
+    if mission_name is None:
+        return
+
+    if mission_name == "江湖长梦商店兑换":
+        while True:
+            o = JiangHuChangMeng()
+            while True:
+                print("--" * 20)
+                name = input("选择兑换名称：")
+                if name == "q":
+                    return
+                if name in o.data:
+                    break
+                print(f">>>不存在：{name}")
+            number = i.get_number("输入兑换数量：")
+            if number is None:
+                return
+            print("--" * 20)
+            o.exchange(name, number)
+    elif mission_name == "柒承的忙碌日常":
+        while True:
+            o = QiCheng()
+            challenge_count = i.get_number("输入挑战次数：")
+            if challenge_count is None:
+                return
+            o.challenge(challenge_count)
 
 
 class XingPan:
