@@ -1918,6 +1918,8 @@ def 世界树():
     """
     每天奇树灵鉴一键领取经验奖励
     """
+    # 世界树
+    D.get("cmd=worldtree")
     # 一键领取经验奖励
     D.get("cmd=worldtree&op=autoget&id=1")
     D.msg_append(D.find(r"福宝<br /><br />(.*?)<br />"))
