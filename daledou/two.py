@@ -801,7 +801,7 @@ def 幸运金蛋():
 
 def 春联大赛():
     """
-    选择、领取斗币各三次
+    答题、领取斗币最多三次
     """
     # 开始答题
     D.get("cmd=newAct&subtype=146&op=1")
@@ -814,7 +814,35 @@ def 春联大赛():
         D.msg_append("今日答题已结束")
         return
 
-    _data = {
+    couplets_dict = {
+        "山舞银蛇景": "梅香瑞雪春",
+        "山舞银蛇日": "地披红杏时",
+        "民逢大有岁": "国正小龙年",
+        "花开四季馥": "蛇舞九州春",
+        "花放山河丽": "蛇迎世纪春",
+        "花柳春风绿": "蛇年瑞气盈",
+        "金蛇狂舞日": "紫燕报春时",
+        "金蛇含瑞草": "紫燕报新春",
+        "金蛇盘玉兔": "赤帜舞神州",
+        "春来千野绿": "蛇舞四时新",
+        "春归蛇起舞": "福到鸟争鸣",
+        "春呈丰稔景": "酒贺小龙年",
+        "春到田畴绿": "蛇来淑景新",
+        "除牙难捕鼠": "添足便成龙",
+        "捷报飞新宇": "春潮促小龙",
+        "捷报书宏志": "春风乐小龙",
+        "喜迎新世纪": "欢庆小龙年",
+        "睛点龙飞去": "珠还蛇舞来",
+        "爆竹欣祝福": "银蛇喜迎春",
+        "蛇舞升平世": "莺歌富贵春",
+        "龙展强邦志": "蛇生富国情",
+        "蛇酿新年酒": "花开盛世春",
+        "龙舞山河壮": "蛇盘世纪新",
+        "龙蛇交替舞": "岁月又更新",
+        "龙吟山海壮": "蛇舞国民欢",
+        "龙腾丰稔岁": "蛇舞吉庆年",
+        "国强民幸福": "蛇舞世升平",
+        "龙去神威在": "蛇来紫气生",
         "虎年腾大步": "兔岁展宏图",
         "虎辟长安道": "兔开大吉春",
         "虎跃前程去": "兔携好运来",
@@ -846,21 +874,30 @@ def 春联大赛():
         "瑞雪兆丰年": "迎得玉兔归",
         "雪消狮子瘦": "月满兔儿肥",
     }
-    for _ in range(3):
-        for s in D.findall(r"上联：(.*?) 下联："):
-            if x := _data.D.get(s):
-                xialian = D.find(rf"{x}<a.*?index=(\d+)")
-            else:
-                # 上联在字库中不存在，将随机选择
-                xialian = [random.choice(range(3))]
 
-            # 选择
-            # index 0 1 2
-            D.get(f"cmd=newAct&subtype=146&op=3&index={xialian[0]}")
-            D.msg_append(D.find(r"剩余\d+题<br />(.*?)<br />"))
-            # 确定选择
-            D.get("cmd=newAct&subtype=146&op=2")
-            D.msg_append(D.find())
+    for _ in range(3):
+        shang_lian = D.findall(r"上联：(.*?) ")[0]
+        options_A, index_A = D.findall(r"<br />A.(.*?)<.*?index=(\d+)")[0]
+        options_B, index_B = D.findall(r"<br />B.(.*?)<.*?index=(\d+)")[0]
+        options_C, index_C = D.findall(r"<br />C.(.*?)<.*?index=(\d+)")[0]
+        options_dict = {
+            options_A: index_A,
+            options_B: index_B,
+            options_C: index_C,
+        }
+
+        if xia_lian := couplets_dict.get(shang_lian):
+            index = options_dict[xia_lian]
+        else:
+            # 上联在字库中不存在，将随机选择
+            index = [random.choice(range(3))]
+
+        # 选择
+        D.get(f"cmd=newAct&subtype=146&op=3&index={index}")
+        D.msg_append(D.find(r"剩余\d+题<br />(.*?)<br />"))
+        # 确定选择
+        D.get("cmd=newAct&subtype=146&op=2")
+        D.msg_append(D.find())
 
     for _id in range(1, 4):
         # 领取
