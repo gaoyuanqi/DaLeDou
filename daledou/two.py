@@ -42,7 +42,11 @@ def run_two(unknown_args: list):
             print("--" * 20)
             D.func_name = func_name
             D.msg_append(f"\n【{func_name}】")
-            globals()[func_name]()
+            try:
+                globals()[func_name]()
+            except Exception as e:
+                D.print_info(f"出现异常，本任务结束：{e}")
+                D.msg_append("出现异常，本任务结束，详情查看日志")
         D.run_time()
 
         if is_push:

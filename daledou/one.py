@@ -42,7 +42,11 @@ def run_one(unknown_args: list):
             print("--" * 20)
             D.func_name = func_name
             D.msg_append(f"\n【{func_name}】")
-            globals()[func_name]()
+            try:
+                globals()[func_name]()
+            except Exception as e:
+                D.print_info(f"出现异常，本任务结束：{e}")
+                D.msg_append("出现异常，本任务结束，详情查看日志")
         D.run_time()
 
         if is_push:
@@ -1882,6 +1886,17 @@ def 时空遗迹():
     遗迹征伐()
 
 
+def 世界树():
+    """
+    每天奇树灵鉴一键领取经验奖励
+    """
+    # 世界树
+    D.get("cmd=worldtree")
+    # 一键领取经验奖励
+    D.get("cmd=worldtree&op=autoget&id=1")
+    D.msg_append(D.find(r"福宝<br /><br />(.*?)<br />"))
+
+
 def 兵法():
     """
     周四随机助威
@@ -1912,17 +1927,6 @@ def 兵法():
             D.get(f"cmd=brofight&subtype=10&op=draw&champion_uin={u}&type={t}")
             D.msg_append(D.find(r"排行</a><br />(.*?)<br />"))
             return
-
-
-def 世界树():
-    """
-    每天奇树灵鉴一键领取经验奖励
-    """
-    # 世界树
-    D.get("cmd=worldtree")
-    # 一键领取经验奖励
-    D.get("cmd=worldtree&op=autoget&id=1")
-    D.msg_append(D.find(r"福宝<br /><br />(.*?)<br />"))
 
 
 # ============================================================
@@ -2028,6 +2032,7 @@ def 新春拜年():
             D.get(f"cmd=newAct&subtype=147&op=1&index={index}")
         # 赠礼
         D.get("cmd=newAct&subtype=147&op=2")
+        D.print_info("已赠礼")
         D.msg_append("已赠礼")
 
 

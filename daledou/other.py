@@ -1044,7 +1044,7 @@ class XinYuanYingShenQi:
         _id: str = self.data[name]["id"]
         t = params_data[self.mission_name]
         p = f"cmd=newAct&subtype=104&op=3&one_click=0&item_id={_id}&type={t}"
-        
+
         # 关闭自动斗豆兑换
         D.get("cmd=newAct&subtype=104&op=4&autoBuy=0&type=1")
         D.print_info("关闭自动斗豆兑换")
