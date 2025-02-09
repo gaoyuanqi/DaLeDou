@@ -19,6 +19,7 @@ _FUNC_NAME = [
     "深渊之潮",
     "神魔录",
     "奥义",
+    "仙武修真",
 ]
 
 
@@ -246,6 +247,36 @@ class Input:
 # ============================================================
 
 
+def 神装():
+    """
+    神装自动兑换强化：神装进阶和神技升级
+    """
+    mission_list = ["神装", "神技"]
+    mission_dict = {
+        "矿洞": get_store_points("cmd=exchange&subtype=10&costtype=3"),
+        "掠夺": get_store_points("cmd=exchange&subtype=10&costtype=2"),
+        "踢馆": get_store_points("cmd=exchange&subtype=10&costtype=1"),
+        "竞技场": get_store_points("cmd=arena&op=queryexchange"),
+    }
+
+    i = Input()
+
+    mission_name = i.select_mission(mission_list, "选择任务名称：")
+    if mission_name is None:
+        return
+
+    if mission_name == "神装":
+        fail_value = i.get_number("输入失败祝福值：")
+        if fail_value is None:
+            return
+        i.select_upgrade(ShenZhuang, fail_value)
+    elif mission_name == "神技":
+        store_name = i.select_mission(mission_dict, "选择商店名称：")
+        if store_name is None:
+            return
+        i.select_upgrade(ShenJi, store_name)
+
+
 class ShenZhuang:
     """
     神装一键进阶
@@ -392,7 +423,7 @@ class ShenZhuang:
 
         # 关闭自动斗豆兑换神装进阶材料
         D.get(f"cmd=outfit&op=4&auto_buy=2&magic_outfit_id={_id}")
-        D.find(r"\|<br />(.*?)<br />")
+        D.find(r"\|<br />(.*?)<br />", name)
 
         while True:
             # 积分商店兑换材料
@@ -514,7 +545,7 @@ class ShenJi:
 
         # 关闭自动斗豆兑换神技升级材料
         D.get(f"cmd=outfit&op=8&auto_buy=2&magic_outfit_id={_id}")
-        D.find(r"\|<br />(.*?)<br />")
+        D.find(r"\|<br />(.*?)<br />", name)
 
         while True:
             # 积分商店兑换材料
@@ -530,45 +561,22 @@ class ShenJi:
             e.update_possess_num()
 
 
-def 神装():
+class 夺宝奇兵:
     """
-    神装自动兑换强化：神装进阶和神技升级
-    """
-    mission_list = ["神装", "神技"]
-    mission_dict = {
-        "矿洞": get_store_points("cmd=exchange&subtype=10&costtype=3"),
-        "掠夺": get_store_points("cmd=exchange&subtype=10&costtype=2"),
-        "踢馆": get_store_points("cmd=exchange&subtype=10&costtype=1"),
-        "竞技场": get_store_points("cmd=arena&op=queryexchange"),
-    }
-
-    i = Input()
-
-    mission_name = i.select_mission(mission_list, "选择任务名称：")
-    if mission_name is None:
-        return
-
-    if mission_name == "神装":
-        fail_value = i.get_number("输入失败祝福值：")
-        if fail_value is None:
-            return
-        i.select_upgrade(ShenZhuang, fail_value)
-    elif mission_name == "神技":
-        store_name = i.select_mission(mission_dict, "选择商店名称：")
-        if store_name is None:
-            return
-        i.select_upgrade(ShenJi, store_name)
-
-
-class DuoBaoQiBing:
-    """
-    五行夺宝奇兵自动投掷
+    五行夺宝奇兵太空探宝场景自动投掷
     """
 
     def __init__(self):
-        self.exploits = self.get_exploits()
-        print("--" * 20)
-        print(f"战功：{self.exploits}")
+        i = Input()
+        while True:
+            self.possess_exploits = self.get_exploits()
+            print("--" * 20)
+            print(f"战功：{self.possess_exploits}")
+            # 获取输入战功
+            self.input_exploits = i.get_number("输入低于多少战功时结束投掷：")
+            if self.input_exploits is None:
+                break
+            self.pelted()
 
     def get_exploits(self) -> int:
         """
@@ -579,22 +587,22 @@ class DuoBaoQiBing:
         exploits = D.findall(r"拥有:(\d+)")[0]
         return int(exploits)
 
-    def pelted(self, input_exploits: int):
+    def pelted(self):
         """
         太空探宝16倍场景投掷
         """
         print("--" * 20)
         while True:
-            if input_exploits > self.exploits:
+            if self.input_exploits > self.possess_exploits:
                 break
 
             # 投掷
             D.get("cmd=element&subtype=7")
             if "【夺宝奇兵】" in D.html:
                 D.find(r"<br /><br />(.*?)<br />")
-                D.find(r"进度：(.*?)<", "进度")
-                result = D.find(r"拥有:(\d+)", "战功")
-                self.exploits = int(result)
+                D.find(r"进度：(.*?)<")
+                result = D.find(r"拥有:(\d+)")
+                self.possess_exploits = int(result)
                 if "您的战功不足" in D.html:
                     break
             elif "【选择场景】" in D.html:
@@ -605,18 +613,41 @@ class DuoBaoQiBing:
                 print("--" * 20)
 
 
-def 夺宝奇兵():
+def 江湖长梦():
     """
-    五行夺宝奇兵：太空探宝场景投掷（16倍）
+    江湖长梦：积分商店兑换、挑战柒承的忙碌日常
     """
+    mission_list = ["江湖长梦商店兑换", "柒承的忙碌日常"]
+
     i = Input()
-    while True:
-        o = DuoBaoQiBing()
-        # 获取输入战功
-        input_exploits = i.get_number("输入低于多少战功时结束投掷：")
-        if input_exploits is None:
-            break
-        o.pelted(input_exploits)
+
+    mission_name = i.select_mission(mission_list, "选择任务名称：")
+    if mission_name is None:
+        return
+
+    if mission_name == "江湖长梦商店兑换":
+        while True:
+            o = JiangHuChangMeng()
+            while True:
+                print("--" * 20)
+                name = input("选择兑换名称：")
+                if name == "q":
+                    return
+                if name in o.data:
+                    break
+                print(f">>>不存在：{name}")
+            number = i.get_number("输入兑换数量：")
+            if number is None:
+                return
+            print("--" * 20)
+            o.exchange(name, number)
+    elif mission_name == "柒承的忙碌日常":
+        while True:
+            o = QiCheng()
+            challenge_count = i.get_number("输入挑战次数：")
+            if challenge_count is None:
+                return
+            o.challenge(challenge_count)
 
 
 class JiangHuChangMeng:
@@ -737,41 +768,20 @@ class QiCheng:
             D.msg_append(D.find())
 
 
-def 江湖长梦():
+def 星盘():
     """
-    江湖长梦：积分商店兑换、挑战柒承的忙碌日常
+    星石一键合成
     """
-    mission_list = ["江湖长梦商店兑换", "柒承的忙碌日常"]
-
     i = Input()
 
-    mission_name = i.select_mission(mission_list, "选择任务名称：")
-    if mission_name is None:
+    upgrade_level = i.get_number("输入合成星石等级（2~7）：")
+    if upgrade_level is None:
         return
-
-    if mission_name == "江湖长梦商店兑换":
-        while True:
-            o = JiangHuChangMeng()
-            while True:
-                print("--" * 20)
-                name = input("选择兑换名称：")
-                if name == "q":
-                    return
-                if name in o.data:
-                    break
-                print(f">>>不存在：{name}")
-            number = i.get_number("输入兑换数量：")
-            if number is None:
-                return
-            print("--" * 20)
-            o.exchange(name, number)
-    elif mission_name == "柒承的忙碌日常":
-        while True:
-            o = QiCheng()
-            challenge_count = i.get_number("输入挑战次数：")
-            if challenge_count is None:
-                return
-            o.challenge(challenge_count)
+    elif upgrade_level not in [2, 3, 4, 5, 6, 7]:
+        print("--" * 20)
+        print(">>>合成等级只能是2~7级")
+        return
+    i.select_upgrade(XingPan, upgrade_level)
 
 
 class XingPan:
@@ -941,20 +951,25 @@ class XingPan:
                 D.find(r"规则</a><br />(.*?)<", f"{level}级{name}")
 
 
-def 星盘():
+def 新元婴神器():
     """
-    星石一键合成
+    自动升级神器
     """
+    mission_list = [
+        "投掷武器",
+        "小型武器",
+        "中型武器",
+        "大型武器",
+        "被动技能",
+        "伤害技能",
+        "特殊技能",
+    ]
     i = Input()
 
-    upgrade_level = i.get_number("输入合成星石等级（2~7）：")
-    if upgrade_level is None:
+    mission_name = i.select_mission(mission_list, "选择任务名称：")
+    if mission_name is None:
         return
-    elif upgrade_level not in [2, 3, 4, 5, 6, 7]:
-        print("--" * 20)
-        print(">>>合成等级只能是2~7级")
-        return
-    i.select_upgrade(XingPan, upgrade_level)
+    i.select_upgrade(XinYuanYingShenQi, mission_name)
 
 
 class XinYuanYingShenQi:
@@ -1047,7 +1062,7 @@ class XinYuanYingShenQi:
 
         # 关闭自动斗豆兑换
         D.get("cmd=newAct&subtype=104&op=4&autoBuy=0&type=1")
-        D.print_info("关闭自动斗豆兑换")
+        D.print_info("关闭自动斗豆兑换", name)
 
         while True:
             print("--" * 20)
@@ -1059,25 +1074,12 @@ class XinYuanYingShenQi:
                 break
 
 
-def 新元婴神器():
+def 深渊之潮():
     """
-    自动升级神器
+    灵枢精魄三魂一键进阶
     """
-    mission_list = [
-        "投掷武器",
-        "小型武器",
-        "中型武器",
-        "大型武器",
-        "被动技能",
-        "伤害技能",
-        "特殊技能",
-    ]
     i = Input()
-
-    mission_name = i.select_mission(mission_list, "选择任务名称：")
-    if mission_name is None:
-        return
-    i.select_upgrade(XinYuanYingShenQi, mission_name)
+    i.select_upgrade(SanHun)
 
 
 class SanHun:
@@ -1165,7 +1167,7 @@ class SanHun:
 
         # 关闭自动斗豆兑换
         D.get(f"cmd=abysstide&op=setauto&value=0&soul_id={_id}")
-        D.print_info("关闭自动斗豆兑换")
+        D.print_info("关闭自动斗豆兑换", name)
 
         while True:
             # 积分商店兑换材料
@@ -1186,12 +1188,25 @@ class SanHun:
             e.update_possess_num()
 
 
-def 深渊之潮():
+def 神魔录():
     """
-    灵枢精魄三魂一键进阶
+    神魔录：灵兽篇一键提升、古阵篇一键突破
     """
+    mission_list = ["灵兽篇", "古阵篇"]
+
     i = Input()
-    i.select_upgrade(SanHun)
+
+    mission_name = i.select_mission(mission_list, "选择任务名称：")
+    if mission_name is None:
+        return
+
+    if mission_name == "灵兽篇":
+        fail_value = i.get_number("输入失败祝福值：")
+        if fail_value is None:
+            return
+        i.select_upgrade(LingShouPian, fail_value)
+    elif mission_name == "古阵篇":
+        i.select_upgrade(GuZhenPian)
 
 
 class LingShouPian:
@@ -1282,7 +1297,7 @@ class LingShouPian:
 
         # 关闭自动斗豆兑换
         D.get(f"cmd=ancient_gods&op=5&autoBuy=0&id={_id}")
-        D.print_info("关闭自动斗豆兑换")
+        D.print_info("关闭自动斗豆兑换", name)
 
         while True:
             # 积分商店兑换材料
@@ -1401,25 +1416,27 @@ class GuZhenPian:
         D.find(name=name)
 
 
-def 神魔录():
+def 奥义():
     """
-    神魔录：灵兽篇一键提升、古阵篇一键突破
+    奥义、技能栏一键升级
     """
-    mission_list = ["灵兽篇", "古阵篇"]
-
+    mission_list = ["奥义", "技能栏"]
     i = Input()
 
     mission_name = i.select_mission(mission_list, "选择任务名称：")
     if mission_name is None:
         return
 
-    if mission_name == "灵兽篇":
+    if mission_name == "奥义":
         fail_value = i.get_number("输入失败祝福值：")
         if fail_value is None:
             return
-        i.select_upgrade(LingShouPian, fail_value)
-    elif mission_name == "古阵篇":
-        i.select_upgrade(GuZhenPian)
+        i.select_upgrade(AoYi, fail_value)
+    elif mission_name == "技能栏":
+        fail_value = i.get_number("输入7级（含）前失败祝福值：")
+        if fail_value is None:
+            return
+        i.select_upgrade(JiNengLan, fail_value)
 
 
 class AoYi:
@@ -1503,7 +1520,7 @@ class AoYi:
 
         # 关闭自动斗豆兑换
         D.get("cmd=skillEnhance&op=9&autoBuy=0")
-        D.print_info("关闭自动斗豆兑换")
+        D.print_info("关闭自动斗豆兑换", name)
 
         while True:
             # 积分商店兑换材料
@@ -1612,7 +1629,7 @@ class JiNengLan:
 
         # 关闭自动斗豆兑换
         D.get(f"cmd=skillEnhance&op=10&storage_id={_id}&auto_buy=0")
-        D.print_info("关闭自动斗豆兑换")
+        D.print_info("关闭自动斗豆兑换", name)
 
         while True:
             # 积分商店兑换材料
@@ -1629,24 +1646,132 @@ class JiNengLan:
             e.update_possess_num()
 
 
-def 奥义():
+def 仙武修真():
     """
-    奥义、技能栏一键升级
+    仙武修真宝物一键升级
+    升级之前消耗问道石并一键炼化制作书
     """
-    mission_list = ["奥义", "技能栏"]
     i = Input()
 
-    mission_name = i.select_mission(mission_list, "选择任务名称：")
-    if mission_name is None:
-        return
+    print("--" * 20)
+    # 关闭自动斗豆
+    D.get("cmd=immortals&op=setauto&type=0&status=0")
+    D.print_info("问道关闭自动斗豆")
+    while True:
+        # 问道10次
+        D.get("cmd=immortals&op=asktao&times=10")
+        D.find(r"帮助</a><br />(.*?)<")
+        if "问道石不足" in D.html:
+            # 一键炼化多余制作书
+            D.get("cmd=immortals&op=smeltall")
+            D.find(r"帮助</a><br />(.*?)<")
+            break
 
-    if mission_name == "奥义":
-        fail_value = i.get_number("输入失败祝福值：")
-        if fail_value is None:
-            return
-        i.select_upgrade(AoYi, fail_value)
-    elif mission_name == "技能栏":
-        fail_value = i.get_number("输入7级（含）前失败祝福值：")
-        if fail_value is None:
-            return
-        i.select_upgrade(JiNengLan, fail_value)
+    fail_value = i.get_number("输入失败祝福值：")
+    if fail_value is None:
+        return
+    i.select_upgrade(XianWuXiuZhen, fail_value)
+
+
+class XianWuXiuZhen:
+    """
+    仙武修真宝物一键升级
+    """
+
+    def __init__(self, fail_value: int):
+        self.fail_value = fail_value
+
+        # 获取残片数量
+        self.backpack_num = self.get_backpack_num()
+        self.data = self.get_data()
+
+    def get_backpack_num(self) -> dict:
+        """
+        返回史诗、传说、神话残片拥有数量
+        """
+        return {
+            "史诗残片": get_backpack_item_count(6681),
+            "传说残片": get_backpack_item_count(6682),
+            "神话残片": get_backpack_item_count(6683),
+        }
+
+    def get_data(self) -> dict:
+        """
+        获取仙武修真宝物数据
+        """
+        data = {}
+
+        # 宝物
+        D.get("cmd=immortals&op=viewtreasure")
+        for _id in D.findall(r'treasureid=(\d+)">强化'):
+            # 强化
+            D.get(f"cmd=immortals&op=viewupgradepage&treasureid={_id}")
+
+            # 法宝名称
+            name = D.findall(r'id">(.*?)&nbsp')[0]
+            # 当前等级
+            level = int(D.findall(r"\+(\d+)")[0])
+            # 材料消耗名称
+            consume_name = D.findall(r"消耗：(.*?)\*")[0]
+            # 材料消耗数量
+            consume_num = int(D.findall(r"消耗：.*?(\d+)")[0])
+            # 当前祝福值
+            now_value = int(D.findall(r"祝福值：(\d+)")[0])
+            # 总祝福值
+            total_value = int(D.findall(r"祝福值：\d+/(\d+)")[0])
+
+            # 残片拥有数量
+            possess_num = self.backpack_num[consume_name]
+            # 失败祝福值
+            fail_value = self.get_fail_value(consume_name, level)
+            # 满祝福消耗数量
+            full_value_consume_num = compute(
+                fail_value, consume_num, now_value, total_value
+            )
+
+            data[name] = {
+                "名称": name,
+                "id": _id,
+                "当前等级": level,
+                "升级消耗": f"{consume_name}*{consume_num}（{possess_num}）",
+                "祝福值": f"{now_value}/{total_value}",
+                "材料消耗名称": consume_name,
+                "材料消耗数量": consume_num,
+                "材料拥有数量": possess_num,
+                "满祝福消耗数量": f"{full_value_consume_num}（必成再+{consume_num}）",
+                "失败祝福值": fail_value,
+                "是否升级": possess_num >= (full_value_consume_num + consume_num),
+            }
+        return data
+
+    def get_fail_value(self, consume_name, level) -> int:
+        """
+        返回史诗、传说、神话失败祝福值
+        """
+        data = {
+            "史诗残片": 6,
+            "传说残片": 8,
+            "神话残片": 10,
+        }
+        # level前（含）失败祝福值
+        if level <= data[consume_name]:
+            return self.fail_value
+        return 2
+
+    def upgrade(self, name: str):
+        """
+        法宝一键升级
+        """
+        _id: str = self.data[name]["id"]
+
+        # 关闭自动斗豆兑换
+        D.get(f"cmd=immortals&op=setauto&type=1&status=0&treasureid={_id}")
+        D.print_info("关闭自动斗豆兑换", name)
+
+        while True:
+            # 升级
+            D.get(f"cmd=immortals&op=upgrade&treasureid={_id}&times=1")
+            D.find(r'id">(.*?)<', name)
+            D.find(r"祝福值：(.*?)&", name)
+            if "升级失败" not in D.html:
+                break
