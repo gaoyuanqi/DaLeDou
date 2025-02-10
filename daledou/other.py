@@ -20,6 +20,7 @@ _FUNC_NAME = [
     "神魔录",
     "奥义",
     "仙武修真",
+    "佣兵",
 ]
 
 
@@ -1065,7 +1066,6 @@ class XinYuanYingShenQi:
         D.print_info("关闭自动斗豆兑换", name)
 
         while True:
-            print("--" * 20)
             # 升级一次
             D.get(p)
             D.find(name=name)
@@ -1775,3 +1775,134 @@ class XianWuXiuZhen:
             D.find(r"祝福值：(.*?)&", name)
             if "升级失败" not in D.html:
                 break
+
+
+def 佣兵():
+    """
+    佣兵自动资质还童、悟性提升、阅历突飞
+    """
+    mission_list = ["资质还童", "悟性提升", "阅历突飞"]
+    i = Input()
+
+    mission_name = i.select_mission(mission_list, "选择任务名称：")
+    if mission_name is None:
+        return
+    i.select_upgrade(YongBing, mission_name)
+
+
+class YongBing:
+    """
+    佣兵自动资质还童、悟性提升、阅历突飞
+    """
+
+    def __init__(self, mission_name: str):
+        self.mission_name = mission_name
+
+        self.data = self.get_data()
+
+    def get_data(self) -> dict:
+        """
+        获取佣兵数据
+        """
+        data = {}
+
+        # 佣兵
+        D.get("cmd=newmercenary")
+        for _id in D.findall(r"sub=2&amp;id=(\d+)"):
+            # 佣兵信息
+            D.get(f"cmd=newmercenary&sub=2&id={_id}")
+
+            # 名称
+            name = D.findall(r"<br /><br />(.+?)(?=<| )")[0]
+            # 战力
+            combat_power = D.findall(r"战力：(\d+)")[0]
+            # 资质
+            aptitude = D.findall(r"资质：(.*?)<")[0]
+            # 悟性
+            savvy = D.findall(r"悟性：(\d+)")[0]
+            # 等级
+            level = D.findall(r"等级：(\d+)")[0]
+
+            if self.mission_name == "资质还童":
+                # 卓越资质或者等级不为1时取消还童（还童会将等级重置为1）
+                if aptitude == "卓越" or level != "1":
+                    continue
+            elif self.mission_name == "阅历突飞":
+                # 满级或者资质不是卓越时取消突飞
+                if level == "20" or aptitude != "卓越":
+                    continue
+            elif self.mission_name == "悟性提升" and savvy == "10":
+                continue
+
+            data[name] = {
+                "名称": name,
+                "id": _id,
+                "战力": combat_power,
+                "资质": aptitude,
+                "悟性": savvy,
+                "等级": level,
+                "是否升级": True,
+            }
+
+        return data
+
+    def 还童(self, name: str, _id: str):
+        """
+        佣兵还童或者高级还童为卓越资质
+        """
+        while True:
+            # 还童
+            D.get(f"cmd=newmercenary&sub=6&id={_id}&type=1&confirm=1")
+            D.find(name=name)
+            D.find(r"资质：(.*?)<", "资质")
+            if "卓越" in D.html:
+                return
+            if "你需要还童卷轴" in D.html:
+                break
+        while True:
+            # 高级还童
+            D.get(f"cmd=newmercenary&sub=6&id={_id}&type=2&confirm=1")
+            D.find(name=name)
+            if "卓越" in D.html:
+                return
+            if "你需要还童天书" in D.html:
+                break
+
+    def 提升(self, name: str, _id: str):
+        """
+        佣兵悟性提升
+        """
+        while True:
+            # 提升
+            D.get(f"cmd=newmercenary&sub=5&id={_id}")
+            D.find(name=name)
+            D.find(r"悟性：(\d+)", "悟性")
+            if "升级悟性" not in D.html:
+                break
+
+    def 突飞(self, name: str, _id: str):
+        """
+        佣兵突飞十次
+        """
+        while True:
+            # 提升
+            D.get(f"cmd=newmercenary&sub=4&id={_id}&count=10&tfl=1")
+            D.find(name=name)
+            D.find(r"等级：(\d+)", "等级")
+            D.find(r"经验：(.*?)<", "经验")
+            D.find(r"消耗阅历（(\d+)", "阅历")
+            if "突飞成功" not in D.html:
+                break
+
+    def upgrade(self, name: str):
+        """
+        执行佣兵任务
+        """
+        _id: str = self.data[name]["id"]
+
+        if self.mission_name == "资质还童":
+            self.还童(name, _id)
+        elif self.mission_name == "悟性提升":
+            self.提升(name, _id)
+        elif self.mission_name == "阅历突飞":
+            self.突飞(name, _id)
