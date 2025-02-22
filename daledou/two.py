@@ -104,51 +104,29 @@ def 侠客岛():
         D.msg_append(D.find(r"斗豆）<br />(.*?)<br />"))
 
 
-def get_backpack_id(page: int) -> list:
+def 背包():
     """
-    获取背包物品id
+    背包物品使用
     """
     yaml: list = D.yaml["背包"]
     data = []
+
+    # 背包
+    D.get("cmd=store&store_type=0")
+    page = int(D.find(r"第1/(\d+)"))
     for p in range(1, (page + 1)):
         D.get(f"cmd=store&store_type=0&page={p}")
-        D.print_info(f"查找第 {p} 页id")
+        D.print_info(f"查找第 {p} 页")
         if "使用规则" in D.html:
             D.find(r"】</p><p>(.*?)<br />")
             continue
         _, _html = D.html.split("清理")
         D.html, _ = _html.split("商店")
         for _m in yaml:
-            # 查找物品id
-            data += D.findall(rf"{_m}.*?</a>数量：.*?id=(\d+)")
-    return data
+            for number, _id in D.findall(rf"{_m}.*?</a>数量：(\d+).*?id=(\d+)"):
+                data.append((_id, int(number)))
 
-
-def get_backpack_id_and_number(item_id: list) -> set[tuple]:
-    """
-    获取背包物品id及数量
-    """
-    data = []
-    for _id in item_id:
-        # 物品详情
-        D.get(f"cmd=owngoods&id={_id}")
-        if "很抱歉" in D.html:
-            D.find(r"】</p><p>(.*?)<br />", f"背包-{_id}-不存在")
-        else:
-            number = D.find(r"数量：(\d+)", f"背包-{_id}-数量")
-            data.append((str(_id), int(number)))
-    return set(data)
-
-
-def 背包():
-    """
-    背包物品使用
-    """
-    # 背包
-    D.get("cmd=store&store_type=0")
-    page = int(D.find(r"第1/(\d+)"))
-    _ids = get_backpack_id(page)
-    for _id, number in get_backpack_id_and_number(_ids):
+    for _id, number in set(data):
         if _id in ["3023", "3024", "3025"]:
             # xx洗刷刷，3103生命洗刷刷除外
             D.print_info("只能生命洗刷刷，其它洗刷刷不支持")
@@ -160,7 +138,7 @@ def 背包():
             if "使用规则" in D.html:
                 # 该物品不能被使用
                 # 该物品今天已经不能再使用了
-                D.find(r"】</p><p>(.*?)<br />", f"背包-{_id}-使用")
+                D.find(r"】</p><p>(.*?)<br />")
                 break
             # 您使用了
             # 你打开

@@ -19,6 +19,7 @@ _FUNC_NAME = [
     "奥义",
     "仙武修真",
     "佣兵",
+    "背包",
 ]
 
 
@@ -191,7 +192,7 @@ class Input:
         while True:
             print("--" * 20)
             self.print_mission(mission)
-            _input = input(prompt)
+            _input = input(prompt).strip()
             if _input == "q":
                 return None
             if _input in mission:
@@ -221,7 +222,7 @@ class Input:
 
             while True:
                 print("--" * 20)
-                _input = input("选择强化名称：")
+                _input = input("选择强化名称：").strip()
                 if _input == "q":
                     return
                 print("--" * 20)
@@ -240,7 +241,7 @@ class Input:
         """
         while True:
             print("--" * 20)
-            _input = input(prompt)
+            _input = input(prompt).strip()
             if _input == "q":
                 return None
             if _input.isdigit():
@@ -1755,3 +1756,64 @@ def 佣兵():
     if mission_name is None:
         return
     i.select_upgrade(YongBing, mission_name)
+
+
+class 背包:
+    """
+    背包搜索工具
+    """
+
+    def __init__(self):
+        self.search(self.get_data())
+
+    def get_data(self) -> list[dict]:
+        """
+        获取背包数据
+        """
+        data = []
+        # 背包
+        D.get("cmd=store")
+        page = int(D.findall(r"第1/(\d+)")[0])
+        for p in range(1, (page + 1)):
+            D.get(f"cmd=store&store_type=0&page={p}")
+            _, _html = D.html.split("清理")
+            D.html, _ = _html.split("商店")
+            for _id, name, number in D.findall(r'id=(\d+)">(.*?)</a>数量：(\d+)'):
+                data.append(
+                    {
+                        "id": _id,
+                        "name": name,
+                        "number": number,
+                    }
+                )
+
+        return data
+
+    def search_backpack(self, query, items):
+        """
+        执行背包搜索
+        """
+        results = []
+        for item in items:
+            # 同时匹配ID（精确匹配）和名称（模糊匹配）
+            if item["id"] == query or query.lower() in item["name"].lower():
+                results.append(item)
+        return results
+
+    def search(self, data: list):
+        print("输入物品ID或名称进行搜索（输入 q 退出）")
+
+        while True:
+            print("--" * 20)
+            search_term = input("请输入搜索关键词：").strip()
+            if search_term.lower() == "q":
+                break
+
+            if results := self.search_backpack(search_term, data):
+                print(f"\n{'ID':<5}{'物品名称':<10}{'数量':<8}")
+                print("--" * 20)
+                for item in results:
+                    print(f"{item['id']:<5}{item['name']:<10}{item['number']:<8}")
+                print()
+            else:
+                print("未找到匹配物品")
