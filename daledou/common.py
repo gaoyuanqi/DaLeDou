@@ -5,7 +5,7 @@
 
 def c_邪神秘宝(D):
     """
-    每天高级秘宝和极品秘宝免费一次或者抽奖一次
+    高级秘宝和极品秘宝免费一次或者抽奖一次
     """
     for i in [0, 1]:
         # 免费一次 或 抽奖一次
@@ -15,7 +15,7 @@ def c_邪神秘宝(D):
 
 def c_问鼎天下(D):
     """
-    周一~周五领取帮资或放弃资源点、东海攻占倒数第一个
+    领取帮资或放弃资源点、东海攻占倒数第一个
     """
     # 问鼎天下
     D.get("cmd=tbattle")
@@ -38,25 +38,25 @@ def c_问鼎天下(D):
 
 def c_帮派商会(D):
     """
-    每天帮派宝库领取礼包、交易会所交易物品、兑换商店兑换物品
+    帮派宝库领取礼包、交易会所交易物品、兑换商店兑换物品
     """
-    _yaml: dict = D.yaml["帮派商会"]
-    jiaoyi = _yaml["交易会所"]
-    duihuan = _yaml["兑换商店"]
+    yaml: dict = D.yaml["帮派商会"]
+    jiaoyi = yaml["交易会所"]
+    duihuan = yaml["兑换商店"]
     data_1 = []
     data_2 = []
 
-    for _ in range(10):
-        # 帮派宝库
-        D.get("cmd=fac_corp&op=0")
-        if mode := D.findall(r'gift_id=(\d+)&amp;type=(\d+)">点击领取'):
-            for _id, t in mode:
-                D.get(f"cmd=fac_corp&op=3&gift_id={_id}&type={t}")
-                D.msg_append(D.find(r"</p>(.*?)<br />", "帮派商会-帮派宝库"))
-        else:
-            D.print_info("没有礼包领取", "帮派商会-帮派宝库")
-            D.msg_append("没有礼包领取")
-            break
+    # 帮派宝库
+    D.get("cmd=fac_corp&op=0")
+    if data := D.findall(r'gift_id=(\d+)&amp;type=(\d+)">点击领取'):
+        for _id, t in data:
+            D.get(f"cmd=fac_corp&op=3&gift_id={_id}&type={t}")
+            D.msg_append(D.find(r"</p>(.*?)<br />", "帮派商会-帮派宝库"))
+            if "入帮24小时才能领取商会礼包" in D.html:
+                break
+    else:
+        D.print_info("没有礼包领取", "帮派商会-帮派宝库")
+        D.msg_append("没有礼包领取")
 
     # 交易会所
     D.get("cmd=fac_corp&op=1")
@@ -74,13 +74,14 @@ def c_帮派商会(D):
         for mode in duihuan:
             data_2 += D.findall(rf"{mode}.*?type_id=(\d+)")
         for t in data_2:
+            # 兑换
             D.get(f"cmd=fac_corp&op=5&type_id={t}")
             D.msg_append(D.find(r"</p>(.*?)<br />", f"帮派商会-兑换-{t}"))
 
 
 def c_任务派遣中心(D):
     """
-    每天领取奖励、接受任务
+    至多领取奖励、接受任务3次
     """
     # 任务派遣中心
     D.get("cmd=missionassign&subtype=0")
@@ -150,7 +151,7 @@ def c_任务派遣中心(D):
 
 def c_侠士客栈(D):
     """
-    每天领取奖励3次、客栈奇遇
+    领取奖励3次、客栈奇遇
     """
     # 侠士客栈
     D.get("cmd=warriorinn")
@@ -186,9 +187,16 @@ def c_帮派巡礼(D):
 
 def c_深渊秘境(D):
     """
-    深渊秘境至多通关5次，详见yaml配置文件
+    深渊秘境至多通关5次
     """
-    _id: int = D.yaml["深渊之潮"]["深渊秘境"]
+    yaml: dict = D.yaml["深渊之潮"]["深渊秘境"]
+    _id: int = yaml["id"]
+
+    if yaml["exchange"]:
+        # 兑换一次副本
+        D.get("cmd=abysstide&op=addaccess")
+        D.msg_append(D.find())
+
     for _ in range(5):
         D.get(f"cmd=abysstide&op=enterabyss&id={_id}")
         if "开始挑战" not in D.html:
@@ -211,17 +219,17 @@ def c_深渊秘境(D):
 
 def c_幸运金蛋(D):
     """
-    砸金蛋
+    砸金蛋一次
     """
     # 幸运金蛋
     D.get("cmd=newAct&subtype=110&op=0")
-    if index := D.find(r"index=(\d+)"):
+    if i := D.find(r"index=(\d+)"):
         # 砸金蛋
-        D.get(f"cmd=newAct&subtype=110&op=1&index={index}")
+        D.get(f"cmd=newAct&subtype=110&op=1&index={i}")
         D.msg_append(D.find(r"】<br /><br />(.*?)<br />"))
     else:
-        D.print_info("没有可砸蛋")
-        D.msg_append("没有可砸蛋")
+        D.print_info("没有砸蛋次数了")
+        D.msg_append("没有砸蛋次数了")
 
 
 def c_乐斗大笨钟(D):

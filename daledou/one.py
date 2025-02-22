@@ -4,15 +4,16 @@
 默认每天 13:10 定时运行
 
 手动运行第一轮任务：
-python main.py one
+python main.py --one
 手动运行某个函数：
-python main.py one -- 邪神秘宝
+python main.py --one 邪神秘宝
 手动运行多个函数：
-python main.py one -- 邪神秘宝 矿洞
+python main.py --one 邪神秘宝 矿洞
 """
 
 import time
 import random
+import re
 
 from daledou.utils import push, yield_dld_objects
 from daledou.common import (
@@ -28,7 +29,7 @@ from daledou.common import (
 )
 
 
-def run_one(unknown_args: list):
+def run_one(unknown_args: list = None):
     global D
     for D in yield_dld_objects():
         if unknown_args:
@@ -64,91 +65,95 @@ def run_one(unknown_args: list):
 # ============================================================
 
 
+def get_yaml_exchange(yaml: dict):
+    """
+    返回yaml兑换名称、兑换id和兑换数量
+    """
+    for name, _dict in yaml.items():
+        _id: int = _dict["id"]
+        number: int = _dict["number"]
+        if number > 0:
+            yield name, _id, number
+
+
 def 邪神秘宝():
     c_邪神秘宝(D)
 
 
 def 战阵调整() -> bool:
     """
-    华山论剑选择侠士、0耐久侠士取消出战后更改侠士
+    调整华山论剑出战侠士，仅替换耐久为0或未出战的位置
+
+    Returns:
+        bool: 调整是否成功完成
     """
-    # 点击第一战选择侠士/更改侠士
-    D.get("cmd=knightarena&op=viewsetknightlist&pos=0")
     # 获取所有侠士id
-    knightid = D.findall(r"knightid=(\d+)")
-    if not knightid:
+    # 侠士页面
+    D.get("cmd=knightarena&op=viewsetknightlist&pos=0")
+    available_knight_ids = D.findall(r"knightid=(\d+)")
+    if not available_knight_ids:
         D.msg_append(D.find(r"<p>(.*?)</p>"))
         return False
 
-    # 点击战阵调整
+    # 处理当前出战侠士
+    # 战阵调整
     D.get("cmd=knightarena&op=viewteam")
-    # 获取所有选择侠士pos(即第一、二、三战未出战的pos)
-    choose_knight_pos = D.findall(r'pos=(\d+)">选择侠士')
-    # 获取所有更改侠士的耐久、pos、id
-    change_knight = D.findall(r'耐久：(\d+)/.*?pos=(\d+)">更改侠士.*?id=(\d+)')
+    vacant_positions = D.findall(r'pos=(\d+)">选择侠士')
+    deployed_knights = D.findall(r'耐久：(\d+).*?pos=(\d+)">更改侠士.*?id=(\d+)')
 
-    knight_durable_0_pos = []
-    for d, p, _id in change_knight:
-        # 移除更改侠士id
-        knightid.remove(_id)
-        if d == "0":
-            # 筛选0耐久侠士pos
-            knight_durable_0_pos.append(p)
-            # 0耐久侠士取消出战
-            D.get(f"cmd=knightarena&op=setknight&id={_id}&pos={p}&type=0")
+    positions_to_clear = []
+    for durability, position, knight_id in deployed_knights:
+        # 从可用列表中移除已出战的侠士
+        if knight_id in available_knight_ids:
+            available_knight_ids.remove(knight_id)
 
-    # 选择/更改侠士
-    for p in choose_knight_pos + knight_durable_0_pos:
-        # 判断还有没有可用的侠士
-        if not knightid:
-            D.print_info("没有可用的侠士")
-            D.msg_append("没有可用的侠士")
+        # 记录需要清退的0耐久位置
+        if durability == "0":
+            positions_to_clear.append(position)
+            # 下阵0耐久侠士
+            D.get(f"cmd=knightarena&op=setknight&id={knight_id}&pos={position}&type=0")
+
+    # 重新分配侠士
+    all_vacant_positions = vacant_positions + positions_to_clear
+    for position in all_vacant_positions:
+        if not available_knight_ids:
+            D.print_info("可用侠士已耗尽")
+            D.msg_append("可用侠士已耗尽")
             break
-        _id: str = knightid.pop()
-        # 出战
-        D.get(f"cmd=knightarena&op=setknight&id={_id}&pos={p}&type=1")
+
+        selected_knight = available_knight_ids.pop()
+        # 上阵新侠士
+        D.get(
+            f"cmd=knightarena&op=setknight&id={selected_knight}&pos={position}&type=1"
+        )
     return True
 
 
 def 荣誉兑换():
-    """
-    每月26号华山论剑-荣誉兑换，详见yaml配置文件
-    """
-    _yaml: dict = D.yaml["华山论剑"]
-    for name, _dict in _yaml.items():
+    yaml: dict = D.yaml["华山论剑"]
+    for name, _id, number in get_yaml_exchange(yaml):
         n = 0
-        _id: int = _dict["id"]
-        number: int = _dict["number"]
-        quotient, remainder = divmod(number, 10)
-        for _ in range(quotient):
-            # 兑换10个
+        for _ in range(number // 10):
             D.get(f"cmd=knightarena&op=exchange&id={_id}&times=10")
             D.find()
-            if "成功兑换" not in D.html:
+            if "成功" not in D.html:
                 break
             n += 10
-        for _ in range(remainder):
-            # 兑换1个
+        for _ in range(number - n):
             D.get(f"cmd=knightarena&op=exchange&id={_id}&times=1")
             D.find()
-            if "成功兑换" not in D.html:
+            if "成功" not in D.html:
                 break
             n += 1
         if n:
             D.msg_append(f"兑换{name}*{n}")
-        if "荣誉点数不足" in D.html:
-            break
 
 
 def 侠士招募():
-    """
-    每月26号华山论剑-侠士招募
-    """
     # 侠士招募
     D.get("cmd=knightarena&op=viewlottery")
-    number = D.find(r"（(\d+)）")
-    number = int(number) // 100
-    for _ in range(number):
+    number = int(D.find(r"（(\d+)）"))
+    for _ in range(number // 100):
         # 招募十次
         D.get("cmd=knightarena&op=lottery&times=10")
         D.msg_append(D.find())
@@ -156,11 +161,11 @@ def 侠士招募():
 
 def 华山论剑():
     """
-    每月1~25号每天免费挑战8次，侠士耐久为0时取消出战并更换侠士
+    每月1~25号每天免费挑战8次，自动战阵调整
     每月26号领取赛季段位奖励、荣誉兑换、侠士招募
     """
     if D.day == 26:
-        # 赛季段位奖励
+        # 领取赛季段位奖励
         D.get(r"cmd=knightarena&op=drawranking")
         D.msg_append(D.find())
 
@@ -172,8 +177,8 @@ def 华山论剑():
         # 华山论剑
         D.get("cmd=knightarena")
         if "免费挑战" not in D.html:
-            D.print_info("免费挑战次数已用完")
-            D.msg_append("免费挑战次数已用完")
+            D.print_info("没有免费挑战次数了")
+            D.msg_append("没有免费挑战次数了")
             break
         # 免费挑战
         D.get("cmd=knightarena&op=challenge")
@@ -196,14 +201,44 @@ def 斗豆月卡():
     D.msg_append(D.find(r"<p>(.*?)<br />"))
 
 
+def 兵法():
+    """
+    周四随机助威
+    周六领奖、领取斗币
+    """
+    if D.week == 4:
+        # 助威
+        D.get("cmd=brofight&subtype=13")
+        _id = D.find(r"teamid=(\d+).*?助威</a>")
+        # 确定
+        D.get(f"cmd=brofight&subtype=13&teamid={_id}&type=5&op=cheer")
+        D.msg_append(D.find(r"领奖</a><br />(.*?)<br />"))
+
+    if D.week != 6:
+        return
+
+    # 领奖
+    D.get("cmd=brofight&subtype=13&op=draw")
+    D.msg_append(D.find(r"领奖</a><br />(.*?)<br />"))
+
+    for t in range(1, 6):
+        D.get(f"cmd=brofight&subtype=10&type={t}")
+        for n, u in D.findall(r"50000.*?(\d+).*?champion_uin=(\d+)"):
+            if n == "0":
+                continue
+            # 领斗币
+            D.get(f"cmd=brofight&subtype=10&op=draw&champion_uin={u}&type={t}")
+            D.msg_append(D.find(r"排行</a><br />(.*?)<br />"))
+            return
+
+
 def 分享():
     """
-    每天一键分享；斗神塔每次挑战11层以增加一次分享次数
-    周四领取奖励；所有奖励被领取则重置分享
+    每天至多一键分享9次，斗神塔每次挑战11层以增加一次分享次数
+    周四领取奖励，若全部已领取则重置分享
     """
-    _end = False
     # 达人等级对应斗神塔CD时间
-    data = {
+    cd = {
         "1": 7,
         "2": 6,
         "3": 5,
@@ -217,49 +252,42 @@ def 分享():
     }
     # 乐斗达人
     D.get("cmd=ledouvip")
-    if grade := D.find(r"当前级别：(\d+)", "达人等级"):
-        second = data[grade]
+    if level := D.find(r"当前级别：(\d+)", "达人等级"):
+        second = cd[level]
     else:
         # 还未成为达人
         second = 10
 
+    end = False
     for _ in range(9):
         # 一键分享
         D.get("cmd=sharegame&subtype=6")
         D.find(r"】</p>(.*?)<p>")
-        if ("达到当日分享次数上限" in D.html) or _end:
-            D.msg_append(D.find(r"</p><p>(.*?)<br />.*?开通达人"))
+        if ("达到当日分享次数上限" in D.html) or end:
+            D.msg_append(D.find(r"</p><p>(.*?)<br />"))
             break
 
         for _ in range(11):
             # 开始挑战 or 挑战下一层
             D.get("cmd=towerfight&type=0")
-            D.find(name="斗神塔-挑战")
+            D.find(name="斗神塔")
             time.sleep(second)
-            if "您" in D.html:
-                # 您败给了
-                # 您战胜了
-                continue
-
-            # 系统繁忙
+            if "您战胜了" not in D.html:
+                end = True
+                break
+            # 您败给了
             # 已经到了塔顶
             # 已经没有剩余的周挑战数
             # 您需要消耗斗神符才能继续挑战斗神塔
-            _end = True
 
     # 自动挑战
     D.get("cmd=towerfight&type=11")
-    D.find(name="斗神塔-自动挑战")
-    for _ in range(10):
-        time.sleep(second)
-        if "结束挑战" in D.html:
-            # 结束挑战
-            D.get("cmd=towerfight&type=7")
-            D.find(name="斗神塔-结束挑战")
-            break
-        # 挑战下一层
-        D.get("cmd=towerfight&type=0")
-        D.find(name="斗神塔-挑战")
+    D.find(name="斗神塔")
+    time.sleep(second)
+    if "结束挑战" in D.html:
+        # 结束挑战
+        D.get("cmd=towerfight&type=7")
+        D.find(name="斗神塔")
 
     if D.week != 4:
         return
@@ -280,13 +308,13 @@ def 分享():
 
 def 乐斗():
     """
-    每天开启自动使用体力药水、使用四次贡献药水
+    每天开启自动使用体力药水、使用4次贡献药水
     每天乐斗好友BOSS、帮友BOSS、侠侣页所有
     """
     # 乐斗助手
     D.get("cmd=view&type=6")
     if "开启自动使用体力药水" in D.html:
-        #  开启自动使用体力药水
+        # 开启自动使用体力药水
         D.get("cmd=set&type=0")
         D.print_info("开启自动使用体力药水")
         D.msg_append("开启自动使用体力药水")
@@ -319,12 +347,7 @@ def 乐斗():
 
     # 侠侣
     D.get("cmd=viewxialv&page=1")
-    uin = D.findall(r"：.*?B_UID=(\d+)")
-    if not uin:
-        D.print_info("侠侣未找到uin")
-        D.msg_append("侠侣未找到uin")
-        return
-    for u in uin[1:]:
+    for u in D.findall(r"</a>\d+.*?B_UID=(\d+)"):
         # 乐斗
         D.get(f"cmd=fight&B_UID={u}")
         if "使用规则" in D.html:
@@ -362,7 +385,7 @@ def 报名():
 
 def 巅峰之战进行中():
     """
-    周一、二随机加入及领奖
+    周一、二随机加入、领奖
     周三、四、五、六、日征战
     """
     if D.week in [1, 2]:
@@ -399,11 +422,11 @@ def 矿洞():
     """
     每天挑战三次
     领取通关奖励
-    开启副本，详见yaml配置文件
+    开启副本
     """
-    _yaml: dict = D.yaml["矿洞"]
-    f = _yaml["floor"]
-    m = _yaml["mode"]
+    yaml: dict = D.yaml["矿洞"]
+    f = yaml["floor"]
+    m = yaml["mode"]
 
     # 矿洞
     D.get("cmd=factionmine")
@@ -411,10 +434,9 @@ def 矿洞():
         if "副本挑战中" in D.html:
             # 挑战
             D.get("cmd=factionmine&op=fight")
-            msg = D.find()
+            D.msg_append(D.find())
             if "挑战次数不足" in D.html:
                 break
-            D.msg_append(msg)
         elif "开启副本" in D.html:
             # 确认开启
             D.get(f"cmd=factionmine&op=start&floor={f}&mode={m}")
@@ -428,7 +450,7 @@ def 矿洞():
 
 def 掠夺():
     """
-    周二掠夺一次（各粮仓中第一个最低战斗力的成员）、领奖
+    周二掠夺一次战力最低的成员、领奖
     周三领取胜负奖励、报名
     """
     if D.week == 3:
@@ -442,16 +464,13 @@ def 掠夺():
 
     # 掠夺
     D.get("cmd=forage_war")
-    if "本轮轮空" in D.html:
-        D.msg_append(D.find(r"本届战况：(.*?)<br />"))
-        return
-    elif "未报名" in D.html:
+    if ("本轮轮空" in D.html) or ("未报名" in D.html):
         D.msg_append(D.find(r"本届战况：(.*?)<br />"))
         return
 
+    data = []
     # 掠夺
     D.get("cmd=forage_war&subtype=3")
-    data = []
     if gra_id := D.findall(r'gra_id=(\d+)">掠夺'):
         for _id in gra_id:
             D.get(f"cmd=forage_war&subtype=3&op=1&gra_id={_id}")
@@ -472,7 +491,7 @@ def 掠夺():
 
 def 踢馆():
     """
-    周五试炼5次、高倍转盘一次、挑战至多30次
+    周五试炼5次、高倍转盘一次、至多挑战30次
     周六报名、领奖
     """
     if D.week == 6:
@@ -506,7 +525,7 @@ def 踢馆():
 def 竞技场():
     """
     每天兑换10个河图洛书
-    每月1~25号每天挑战至多10次、领取奖励
+    每月1~25号每天至多挑战10次、领取奖励
     """
     # 兑换10个河图洛书
     D.get("cmd=arena&op=exchange&id=5435&times=10")
@@ -560,15 +579,16 @@ def 许愿():
 
 def 抢地盘():
     """
-    每天无限制区攻占一次第10位地盘
+    每天无限制区随机攻占一次
 
     等级  30级以下 40级以下 ... 120级以下 无限制区
     type  1       2            10        11
     """
     D.get("cmd=recommendmanor&type=11&page=1")
     if manorid := D.findall(r'manorid=(\d+)">攻占</a>'):
+        _id = random.choice(manorid)
         # 攻占
-        D.get(f"cmd=manorfight&fighttype=1&manorid={manorid[-1]}")
+        D.get(f"cmd=manorfight&fighttype=1&manorid={_id}")
         D.msg_append(D.find(r"</p><p>(.*?)。"))
     # 兑换武器
     D.get("cmd=manor&sub=0")
@@ -577,9 +597,9 @@ def 抢地盘():
 
 def 历练():
     """
-    每天乐斗BOSS，不会使用活力药水，详见yaml配置文件
+    每天至多乐斗BOSS5次
     """
-    _yaml: list = D.yaml["历练"]
+    yaml: list = D.yaml["历练"]
 
     # 乐斗助手
     D.get("cmd=view&type=6")
@@ -587,8 +607,9 @@ def 历练():
         # 取消自动使用活力药水
         D.get("cmd=set&type=11")
         D.print_info("取消自动使用活力药水")
+        D.msg_append("取消自动使用活力药水")
 
-    for _id in _yaml:
+    for _id in yaml:
         for _ in range(3):
             D.get(f"cmd=mappush&subtype=3&mapid=6&npcid={_id}&pageid=2")
             if "您还没有打到该历练场景" in D.html:
@@ -605,10 +626,10 @@ def 历练():
 
 def 镖行天下():
     """
-    每天刷新押镖并启程护送、拦截3次
+    每天领取奖励、刷新押镖、启程护送、拦截3次
     """
-    for op in [8, 6]:
-        # 刷新押镖 》启程护送
+    for op in [16, 8, 6]:
+        # 领取奖励、刷新押镖、启程护送
         D.get(f"cmd=cargo&op={op}")
         D.msg_append(D.find())
 
@@ -630,7 +651,8 @@ def 镖行天下():
 
 def 幻境():
     """
-    每天自动选择最高场景乐斗至多5次
+    每天自动选择最高场景至多乐斗5次
+    领取奖励
     """
     # 幻境
     D.get("cmd=misty")
@@ -650,8 +672,8 @@ def 幻境():
                 break
 
         # 领取奖励
-        while _id := D.findall(r"box_id=(\d+)"):
-            D.get(f"cmd=misty&op=reward&box_id={_id[0]}")
+        while _id := D.find(r"box_id=(\d+)"):
+            D.get(f"cmd=misty&op=reward&box_id={_id}")
             D.msg_append(D.find(r"星数.*?<br />(.*?)<br />"))
         # 返回飘渺幻境
         D.get("cmd=misty&op=return")
@@ -673,14 +695,29 @@ def 画卷迷踪():
     for _ in range(20):
         # 准备完成进入战斗
         D.get("cmd=scroll_dungeon&op=fight&buff=0")
-        D.msg_append(D.find(r"选择</a><br /><br />(.*?)<br />"))
+        D.msg_append(D.find(r"</a><br /><br />(.*?)<br />"))
         if "没有挑战次数" in D.html:
             break
         elif "征战书不足" in D.html:
             break
 
 
-def 门派_五花堂():
+def 门派():
+    """
+    万年寺：每天点燃普通香炉、点燃高香香炉
+    八叶堂：每天一次进入木桩训练、两次进入同门切磋（一次免费一次消耗门派战书）
+    五花堂：每天至多完成任务3次
+    """
+    # 点燃普通香炉、点燃高香香炉
+    for op in ["fumigatefreeincense", "fumigatepaidincense"]:
+        D.get(f"cmd=sect&op={op}")
+        D.msg_append(D.find(r"修行。<br />(.*?)<br />"))
+
+    # 进入木桩训练、进入同门切磋、进入同门切磋
+    for op in ["trainingwithnpc", "trainingwithmember", "trainingwithmember"]:
+        D.get(f"cmd=sect&op={op}")
+        D.msg_append(D.find())
+
     # 五花堂
     wuhuatang = D.get("cmd=sect_task")
     missions = {
@@ -695,31 +732,24 @@ def 门派_五花堂():
     }
     for name, url in missions.items():
         if name in wuhuatang:
-            D.print_info(name)
             D.get(url)
+            D.print_info(name)
     if "查看一名" in wuhuatang:
         # 查看一名同门成员的资料 or 查看一名其他门派成员的资料
         D.print_info("查看好友第二页所有成员")
         # 好友第2页
         D.get("cmd=friendlist&page=2")
-        for uin in D.findall(r"\d+：.*?B_UID=(\d+).*?级"):
+        for uin in D.findall(r"</a>\d+.*?B_UID=(\d+)"):
             # 查看好友
             D.get(f"cmd=totalinfo&B_UID={uin}")
+            D.print_info(f"查看好友{uin}")
     if "进行一次心法修炼" in wuhuatang:
-        """
-        少林心法      峨眉心法    华山心法      丐帮心法    武当心法      明教心法
-        101 法华经    104 斩情决  107 御剑术   110 醉拳    113 太极内力  116 圣火功
-        102 金刚经    105 护心决  108 龟息术   111 烟雨行  114 绕指柔剑  117 五行阵
-        103 达摩心经  106 观音咒  109 养心术   112 笑尘诀  115 金丹秘诀  118 日月凌天
-        """
-        for art_id in range(101, 119):
-            D.get(f"cmd=sect_art&subtype=2&art_id={art_id}&times=1")
+        for _id in range(101, 119):
+            # 修炼
+            D.get(f"cmd=sect_art&subtype=2&art_id={_id}&times=1")
             D.find()
-            if "你的心法已达顶级无需修炼" in D.html:
-                continue
-            # 修炼成功
-            # 你的门派贡献不足无法修炼
-            break
+            if "修炼成功" in D.html:
+                break
 
     # 五花堂
     D.get("cmd=sect_task")
@@ -729,63 +759,31 @@ def 门派_五花堂():
         D.msg_append(D.find())
 
 
-def 门派():
-    """
-    万年寺：点燃普通香炉 》点燃高香香炉
-    八叶堂：进入木桩训练 》进入同门切磋 》进入同门切磋
-    五花堂：至多完成任务3次
-    """
-    # 点燃普通香炉 》点燃高香香炉
-    for op in ["fumigatefreeincense", "fumigatepaidincense"]:
-        D.get(f"cmd=sect&op={op}")
-        D.msg_append(D.find(r"修行。<br />(.*?)<br />"))
-
-    # 进入木桩训练 》进入同门切磋 》进入同门切磋
-    for op in ["trainingwithnpc", "trainingwithmember", "trainingwithmember"]:
-        D.get(f"cmd=sect&op={op}")
-        D.msg_append(D.find())
-
-    门派_五花堂()
-
-
-def 门派邀请赛_兑换商店():
-    """
-    商店兑换详见yaml配置文件
-    """
-    _yaml: dict = D.yaml["门派邀请赛"]
-    for _, _dict in _yaml.items():
-        _id: int = _dict["id"]
-        _week: list = _dict["week"]
-        number: int = _dict["number"]
-        if (D.week not in _week) or (number == 0):
-            continue
-        quotient, remainder = divmod(number, 10)
-        for _ in range(quotient):
-            # 兑换10个
+def 门派邀请赛_商店兑换():
+    yaml: dict = D.yaml["门派邀请赛"]
+    for name, _id, number in get_yaml_exchange(yaml):
+        n = 0
+        for _ in range(number // 10):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=10")
-            msg = D.find()
+            D.find()
             if "成功" not in D.html:
                 break
-            D.msg_append(msg)
-        for _ in range(remainder):
-            # 兑换1个
+            n += 10
+        for _ in range(number - n):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=1")
-            msg = D.find()
+            D.find()
             if "成功" not in D.html:
                 break
-            D.msg_append(msg)
-        if "积分不足" in D.html:
-            break
+            n += 1
+        if n:
+            D.msg_append(f"兑换{name}*{n}")
 
 
 def 门派邀请赛():
     """
-    每天商店兑换，详见yaml配置文件
-    周一、二报名、领取奖励
-    周三~周日开始挑战至多10次（累计兑换消耗门派战书*5）
+    周一、二报名、领取奖励、商店兑换
+    周三~周日至多开始挑战10次（自动兑换门派战书*5）
     """
-    门派邀请赛_兑换商店()
-
     if D.week in [1, 2]:
         # 组队报名
         D.get("cmd=secttournament&op=signup")
@@ -793,7 +791,16 @@ def 门派邀请赛():
         # 领取奖励
         D.get("cmd=secttournament&op=getrankandrankingreward")
         D.msg_append(D.find())
+
+        门派邀请赛_商店兑换()
         return
+
+    for _ in range(5):
+        # 兑换门派战书*1
+        D.get("cmd=exchange&subtype=2&type=1249&times=1")
+        D.msg_append(D.find())
+        if "成功" not in D.html:
+            break
 
     for _ in range(10):
         # 开始挑战
@@ -805,28 +812,17 @@ def 门派邀请赛():
             break
 
 
-def 会武_兑换商店():
-    """
-    商店兑换详见yaml配置文件
-    """
-    _yaml: dict[int, dict] = D.yaml["会武"]
-    for name, _dict in _yaml.items():
+def 会武_商店兑换():
+    yaml: dict = D.yaml["会武"]
+    for name, _id, number in get_yaml_exchange(yaml):
         n = 0
-        _id: int = _dict["id"]
-        _week: list = _dict["week"]
-        number: int = _dict["number"]
-        if (D.week not in _week) or (number == 0):
-            continue
-        quotient, remainder = divmod(number, 10)
-        for _ in range(quotient):
-            # 兑换10个
+        for _ in range(number // 10):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=10")
             D.find()
             if "成功" not in D.html:
                 break
             n += 10
-        for _ in range(remainder):
-            # 兑换1个
+        for _ in range(number - n):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=1")
             D.find()
             if "成功" not in D.html:
@@ -834,19 +830,15 @@ def 会武_兑换商店():
             n += 1
         if n:
             D.msg_append(f"兑换{name}*{n}")
-        if "积分不足" in D.html:
-            break
 
 
 def 会武():
     """
-    每天商店兑换，详见yaml配置文件
-    周一、二、三初、中、高级试炼场挑战至多21次
+    周一、二、三初、中、高级试炼场挑战（自动兑换试炼书*1）
     周四助威丐帮
+    周五商店兑换
     周六、日领奖
     """
-    会武_兑换商店()
-
     if D.week in [1, 2, 3]:
         for _ in range(21):
             # 挑战
@@ -858,13 +850,19 @@ def 会武():
             if "你已达今日挑战上限" in D.html:
                 break
             elif "你的试炼书不足" in D.html:
-                break
+                # 兑换试炼书
+                D.get("cmd=exchange&subtype=2&type=1265&times=1")
+                D.find()
+                if "兑换成功" not in D.html:
+                    break
     elif D.week == 4:
         # 冠军助威 丐帮
         D.get("cmd=sectmelee&op=cheer&sect=1003")
         # 冠军助威
         D.get("cmd=sectmelee&op=showcheer")
         D.msg_append(D.find())
+    elif D.week == 5:
+        会武_商店兑换()
     elif D.week in [6, 7]:
         # 领奖
         D.get("cmd=sectmelee&op=showreward")
@@ -879,18 +877,11 @@ def 会武():
 
 
 def 梦幻旅行():
-    if (count := D.html.count("已去过")) < 6:
-        _msg = f"已去过 {count} （大于等于7才会消耗梦幻机票）"
-        D.print_info(_msg)
-        D.msg_append(_msg)
+    if D.html.count("已去过") < 6:
         return
 
     # 获取当前区域所有未去过的目的地
-    place = D.findall(r"([\u4e00-\u9fa5\s\-]+)(?=\s未去过)")
-    if not place:
-        D.print_info("当前区域全部已去过")
-        D.msg_append("当前区域全部已去过")
-    else:
+    if place := D.findall(r"([\u4e00-\u9fa5\s\-]+)(?=\s未去过)"):
         bmapid = D.find(r'bmapid=(\d+)">梦幻旅行')
     for name in place:
         # 梦幻旅行
@@ -912,7 +903,7 @@ def 梦幻旅行():
 def 梦想之旅():
     """
     每天一次普通旅行
-    周四如果当前区域已去过至少6个目的地，那么消耗梦幻机票解锁剩下所有未去过的目的地
+    周四梦幻旅行，需已去过至少6个区域
     周四领取区域礼包、超级礼包
     """
     # 普通旅行
@@ -923,36 +914,32 @@ def 梦想之旅():
 
 
 def 问鼎天下_商店兑换():
-    """ "
-    积分商店兑换碎片
+    """
+    仅兑换碎片（需神魔录古阵篇可以升一级且碎片拥有数量少于突破需要数量）
     """
 
-    def get_number(name: str, item_id: int):
-        """
-        获取背包物品数量
-        """
+    def get_number():
+        """获取背包物品数量"""
         # 背包物品详情
-        D.get(f"cmd=owngoods&id={item_id}")
+        D.get(f"cmd=owngoods&id={backpack_id}")
         if "很抱歉" in D.html:
             number = 0
         else:
             number = D.find(r"数量：(\d+)", f"{name}背包数量")
         return int(number)
 
-    def exchange(name: str, t: int, number: int):
-        """
-        问鼎天下商店兑换
-        """
-        q, r = divmod((int(result) - backpack_number), 10)
+    def exchange():
+        """问鼎天下商店兑换"""
+        q, r = divmod((result - backpack_number), 10)
         if q:
             # 兑换10个
             D.get(f"cmd=exchange&subtype=2&type={t}&times=10&costtype=14")
-            D.msg_append(D.find())
+            D.msg_append(D.find(name=f"{name}兑换"))
             return
         for _ in range(r):
             # 兑换1个
             D.get(f"cmd=exchange&subtype=2&type={t}&times=1&costtype=14")
-            D.msg_append(D.find())
+            D.msg_append(D.find(name=f"{name}兑换"))
 
     data = {
         "夔牛碎片": {
@@ -985,31 +972,29 @@ def 问鼎天下_商店兑换():
         t = _dict["t"]
         backpack_id = _dict["backpack_id"]
         _name = _dict["name"]
-        backpack_number = get_number(name, backpack_id)
+        backpack_number = get_number()
 
         # 神魔录古阵篇宝物详情
         D.get(f"cmd=ancient_gods&op=4&id={_id}")
         # 当前等级
-        now_level = D.find(r"等级：(\d+)", f"{_name}等级")
-        if now_level == "15":
+        now_level = D.find(r"等级：(\d+)", f"{_name}当前等级")
+        # 最高等级
+        max_level = D.find(r"最高提升至(\d+)", f"{_name}最高等级")
+        if now_level == max_level:
             continue
         # 碎片消耗数量
-        result = D.find(r"碎片\*(\d+)", f"{_name}突破数量")
-
-        if int(result) > backpack_number:
-            exchange(name, t, (int(result) - backpack_number))
+        result = int(D.find(r"碎片\*(\d+)", f"{_name}突破数量"))
+        if result > backpack_number:
+            exchange()
 
 
 def 问鼎天下():
     """
-    每天商店兑换碎片，不足神魔录古阵篇碎片突破数量则兑换（15级不兑换）
     周一领取奖励
     周一~周五领取帮资或放弃资源点、东海攻占倒数第一个
-    周六淘汰赛助威yaml配置的帮派
-    周日排名赛助威yaml配置的帮派
+    周六淘汰赛助威、商店兑换
+    周日排名赛助威、商店兑换
     """
-    问鼎天下_商店兑换()
-
     if D.week == 6:
         # 淘汰赛助威
         _id = D.yaml["问鼎天下"]["淘汰赛"]
@@ -1022,6 +1007,7 @@ def 问鼎天下():
         D.msg_append(D.find())
 
     if D.week in [6, 7]:
+        问鼎天下_商店兑换()
         return
 
     if D.week == 1:
@@ -1039,16 +1025,18 @@ def 帮派商会():
 def 帮派远征军_攻击(p: str, u: str) -> bool:
     # 攻击
     D.get(f"cmd=factionarmy&op=fightWithUsr&point_id={p}&opp_uin={u}")
+    if "加入帮派第一周不能参与帮派远征军" in D.html:
+        return False
     if "【帮派远征军-征战结束】" in D.html:
-        _msg = D.find()
+        msg = D.find()
         if "您未能战胜" in D.html:
-            D.msg_append(_msg)
-            return True
+            D.msg_append(msg)
+            return False
     elif "【帮派远征军】" in D.html:
         D.msg_append(D.find(r"<br /><br />(.*?)</p>"))
         if "您的血量不足" in D.html:
-            return True
-    return False
+            return False
+    return True
 
 
 def 帮派远征军_参战():
@@ -1064,7 +1052,7 @@ def 帮派远征军_参战():
             # 参战
             D.get(f"cmd=factionarmy&op=viewpoint&point_id={p}")
             for u in D.findall(r'opp_uin=(\d+)">攻击'):
-                if 帮派远征军_攻击(p, u):
+                if not 帮派远征军_攻击(p, u):
                     return
 
 
@@ -1092,7 +1080,7 @@ def 帮派远征军_领取():
 
 def 帮派远征军():
     """
-    周一、二、三、四、五、六、日参战攻击
+    周一~周日参战攻击
     周日领取奖励
     """
     帮派远征军_参战()
@@ -1133,7 +1121,7 @@ def 帮派黄金联赛_参战():
 
 def 帮派黄金联赛():
     """
-    领取奖励、领取帮派赛季奖励、参与防守、参战攻击
+    每天领取奖励、领取帮派赛季奖励、参与防守、参战攻击
     """
     # 帮派黄金联赛
     D.get("cmd=factionleague&op=0")
@@ -1164,23 +1152,19 @@ def 任务派遣中心():
 def 武林盟主():
     """
     周三、五、日领取排行奖励和竞猜奖励
-    周一、三、五分站赛报名，详见yaml配置文件
-    周二、四、六竞猜
+    周一、三、五分站赛报名
+    周二、四、六竞猜所有
     """
     if D.week in [3, 5, 7]:
         # 武林盟主
         D.get("cmd=wlmz&op=view_index")
-        if data := D.findall(r'section_id=(\d+)&amp;round_id=(\d+)">'):
-            for s, r in data:
-                D.get(f"cmd=wlmz&op=get_award&section_id={s}&round_id={r}")
-                D.msg_append(D.find(r"<br /><br />(.*?)</p>"))
-        else:
-            D.print_info("没有可领取的排行奖励和竞猜奖励")
-            D.msg_append("没有可领取的排行奖励和竞猜奖励")
+        for s, r in D.findall(r'section_id=(\d+)&amp;round_id=(\d+)">'):
+            D.get(f"cmd=wlmz&op=get_award&section_id={s}&round_id={r}")
+            D.msg_append(D.find(r"<br /><br />(.*?)</p>"))
 
     if D.week in [1, 3, 5]:
-        g_id: int = D.yaml["武林盟主"]
-        D.get(f"cmd=wlmz&op=signup&ground_id={g_id}")
+        _id: int = D.yaml["武林盟主"]
+        D.get(f"cmd=wlmz&op=signup&ground_id={_id}")
         if "总决赛周不允许报名" in D.html:
             D.msg_append(D.find(r"战报</a><br />(.*?)<br />"))
             return
@@ -1208,299 +1192,45 @@ def 全民乱斗():
             D.get(f"cmd=luandou&op=8&id={_id}")
             D.msg_append(D.find(r"斗】<br /><br />(.*?)<br />"))
     if n:
-        D.print_info("没有可领取的")
-        D.msg_append("没有可领取的")
+        D.print_info("没有礼包领取")
+        D.msg_append("没有礼包领取")
 
 
 def 侠士客栈():
     c_侠士客栈(D)
 
 
-def 增强经脉():
+def 大侠回归三重好礼():
     """
-    每天传功至多12次
+    周四领取奖励
     """
-    # 关闭传功符不足用斗豆代替
-    D.get("cmd=intfmerid&sub=21&doudou=0")
-    if "关闭" in D.html:
-        # 关闭合成两次确认
-        D.get("cmd=intfmerid&sub=19")
-
-    for _ in range(12):
-        # 增强经脉
-        D.get("cmd=intfmerid&sub=1")
-        _id = D.find(r'master_id=(\d+)">传功</a>', "任务-增强经脉")
-        # 传功
-        D.get(f"cmd=intfmerid&sub=2&master_id={_id}")
-        D.find(r"</p>(.*?)<p>", "任务-增强经脉")
-        if "传功符不足!" in D.html:
-            return
-
-        # 一键拾取
-        D.get("cmd=intfmerid&sub=5")
-        D.find(r"</p>(.*?)<p>", "任务-增强经脉")
-        # 一键合成
-        D.get("cmd=intfmerid&sub=10&op=4")
-        D.find(r"</p>(.*?)<p>", "任务-增强经脉")
+    # 大侠回归三重好礼
+    D.get("cmd=newAct&subtype=173&op=1")
+    if data := D.findall(r"subtype=(\d+).*?taskid=(\d+)"):
+        for s, t in data:
+            # 领取
+            D.get(f"cmd=newAct&subtype={s}&op=2&taskid={t}")
+            D.msg_append(D.find(r"】<br /><br />(.*?)<br />"))
+    else:
+        D.print_info("没有礼包领取")
+        D.msg_append("没有礼包领取")
 
 
-def 助阵():
+def 乐斗黄历():
     """
-    无字天书或者河图洛书提升3次
+    每天领取、占卜一次
     """
-    _data = {
-        1: [0],
-        2: [0, 1],
-        3: [0, 1, 2],
-        9: [0, 1, 2],
-        4: [0, 1, 2, 3],
-        5: [0, 1, 2, 3],
-        6: [0, 1, 2, 3],
-        7: [0, 1, 2, 3],
-        8: [0, 1, 2, 3, 4],
-        10: [0, 1, 2, 3],
-        11: [0, 1, 2, 3],
-        12: [0, 1, 2, 3],
-        13: [0, 1, 2, 3],
-        14: [0, 1, 2, 3],
-        15: [0, 1, 2, 3],
-        16: [0, 1, 2, 3],
-        17: [0, 1, 2, 3],
-        18: [0, 1, 2, 3, 4],
-    }
-
-    def get_id_index():
-        for f_id, index_list in _data.items():
-            for index in index_list:
-                yield (f_id, index)
-
-    n = 0
-    for _id, _i in get_id_index():
-        if n == 3:
-            break
-        p = f"cmd=formation&type=4&formationid={_id}&attrindex={_i}&times=1"
-        for _ in range(3):
-            # 提升
-            D.get(p)
-            if "助阵组合所需佣兵不满足条件，不能提升助阵属性经验" in D.html:
-                D.find(r"<br /><br />(.*?)。", "任务-助阵")
-                return
-            elif "阅历不足" in D.html:
-                D.find(r"<br /><br />(.*?)，", "任务-助阵")
-                return
-
-            D.find(name="任务-助阵")
-            if "提升成功" in D.html:
-                n += 1
-            elif "经验值已经达到最大" in D.html:
-                break
-            elif "你还没有激活该属性" in D.html:
-                return
-
-
-def 查看好友资料():
-    """
-    查看好友第二页
-    """
-    # 武林 》设置 》乐斗助手
-    D.get("cmd=view&type=6")
-    if "开启查看好友信息和收徒" in D.html:
-        #  开启查看好友信息和收徒
-        D.get("cmd=set&type=1")
-    # 查看好友第2页
-    D.get("cmd=friendlist&page=2")
-    for uin in D.findall(r"\d+：.*?B_UID=(\d+).*?级"):
-        D.get(f"cmd=totalinfo&B_UID={uin}")
-
-
-def 徽章进阶():
-    """
-    进阶一次
-    """
-    # 关闭道具不足自动购买
-    D.get("cmd=achievement&op=setautobuy&enable=0&achievement_id=12")
-    for _id in range(1, 41):
-        D.get(f"cmd=achievement&op=upgradelevel&achievement_id={_id}&times=1")
-        if "【徽章馆】" in D.html:
-            D.find("<br /><br />(.*?)<", "任务-徽章进阶")
-            continue
-        D.find(name="任务-徽章进阶")
-        if "进阶失败" in D.html:
-            break
-        elif "进阶成功" in D.html:
-            break
-        elif "物品不足" in D.html:
-            break
-
-
-def 兵法研习():
-    """
-    兵法      消耗     id       功能
-    金兰之泽  孙子兵法  2544     增加生命
-    雷霆一击  孙子兵法  2570     增加伤害
-    残暴攻势  武穆遗书  21001    增加暴击几率
-    不屈意志  武穆遗书  21032    降低受到暴击几率
-    """
-    for _id in [21001, 2570, 21032, 2544]:
-        D.get(f"cmd=brofight&subtype=12&op=practice&baseid={_id}")
-        D.find(r"武穆遗书：\d+个<br />(.*?)<br />", "任务-兵法研习")
-        if "研习成功" in D.html:
-            break
-
-
-def 挑战陌生人():
-    """
-    斗友乐斗四次
-    """
-    # 斗友
-    D.get("cmd=friendlist&type=1")
-    uin = D.findall(r"：.*?级.*?B_UID=(\d+).*?乐斗</a>")
-    if not uin:
-        D.print_info("未找到斗友")
+    # 乐斗黄历
+    D.get("cmd=calender&op=0")
+    D.msg_append(D.find(r"今日任务：(.*?)<br />"))
+    # 领取
+    D.get("cmd=calender&op=2")
+    D.msg_append(D.find(r"<br /><br />(.*?)<br />"))
+    if "任务未完成" in D.html:
         return
-
-    for u in uin[:4]:
-        # 乐斗
-        D.get(f"cmd=fight&B_UID={u}&page=1&type=9")
-        D.find(r"删</a><br />(.*?)！", "任务-挑战陌生人")
-
-
-def 任务():
-    """
-    增强经脉、助阵每天必做
-    """
-    增强经脉()
-    助阵()
-
-    # 日常任务
-    missions = D.get("cmd=task&sub=1")
-    if "查看好友资料" in missions:
-        查看好友资料()
-    if "徽章进阶" in missions:
-        徽章进阶()
-    if "兵法研习" in missions:
-        兵法研习()
-    if "挑战陌生人" in missions:
-        挑战陌生人()
-
-    # 一键完成任务
-    D.get("cmd=task&sub=7")
-    for k, v in D.findall(r'id=\d+">(.*?)</a>.*?>(.*?)</a>'):
-        D.msg_append(f"{k} {v}")
-
-
-def 帮派供奉():
-    _yaml: list = D.yaml["我的帮派"]
-    for _id in _yaml:
-        for _ in range(5):
-            # 供奉
-            D.get(f"cmd=oblation&id={_id}&page=1")
-            if "供奉成功" in D.html:
-                D.msg_append(D.find())
-                continue
-            D.find(r"】</p><p>(.*?)<br />")
-            break
-        if "每天最多供奉5次" in D.html:
-            break
-
-
-def 帮派任务():
-    # 帮派任务
-    faction_missions = D.get("cmd=factiontask&sub=1")
-    missions = {
-        "帮战冠军": "cmd=facwar&sub=4",
-        "查看帮战": "cmd=facwar&sub=4",
-        "查看帮贡": "cmd=factionhr&subtype=14",
-        "查看祭坛": "cmd=altar",
-        "查看踢馆": "cmd=facchallenge&subtype=0",
-        "查看要闻": "cmd=factionop&subtype=8&pageno=1&type=2",
-        # '加速贡献': 'cmd=use&id=3038&store_type=1&page=1',
-        "粮草掠夺": "cmd=forage_war",
-    }
-    for name, url in missions.items():
-        if name in faction_missions:
-            D.print_info(name)
-            D.get(url)
-    if "帮派修炼" in faction_missions:
-        n = 0
-        for _id in [2727, 2758, 2505, 2536, 2437, 2442, 2377, 2399, 2429]:
-            for _ in range(4):
-                # 修炼
-                D.get(f"cmd=factiontrain&type=2&id={_id}&num=1&i_p_w=num%7C")
-                D.find(r"规则说明</a><br />(.*?)<br />")
-                if "技能经验增加" in D.html:
-                    n += 1
-                    continue
-                # 帮贡不足
-                # 你今天获得技能升级经验已达到最大！
-                # 你需要提升帮派等级来让你进行下一步的修炼
-                break
-            if n == 4:
-                break
-    # 帮派任务
-    D.get("cmd=factiontask&sub=1")
-    for _id in D.findall(r'id=(\d+)">领取奖励</a>'):
-        # 领取奖励
-        D.get(f"cmd=factiontask&sub=3&id={_id}")
-        D.msg_append(D.find(r"日常任务</a><br />(.*?)<br />"))
-
-
-def 我的帮派():
-    """
-    每天供奉5次、帮派任务至多领取奖励3次
-    周日领取奖励、报名帮派战争、激活祝福
-    """
-    # 我的帮派
-    D.get("cmd=factionop&subtype=3&facid=0")
-    if "你的职位" not in D.html:
-        D.print_info("您还没有加入帮派")
-        D.msg_append("您还没有加入帮派")
-        return
-
-    帮派供奉()
-    帮派任务()
-
-    if D.week == 7:
-        # 周日 领取奖励 》报名帮派战争 》激活祝福
-        for sub in [4, 9, 6]:
-            D.get(f"cmd=facwar&sub={sub}")
-            D.msg_append(D.find(r"</p>(.*?)<br /><a.*?查看上届"))
-
-
-def 帮派祭坛():
-    """
-    每天转动轮盘至多30次、领取通关奖励
-    """
-    # 帮派祭坛
-    D.get("cmd=altar")
-    for _ in range(30):
-        if "【祭坛轮盘】" in D.html:
-            # 转动轮盘
-            D.get("cmd=altar&op=spinwheel")
-            if "【祭坛轮盘】" in D.html:
-                D.msg_append(D.find())
-            if "转转券不足" in D.html:
-                break
-            elif "已达转转券转动次数上限" in D.html:
-                break
-        if "【随机分配】" in D.html:
-            for op, _id in D.findall(r"op=(.*?)&amp;id=(\d+)"):
-                # 选择
-                D.get(f"cmd=altar&op={op}&id={_id}")
-                if "选择路线" in D.html:
-                    # 选择路线
-                    D.get(f"cmd=altar&op=dosteal&id={_id}")
-                if "【随机分配】" in D.html:
-                    # 该帮派已解散，无法操作！
-                    # 系统繁忙
-                    D.find(r"<br /><br />(.*?)<br />")
-                    continue
-                if "【祭坛轮盘】" in D.html:
-                    D.msg_append(D.find())
-                    break
-        if "领取奖励" in D.html:
-            D.get("cmd=altar&op=drawreward")
-            D.msg_append(D.find())
+    # 占卜
+    D.get("cmd=calender&op=4")
+    D.msg_append(D.find(r"<br /><br />(.*?)<br />"))
 
 
 def 飞升大作战():
@@ -1533,43 +1263,34 @@ def 飞升大作战():
 
 
 def 许愿帮铺():
-    """
-    深渊之潮-许愿帮铺材料兑换，详见yaml配置文件
-    """
-    _yaml: dict = D.yaml["深渊之潮"]["许愿帮铺"]
-    # 许愿帮铺
-    D.get("cmd=abysstide&op=viewwishshop")
-    for name, number in _yaml.items():
-        if number == 0:
-            continue
+    yaml: dict = D.yaml["深渊之潮"]["许愿帮铺"]
+    for name, _id, number in get_yaml_exchange(yaml):
         n = 0
-        _id: str = D.findall(rf"{name}.*?id=(\d+)")[0]
-        quotient, remainder = divmod(number, 25)
+        if "之书" in name:
+            quotient = number // 25
+        else:
+            quotient = 0
         for _ in range(quotient):
-            # 兑换25次
             D.get(f"cmd=abysstide&op=wishexchangetimes&id={_id}&times=25")
-            D.find()
+            D.find(name=name)
             if "成功" not in D.html:
                 break
             n += 25
-        for _ in range(remainder):
-            # 兑换1次
+        for _ in range(number - n):
             D.get(f"cmd=abysstide&op=wishexchange&id={_id}")
-            D.find()
+            D.find(name=name)
             if "成功" not in D.html:
                 break
             n += 1
         if n:
             D.msg_append(f"兑换{name}*{n}")
-        if "许愿点不足" in D.html:
-            break
 
 
 def 深渊之潮():
     """
     每天帮派巡礼领取巡游赠礼
-    每天深渊秘境挑战，详见yaml配置文件
-    周四许愿帮铺材料兑换，详见yaml配置文件
+    每天深渊秘境至多通关5次
+    周四许愿帮铺材料兑换
     """
     c_帮派巡礼(D)
     c_深渊秘境(D)
@@ -1577,120 +1298,12 @@ def 深渊之潮():
         许愿帮铺()
 
 
-def 每日奖励():
-    """
-    每天领取4次
-    """
-    for key in ["login", "meridian", "daren", "wuzitianshu"]:
-        # 每日奖励
-        D.get(f"cmd=dailygift&op=draw&key={key}")
-        D.msg_append(D.find())
-
-
-def 领取徒弟经验():
-    """
-    每天一次
-    """
-    # 领取徒弟经验
-    D.get("cmd=exp")
-    D.msg_append(D.find(r"每日奖励</a><br />(.*?)<br />"))
-
-
-def 今日活跃度():
-    """
-    每天领取活跃度礼包、帮派总活跃礼包
-    """
-    # 今日活跃度
-    D.get("cmd=liveness")
-    D.msg_append(D.find(r"【(.*?)】"))
-    if "帮派总活跃" in D.html:
-        D.msg_append(D.find(r"礼包</a><br />(.*?)<"))
-
-    # 领取今日活跃度礼包
-    for giftbag_id in range(1, 5):
-        D.get(f"cmd=liveness_getgiftbag&giftbagid={giftbag_id}&action=1")
-        D.msg_append(D.find(r"】<br />(.*?)<p>"))
-
-    # 领取帮派总活跃奖励
-    D.get("cmd=factionop&subtype=18")
-    if "创建帮派" in D.html:
-        D.msg_append(D.find(r"帮派</a><br />(.*?)<br />"))
-    else:
-        D.msg_append(D.find())
-
-
-def 仙武修真():
-    """
-    每天领取3次任务、寻访长留山挑战至多5次
-    """
-    for task_id in range(1, 4):
-        # 领取
-        D.get(f"cmd=immortals&op=getreward&taskid={task_id}")
-        D.msg_append(D.find(r"帮助</a><br />(.*?)<br />"))
-
-    for _ in range(5):
-        # 寻访 长留山
-        D.get("cmd=immortals&op=visitimmortals&mountainId=1")
-        _msg = D.find(r"帮助</a><br />(.*?)<br />")
-        if "你的今日寻访挑战次数已用光" in D.html:
-            D.msg_append(_msg)
-            break
-        # 挑战
-        D.get("cmd=immortals&op=fightimmortals")
-        D.msg_append(D.find(r"帮助</a><br />(.*?)<a"))
-
-
-def 大侠回归三重好礼():
-    """
-    周四领取奖励
-    """
-    # 大侠回归三重好礼
-    D.get("cmd=newAct&subtype=173&op=1")
-    if _data := D.findall(r"subtype=(\d+).*?taskid=(\d+)"):
-        for s, t in _data:
-            # 领取
-            D.get(f"cmd=newAct&subtype={s}&op=2&taskid={t}")
-            D.msg_append(D.find(r"】<br /><br />(.*?)<br />"))
-    else:
-        D.print_info("没有可领取的奖励")
-        D.msg_append("没有可领取的奖励")
-
-
-def 乐斗黄历():
-    """
-    每天占卜一次
-    """
-    # 乐斗黄历
-    D.get("cmd=calender&op=0")
-    D.msg_append(D.find(r"今日任务：(.*?)<br />"))
-    # 领取
-    D.get("cmd=calender&op=2")
-    D.msg_append(D.find(r"<br /><br />(.*?)<br />"))
-    if "任务未完成" in D.html:
-        return
-    # 占卜
-    D.get("cmd=calender&op=4")
-    D.msg_append(D.find(r"<br /><br />(.*?)<br />"))
-
-
-def 器魂附魔():
-    """
-    附魔任务领取（50、80、115）
-    """
-    # 器魂附魔
-    D.get("cmd=enchant")
-    for task_id in range(1, 4):
-        # 领取
-        D.get(f"cmd=enchant&op=gettaskreward&task_id={task_id}")
-        D.msg_append(D.find())
-
-
 def 侠客岛():
     """
     侠客行至多接受任务3次（免费次数为0时不再刷新）
     """
-    count: str = "4"
-    mission_success: bool = False
+    count = "4"
+    mission_success = False
     # 侠客行
     D.get("cmd=knight_island&op=viewmissionindex")
     for _ in range(4):
@@ -1700,16 +1313,16 @@ def 侠客岛():
         for p in view_mission_detail_pos:
             # 接受
             D.get(f"cmd=knight_island&op=viewmissiondetail&pos={p}")
-            mission_name = D.find(r"侠客行<br /><br />(.*?)（", "侠客行-任务名称")
+            name = D.find(r"侠客行<br /><br />(.*?)（", "侠客行-任务名称")
             # 快速委派
             D.get(f"cmd=knight_island&op=autoassign&pos={p}")
-            D.find(r"）<br />(.*?)<br />", f"侠客行-{mission_name}")
+            D.find(r"）<br />(.*?)<br />", f"侠客行-{name}")
             if "快速委派成功" in D.html:
                 mission_success = True
                 # 开始任务
                 D.get(f"cmd=knight_island&op=begin&pos={p}")
-                _html = D.find(r"斗豆）<br />(.*?)<br />", f"侠客行-{mission_name}")
-                D.msg_append(f"{mission_name}：{_html}")
+                html = D.find(r"斗豆）<br />(.*?)<br />", f"侠客行-{name}")
+                D.msg_append(f"{name}：{html}")
             elif "符合条件侠士数量不足" in D.html:
                 # 侠客行
                 D.get("cmd=knight_island&op=viewmissionindex")
@@ -1718,9 +1331,9 @@ def 侠客岛():
                 if count != "0":
                     # 刷新
                     D.get(f"cmd=knight_island&op=refreshmission&pos={p}")
-                    D.find(r"斗豆）<br />(.*?)<br />", f"侠客行-{mission_name}")
+                    D.find(r"斗豆）<br />(.*?)<br />", f"侠客行-{name}")
                 else:
-                    D.print_info("没有免费次数，取消刷新", f"侠客行-{mission_name}")
+                    D.print_info("没有免费次数，取消刷新", f"侠客行-{name}")
 
         if count == "0":
             break
@@ -1731,7 +1344,7 @@ def 侠客岛():
 
 def 八卦迷阵():
     """
-    根据首通提示通关并领取奖励
+    每天根据首通提示通关、领取通关奖励
     """
     _data = {
         "离": 1,
@@ -1774,16 +1387,14 @@ def 八卦迷阵():
 def 遗迹商店():
     """
     赛季结束日期的前一天执行
-    遗迹征伐-遗迹商店特惠区、售卖区兑换，详见yaml配置文件
+    遗迹征伐-遗迹商店特惠区、售卖区兑换
     """
-    _yaml: dict = D.yaml["时空遗迹"]["遗迹商店"]
-    for t, _dict_1 in _yaml.items():
-        for name, _dict_2 in _dict_1.items():
+    yaml: dict = D.yaml["时空遗迹"]["遗迹商店"]
+    for t, _dict in yaml.items():
+        for name, _id, number in get_yaml_exchange(_dict):
             n = 0
-            _id: int = _dict_2["id"]
-            number: int = _dict_2["number"]
-            number = number // 10
-            for _ in range(number):
+            for _ in range(number // 10):
+                # 兑换十次
                 D.get(f"cmd=spacerelic&op=buy&type={t}&id={_id}&num=10")
                 D.find(
                     r"售卖区.*?<br /><br /><br />(.*?)<",
@@ -1792,16 +1403,23 @@ def 遗迹商店():
                 if "兑换成功" not in D.html:
                     break
                 n += 10
+            for _ in range(number - n):
+                # 兑换一次
+                D.get(f"cmd=spacerelic&op=buy&type={t}&id={_id}&num=1")
+                D.find(
+                    r"售卖区.*?<br /><br /><br />(.*?)<",
+                    f"时空遗迹-遗迹商店-{name}",
+                )
+                if "兑换成功" not in D.html:
+                    break
+                n += 1
             if n:
                 D.msg_append(f"兑换{name}*{n}")
 
-    # 遗迹商店积分
-    D.msg_append(D.find(r"规则</a><br />(.*?)<", "时空遗迹-遗迹商店"))
-
 
 def 异兽洞窟():
-    _yaml: list = D.yaml["时空遗迹"]["异兽洞窟"]
-    for _id in _yaml:
+    yaml: list = D.yaml["时空遗迹"]["异兽洞窟"]
+    for _id in yaml:
         D.get(f"cmd=spacerelic&op=monsterdetail&id={_id}")
         if "剩余挑战次数：0" in D.html:
             D.print_info("没有挑战次数", "时空遗迹-异兽洞窟")
@@ -1836,23 +1454,23 @@ def 悬赏任务():
 def 遗迹征伐():
     """
     第七周的最后一个周三（含）之前执行：
-    1.异兽洞窟：优先扫荡，否则挑战；详见yaml配置文件
+    1.异兽洞窟：优先扫荡，否则挑战
     2.联合征伐：每天挑战一次
     3.悬赏任务：每天领取
 
     赛季结束日期的前一天执行：
     1.领取悬赏任务登录奖励
     2.领取赛季排行奖励
-    3.悬赏商店兑换，详见yaml配置文件
+    3.悬赏商店兑换
     """
     # 遗迹征伐
     D.get("cmd=spacerelic&op=relicindex")
-    _year = D.findall(r"(\d+)年")[0]
-    _month = D.findall(r"(\d+)月")[0]
-    _day = D.findall(r"(\d+)日")[0]
+    year = D.find(r"(\d+)年")
+    month = D.find(r"(\d+)月")
+    day = D.find(r"(\d+)日")
 
     # 判断当前日期是否到达结束日期的前一天
-    if D.is_arrive_date(1, (int(_year), int(_month), int(_day))):
+    if D.is_arrive_date(1, (int(year), int(month), int(day))):
         # 悬赏任务-登录奖励
         D.get("cmd=spacerelic&op=task&type=1&id=1")
         D.msg_append(D.find(r"赛季任务</a><br /><br />(.*?)<", "时空遗迹-悬赏任务"))
@@ -1864,7 +1482,7 @@ def 遗迹征伐():
         return
 
     # 判断当前日期是否到达第八周
-    if D.is_arrive_date(7, (int(_year), int(_month), int(_day))):
+    if D.is_arrive_date(7, (int(year), int(month), int(day))):
         D.print_info("当前处于休赛期，结束前一天领取赛季奖励和悬赏商店兑换")
         D.msg_append("当前处于休赛期，结束前一天领取赛季奖励和悬赏商店兑换")
         return
@@ -1897,48 +1515,460 @@ def 世界树():
     D.msg_append(D.find(r"福宝<br /><br />(.*?)<br />"))
 
 
-def 兵法():
+def 增强经脉():
     """
-    周四随机助威
-    周六领奖、领取斗币
+    每天至多传功12次
     """
-    if D.week == 4:
-        # 助威
-        D.get("cmd=brofight&subtype=13")
-        if teamid := D.findall(r".*?teamid=(\d+).*?助威</a>"):
-            t = random.choice(teamid)
-            # 确定
-            D.get(f"cmd=brofight&subtype=13&teamid={t}&type=5&op=cheer")
-            D.msg_append(D.find(r"领奖</a><br />(.*?)<br />"))
+    # 关闭传功符不足用斗豆代替
+    D.get("cmd=intfmerid&sub=21&doudou=0")
+    if "关闭" in D.html:
+        # 关闭合成两次确认
+        D.get("cmd=intfmerid&sub=19")
 
-    if D.week != 6:
+    for _ in range(12):
+        # 增强经脉
+        D.get("cmd=intfmerid&sub=1")
+        _id = D.find(r'master_id=(\d+)">传功</a>', "任务-增强经脉")
+        # 传功
+        D.get(f"cmd=intfmerid&sub=2&master_id={_id}")
+        D.find(r"</p>(.*?)<p>", "任务-增强经脉")
+        if "传功符不足!" in D.html:
+            return
+
+        # 一键拾取
+        D.get("cmd=intfmerid&sub=5")
+        D.find(r"</p>(.*?)<p>", "任务-增强经脉")
+        # 一键合成
+        D.get("cmd=intfmerid&sub=10&op=4")
+        D.find(r"</p>(.*?)<p>", "任务-增强经脉")
+
+
+def 助阵():
+    """
+    无字天书或者河图洛书提升3次
+    """
+    data = {
+        1: [0],
+        2: [0, 1],
+        3: [0, 1, 2],
+        9: [0, 1, 2],
+        4: [0, 1, 2, 3],
+        5: [0, 1, 2, 3],
+        6: [0, 1, 2, 3],
+        7: [0, 1, 2, 3],
+        8: [0, 1, 2, 3, 4],
+        10: [0, 1, 2, 3],
+        11: [0, 1, 2, 3],
+        12: [0, 1, 2, 3],
+        13: [0, 1, 2, 3],
+        14: [0, 1, 2, 3],
+        15: [0, 1, 2, 3],
+        16: [0, 1, 2, 3],
+        17: [0, 1, 2, 3],
+        18: [0, 1, 2, 3, 4],
+    }
+
+    def get_id_index():
+        for f_id, index_list in data.items():
+            for index in index_list:
+                yield (f_id, index)
+
+    n = 0
+    for _id, i in get_id_index():
+        if n == 3:
+            break
+        p = f"cmd=formation&type=4&formationid={_id}&attrindex={i}&times=1"
+        for _ in range(3):
+            # 提升
+            D.get(p)
+            if "助阵组合所需佣兵不满足条件，不能提升助阵属性经验" in D.html:
+                D.find(r"<br /><br />(.*?)。", "任务-助阵")
+                return
+            elif "阅历不足" in D.html:
+                D.find(r"<br /><br />(.*?)，", "任务-助阵")
+                return
+
+            D.find(name="任务-助阵")
+            if "提升成功" in D.html:
+                n += 1
+            elif "经验值已经达到最大" in D.html:
+                break
+            elif "你还没有激活该属性" in D.html:
+                return
+
+
+def 查看好友资料():
+    """
+    查看第2页所有好友
+    """
+    # 乐斗助手
+    D.get("cmd=view&type=6")
+    if "开启查看好友信息和收徒" in D.html:
+        #  开启查看好友信息和收徒
+        D.get("cmd=set&type=1")
+        D.print_info("开启查看好友信息和收徒")
+        D.msg_append("开启查看好友信息和收徒")
+    # 好友第2页
+    D.get("cmd=friendlist&page=2")
+    for uin in D.findall(r"</a>\d+.*?B_UID=(\d+)"):
+        D.get(f"cmd=totalinfo&B_UID={uin}")
+
+
+def 徽章进阶():
+    """
+    进阶一次
+    """
+    # 关闭道具不足自动购买
+    D.get("cmd=achievement&op=setautobuy&enable=0&achievement_id=12")
+    for _id in range(1, 41):
+        D.get(f"cmd=achievement&op=upgradelevel&achievement_id={_id}&times=1")
+        if "【徽章馆】" not in D.html:
+            D.find(name="任务-徽章进阶")
+            break
+        D.find("<br /><br />(.*?)<", "任务-徽章进阶")
+
+
+def 兵法研习():
+    """
+    兵法      消耗     id    功能
+    金兰之泽  孙子兵法  2544  增加生命
+    雷霆一击  孙子兵法  2570  增加伤害
+    残暴攻势  武穆遗书  21001 增加暴击几率
+    不屈意志  武穆遗书  21032 降低受到暴击几率
+    """
+    for _id in [21001, 2570, 21032, 2544]:
+        D.get(f"cmd=brofight&subtype=12&op=practice&baseid={_id}")
+        D.find(r"武穆遗书：\d+个<br />(.*?)<br />", "任务-兵法研习")
+        if "研习成功" in D.html:
+            break
+
+
+def 挑战陌生人():
+    """
+    乐斗陌生人4次
+    """
+    # 斗友
+    D.get("cmd=friendlist&type=1")
+    for u in D.findall(r"</a>\d+.*?B_UID=(\d+)")[:4]:
+        D.get(f"cmd=fight&B_UID={u}&page=1&type=9")
+        D.find(r"删</a><br />(.*?)！", "任务-挑战陌生人")
+
+
+def 任务():
+    """
+    增强经脉、助阵每天必做
+    """
+    增强经脉()
+    助阵()
+
+    # 日常任务
+    missions = D.get("cmd=task&sub=1")
+    if "查看好友资料" in missions:
+        查看好友资料()
+    if "徽章进阶" in missions:
+        徽章进阶()
+    if "兵法研习" in missions:
+        兵法研习()
+    if "挑战陌生人" in missions:
+        挑战陌生人()
+
+    # 一键完成任务
+    D.get("cmd=task&sub=7")
+    for k, v in D.findall(r'id=\d+">(.*?)</a>.*?>(.*?)</a>'):
+        D.msg_append(f"{k} {v}")
+
+
+def 帮派供奉():
+    yaml: list = D.yaml["我的帮派"]
+    for _id in yaml:
+        for _ in range(5):
+            # 供奉
+            D.get(f"cmd=oblation&id={_id}&page=1")
+            if "供奉成功" in D.html:
+                D.msg_append(D.find())
+                continue
+            D.find(r"】</p><p>(.*?)<br />")
+            break
+        if "每天最多供奉5次" in D.html:
+            break
+
+
+def 帮派任务():
+    # 帮派任务
+    faction_missions = D.get("cmd=factiontask&sub=1")
+    missions = {
+        "帮战冠军": "cmd=facwar&sub=4",
+        "查看帮战": "cmd=facwar&sub=4",
+        "查看帮贡": "cmd=factionhr&subtype=14",
+        "查看祭坛": "cmd=altar",
+        "查看踢馆": "cmd=facchallenge&subtype=0",
+        "查看要闻": "cmd=factionop&subtype=8&pageno=1&type=2",
+        # '加速贡献': 'cmd=use&id=3038&store_type=1&page=1',
+        "粮草掠夺": "cmd=forage_war",
+    }
+    for name, url in missions.items():
+        if name in faction_missions:
+            D.get(url)
+            D.print_info(name)
+    if "帮派修炼" in faction_missions:
+        n = 0
+        for _id in [2727, 2758, 2505, 2536, 2437, 2442, 2377, 2399, 2429]:
+            for _ in range(4):
+                # 修炼
+                D.get(f"cmd=factiontrain&type=2&id={_id}&num=1&i_p_w=num%7C")
+                D.find(r"规则说明</a><br />(.*?)<br />")
+                if "技能经验增加" in D.html:
+                    n += 1
+                    continue
+                # 帮贡不足
+                # 你今天获得技能升级经验已达到最大！
+                # 你需要提升帮派等级来让你进行下一步的修炼
+                break
+            if n == 4:
+                break
+    # 帮派任务
+    D.get("cmd=factiontask&sub=1")
+    for _id in D.findall(r'id=(\d+)">领取奖励</a>'):
+        # 领取奖励
+        D.get(f"cmd=factiontask&sub=3&id={_id}")
+        D.msg_append(D.find(r"日常任务</a><br />(.*?)<br />"))
+
+
+def 我的帮派():
+    """
+    每天供奉5次、帮派任务至多领取奖励3次
+    周日帮战领取奖励、激活祝福
+    """
+    # 我的帮派
+    D.get("cmd=factionop&subtype=3&facid=0")
+    if "你的职位" not in D.html:
+        D.print_info("您还没有加入帮派")
+        D.msg_append("您还没有加入帮派")
         return
 
-    # 兵法 -> 助威 -> 领奖
-    D.get("cmd=brofight&subtype=13&op=draw")
-    D.msg_append(D.find(r"领奖</a><br />(.*?)<br />"))
+    帮派供奉()
+    帮派任务()
 
-    for t in range(1, 6):
-        D.get(f"cmd=brofight&subtype=10&type={t}")
-        for n, u in D.findall(r"50000.*?(\d+).*?champion_uin=(\d+)"):
-            if n == "0":
-                continue
-            # 领斗币
-            D.get(f"cmd=brofight&subtype=10&op=draw&champion_uin={u}&type={t}")
-            D.msg_append(D.find(r"排行</a><br />(.*?)<br />"))
-            return
+    if D.week == 7:
+        # 周日 领取奖励 》激活祝福
+        for sub in [4, 6]:
+            D.get(f"cmd=facwar&sub={sub}")
+            D.msg_append(D.find(r"</p>(.*?)<br /><a.*?查看上届"))
+
+
+def 帮派祭坛():
+    """
+    每天至多转动轮盘30次、领取通关奖励
+    """
+    # 帮派祭坛
+    D.get("cmd=altar")
+    for _ in range(30):
+        if "【祭坛轮盘】" in D.html:
+            # 转动轮盘
+            D.get("cmd=altar&op=spinwheel")
+            if "【祭坛轮盘】" in D.html:
+                D.msg_append(D.find())
+            if "转转券不足" in D.html:
+                break
+            elif "已达转转券转动次数上限" in D.html:
+                break
+        if "【随机分配】" in D.html:
+            for op, _id in D.findall(r"op=(.*?)&amp;id=(\d+)"):
+                # 选择
+                D.get(f"cmd=altar&op={op}&id={_id}")
+                if "选择路线" in D.html:
+                    # 选择路线
+                    D.get(f"cmd=altar&op=dosteal&id={_id}")
+                if "【随机分配】" in D.html:
+                    # 该帮派已解散，无法操作！
+                    # 系统繁忙
+                    D.find(r"<br /><br />(.*?)<br />")
+                    continue
+                if "【祭坛轮盘】" in D.html:
+                    D.msg_append(D.find())
+                    break
+        if "领取奖励" in D.html:
+            D.get("cmd=altar&op=drawreward")
+            D.msg_append(D.find())
+
+
+def 柒承的忙碌日常(count):
+    p = "cmd=jianghudream&op=chooseEvent&event_id="
+    for _ in range(count):
+        # 开启副本
+        D.get("cmd=jianghudream&op=beginInstance&ins_id=1")
+        if "帮助" in D.html:
+            # 开启副本所需追忆香炉不足
+            # 您还未编辑副本队伍，无法开启副本
+            D.msg_append(D.find())
+            break
+
+        for _ in range(8):
+            if "进入下一天" in D.html:
+                # 进入下一天
+                D.get("cmd=jianghudream&op=goNextDay")
+                result_1 = D.findall(r'event_id=(\d+)">战斗')
+                result_2 = D.findall(r'event_id=(\d+)">奇遇')
+                result_3 = D.findall(r'event_id=(\d+)">商店')
+            if result_1:
+                # 战斗
+                D.get(f"{p}{result_1[0]}")
+                # FIGHT!
+                D.get("cmd=jianghudream&op=doPveFight")
+                D.find(r"<p>(.*?)<br />")
+                if "战败" in D.html:
+                    break
+            elif result_2:
+                # 奇遇
+                D.get(f"{p}{result_2[0]}")
+                # 视而不见
+                D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=2")
+                D.find(r"获得金币：\d+<br />(.*?)<br />")
+            elif result_3:
+                # 商店
+                D.get(f"{p}{result_3[0]}")
+
+        # 结束回忆
+        D.get("cmd=jianghudream&op=endInstance")
+        D.msg_append(D.find())
+
+
+def 江湖长梦():
+    """
+    周四挑战柒承的忙碌日常
+    """
+    yaml: dict = D.yaml["江湖长梦"]
+    count: int = yaml["柒承的忙碌日常"]
+
+    柒承的忙碌日常(count)
+
+
+def 每日奖励():
+    """
+    每天领取每日礼包、传功符礼包、达人礼包、无字天书礼包
+    """
+    for key in ["login", "meridian", "daren", "wuzitianshu"]:
+        # 每日奖励
+        D.get(f"cmd=dailygift&op=draw&key={key}")
+        D.msg_append(D.find())
+
+
+def 领取徒弟经验():
+    """
+    每天领取一次
+    """
+    # 领取徒弟经验
+    D.get("cmd=exp")
+    D.msg_append(D.find(r"每日奖励</a><br />(.*?)<br />"))
+
+
+def 今日活跃度():
+    """
+    每天领取活跃度礼包、帮派总活跃礼包
+    """
+    # 今日活跃度
+    D.get("cmd=liveness")
+    D.msg_append(D.find(r"【(.*?)】"))
+    if "帮派总活跃" in D.html:
+        D.msg_append(D.find(r"礼包</a><br />(.*?)<"))
+
+    # 领取今日活跃度礼包
+    for giftbag_id in range(1, 5):
+        D.get(f"cmd=liveness_getgiftbag&giftbagid={giftbag_id}&action=1")
+        D.msg_append(D.find(r"】<br />(.*?)<p>"))
+
+    # 领取帮派总活跃奖励
+    D.get("cmd=factionop&subtype=18")
+    if "创建帮派" in D.html:
+        D.msg_append(D.find(r"帮派</a><br />(.*?)<br />"))
+    else:
+        D.msg_append(D.find())
+
+
+def 仙武修真():
+    """
+    每天领取3次任务、长留山至多挑战5次
+    """
+    for task_id in range(1, 4):
+        # 领取
+        D.get(f"cmd=immortals&op=getreward&taskid={task_id}")
+        D.msg_append(D.find(r"帮助</a><br />(.*?)<br />"))
+
+    for _ in range(5):
+        # 寻访 长留山
+        D.get("cmd=immortals&op=visitimmortals&mountainId=1")
+        _msg = D.find(r"帮助</a><br />(.*?)<br />")
+        if "你的今日寻访挑战次数已用光" in D.html:
+            D.msg_append(_msg)
+            break
+        # 挑战
+        D.get("cmd=immortals&op=fightimmortals")
+        D.msg_append(D.find(r"帮助</a><br />(.*?)<a"))
+
+
+def 器魂附魔():
+    """
+    附魔任务领取3次
+    """
+    for _id in range(1, 4):
+        # 领取
+        D.get(f"cmd=enchant&op=gettaskreward&task_id={_id}")
+        D.msg_append(D.find())
 
 
 # ============================================================
 
 
 def get_boss_id():
-    """
-    返回历练高等级到低等级场景每关最后两个BOSS的id
-    """
+    """返回历练高等级到低等级场景每关最后两个BOSS的id"""
     for _id in range(6394, 6013, -20):
         yield _id
         yield (_id - 1)
+
+
+def 猜单双():
+    """
+    随机单数、双数
+    """
+    # 猜单双
+    D.get("cmd=oddeven")
+    for _ in range(5):
+        value = D.findall(r'value=(\d+)">.*?数')
+        if not value:
+            D.print_info("猜单双已经结束")
+            D.msg_append("猜单双已经结束")
+            break
+
+        value = random.choice(value)
+        # 单数1 双数2
+        D.get(f"cmd=oddeven&value={value}")
+        D.msg_append(D.find())
+
+
+def 煮元宵():
+    """
+    成熟度>=96时赶紧出锅
+    """
+    # 煮元宵
+    D.get("cmd=yuanxiao2014")
+    for _ in range(4):
+        # 开始烹饪
+        D.get("cmd=yuanxiao2014&op=1")
+        if "领取烹饪次数" in D.html:
+            D.print_info("没有烹饪次数了")
+            D.msg_append("没有烹饪次数了")
+            break
+
+        for _ in range(20):
+            maturity = D.find(r"当前元宵成熟度：(\d+)")
+            if int(maturity) < 96:
+                # 继续加柴
+                D.get("cmd=yuanxiao2014&op=2")
+                continue
+            # 赶紧出锅
+            D.get("cmd=yuanxiao2014&op=3")
+            D.msg_append(D.find(r"活动规则</a><br /><br />(.*?)。"))
+            break
 
 
 def 点亮() -> bool:
@@ -1995,45 +2025,532 @@ def 万圣节():
 
     # 万圣节
     D.get("cmd=hallowmas")
-    _year = D.year
-    _month = D.findall(r"~(\d+)月")[0]
-    _day = D.findall(r"~\d+月(\d+)日")[0]
+    year = D.year
+    month = D.find(r"~(\d+)月")
+    day = D.find(r"~\d+月(\d+)日")
     # 判断当前日期是否到达结束日期的前一天
-    if not D.is_arrive_date(1, (int(_year), int(_month), int(_day))):
+    if not D.is_arrive_date(1, (int(year), int(month), int(day))):
         return
 
-    number: str = D.findall(r"南瓜灯：(\d+)个")[0]
-    number_int = int(number)
-    b = number_int // 40
-    a = (number_int - b * 40) // 20
-    for _ in range(int(b)):
+    number = int(D.find(r"南瓜灯：(\d+)个"))
+    b = number // 40
+    a = (number - b * 40) // 20
+    for _ in range(b):
         # 兑换礼包B 消耗40个南瓜灯
         D.get("cmd=hallowmas&gb_id=6")
         D.msg_append(D.find())
-    for _ in range(int(a)):
+    for _ in range(a):
         # 兑换礼包A 消耗20个南瓜灯
         D.get("cmd=hallowmas&gb_id=5")
         D.msg_append(D.find())
+
+
+def 元宵节():
+    """
+    周四领取、领取形象卡
+    """
+    # 领取
+    D.get("cmd=newAct&subtype=101&op=1")
+    D.msg_append(D.find(r"】</p>(.*?)<br />"))
+    # 领取形象卡
+    D.get("cmd=newAct&subtype=101&op=2&index=0")
+    D.msg_append(D.find(r"】</p>(.*?)<br />"))
+
+
+def 神魔转盘():
+    """
+    幸运抽奖免费抽奖一次
+    """
+    # 神魔转盘
+    D.get("cmd=newAct&subtype=88&op=0")
+    if "免费抽奖一次" not in D.html:
+        D.print_info("没有免费抽奖次数了")
+        D.msg_append("没有免费抽奖次数了")
+        return
+
+    # 幸运抽奖
+    D.get("cmd=newAct&subtype=88&op=1")
+    D.msg_append(D.find())
+
+
+def 乐斗驿站():
+    """
+    免费领取淬火结晶*1
+    """
+    D.get("cmd=newAct&subtype=167&op=2")
+    D.msg_append(D.find())
+
+
+def 浩劫宝箱():
+    """
+    领取一次
+    """
+    D.get("cmd=newAct&subtype=152")
+    D.msg_append(D.find(r"浩劫宝箱<br />(.*?)<br />"))
+
+
+def 幸运转盘():
+    """
+    转动轮盘一次
+    """
+    D.get("cmd=newAct&subtype=57&op=roll")
+    D.msg_append(D.find(r"0<br /><br />(.*?)<br />"))
+
+
+def 冰雪企缘():
+    """
+    至多领取两次
+    """
+    # 冰雪企缘
+    D.get("cmd=newAct&subtype=158&op=0")
+    gift = D.findall(r"gift_type=(\d+)")
+    if not gift:
+        D.print_info("没有礼包领取")
+        D.msg_append("没有礼包领取")
+        return
+
+    for _id in gift:
+        # 领取
+        D.get(f"cmd=newAct&subtype=158&op=2&gift_type={_id}")
+        D.msg_append(D.find())
+
+
+def 甜蜜夫妻():
+    """
+    夫妻甜蜜好礼   至多领取3次
+    单身鹅鼓励好礼 至多领取3次
+    """
+    # 甜蜜夫妻
+    D.get("cmd=newAct&subtype=129")
+    flag = D.findall(r"flag=(\d+)")
+    if not flag:
+        D.print_info("没有礼包领取")
+        D.msg_append("没有礼包领取")
+        return
+
+    # 领取
+    D.get(f"cmd=newAct&subtype=129&op=1&flag={flag}")
+    D.msg_append(D.find(r"】</p>(.*?)<br />"))
+
+
+def 乐斗菜单():
+    """
+    点单一次
+    """
+    # 乐斗菜单
+    D.get("cmd=menuact")
+    if gift := D.find(r"套餐.*?gift=(\d+).*?点单</a>"):
+        # 点单
+        D.get(f"cmd=menuact&sub=1&gift={gift}")
+        D.msg_append(D.find(r"哦！<br /></p>(.*?)<br />"))
+    else:
+        D.print_info("没有点单次数了")
+        D.msg_append("没有点单次数了")
+
+
+def 客栈同福():
+    """
+    献酒3次
+    """
+    for _ in range(3):
+        # 献酒
+        D.get("cmd=newAct&subtype=155")
+        D.msg_append(D.find(r"】<br /><p>(.*?)<br />"))
+        if "黄酒不足" in D.html:
+            break
+
+
+def 周周礼包():
+    """
+    领取一次
+    """
+    # 周周礼包
+    D.get("cmd=weekgiftbag&sub=0")
+    if _id := D.find(r';id=(\d+)">领取'):
+        # 领取
+        D.get(f"cmd=weekgiftbag&sub=1&id={_id}")
+        D.msg_append(D.find())
+    else:
+        D.print_info("没有礼包领取")
+        D.msg_append("没有礼包领取")
+
+
+def 登录有礼():
+    """
+    领取一次登录奖励
+    """
+    # 登录有礼
+    D.get("cmd=newAct&subtype=56")
+    if g := D.find(r"gift_index=(\d+)"):
+        # 领取
+        D.get(f"cmd=newAct&subtype=56&op=draw&gift_type=1&gift_index={g}")
+        D.msg_append(D.find())
+    else:
+        D.print_info("没有礼包领取")
+        D.msg_append("没有礼包领取")
+
+
+def 活跃礼包():
+    """
+    领取两次
+    """
+    for p in ["1", "2"]:
+        D.get(f"cmd=newAct&subtype=94&op={p}")
+        D.msg_append(D.find(r"】.*?<br />(.*?)<br />"))
+
+
+def 上香活动():
+    """
+    领取檀木香、龙涎香各两次
+    """
+    for _ in range(2):
+        # 檀木香
+        D.get("cmd=newAct&subtype=142&op=1&id=1")
+        D.msg_append(D.find())
+        # 龙涎香
+        D.get("cmd=newAct&subtype=142&op=1&id=2")
+        D.msg_append(D.find())
+
+
+def 徽章战令():
+    """
+    领取每日礼包
+    """
+    # 每日礼包
+    D.get("cmd=badge&op=1")
+    D.msg_append(D.find())
+
+
+def 生肖福卡():
+    """
+    好友赠卡：领取好友赠卡
+    分享福卡：向指定好友分享一次福卡（单类福卡数量至少为2）
+    领取福卡：领取
+    周四合成周年福卡、分斗豆、抽奖（需已合成周年福卡）或者继续抽奖（需已过合卡时间）
+    """
+    # 好友赠卡
+    D.get("cmd=newAct&subtype=174&op=4")
+    for name, qq, card_id in D.findall(r"送您(.*?)\*.*?oppuin=(\d+).*?id=(\d+)"):
+        # 领取
+        D.get(f"cmd=newAct&subtype=174&op=6&oppuin={qq}&card_id={card_id}")
+        D.msg_append(D.find())
+
+    # 生肖福卡
+    D.get("cmd=newAct&subtype=174")
+    if qq := D.yaml["生肖福卡"]:
+        pattern = "[子丑寅卯辰巳午未申酉戌亥][鼠牛虎兔龙蛇马羊猴鸡狗猪]"
+        data = D.findall(rf"({pattern})\s+(\d+).*?id=(\d+)")
+        name, max_number, _id = max(data, key=lambda x: int(x[1]))
+        if int(max_number) >= 2:
+            # 分享福卡
+            D.get(f"cmd=newAct&subtype=174&op=5&oppuin={qq}&card_id={_id}&confirm=1")
+            D.msg_append(D.find(r"~<br /><br />(.*?)<br />"))
+
+    # 生肖福卡
+    D.get("cmd=newAct&subtype=174")
+    for _id in D.findall(r"task_id=(\d+)"):
+        # 领取
+        D.get(f"cmd=newAct&subtype=174&op=7&task_id={_id}")
+        D.msg_append(D.find(r"~<br /><br />(.*?)<br />"))
+
+    if D.week != 4:
+        return
+
+    # 兑奖及抽奖
+    # 合成周年福卡
+    D.get("cmd=newAct&subtype=174&op=8")
+    D.msg_append(D.find(r"。<br /><br />(.*?)<br />"))
+    # 分斗豆
+    D.get("cmd=newAct&subtype=174&op=9")
+    D.msg_append(D.find(r"。<br /><br />(.*?)<br />"))
+
+    # 合卡结束日期
+    month, day = D.findall(r"合卡时间：.*?至(\d+)月(\d+)日")[0]
+
+    # 抽奖
+    D.get("cmd=newAct&subtype=174&op=2")
+    for _id, data in D.findall(r"id=(\d+).*?<br />(.*?)<br />"):
+        numbers = re.findall(r"\d+", data)
+        min_number = min(numbers, key=lambda x: int(x))
+        for _ in range(int(min_number)):
+            # 春/夏/秋/冬宵抽奖
+            D.get(f"cmd=newAct&subtype=174&op=10&id={_id}&confirm=1")
+            if "您还未合成周年福卡" in D.html:
+                if (D.month == int(month)) and (D.day > int(day)):
+                    # 合卡时间已结束
+                    # 继续抽奖
+                    D.get(f"cmd=newAct&subtype=174&op=10&id={_id}")
+                else:
+                    return
+            D.msg_append(D.find(r"幸运抽奖<br /><br />(.*?)<br />"))
+
+
+def 长安盛会():
+    """
+    盛会豪礼：点击领取  id  1
+    签到宝箱：点击领取  id  2
+    全民挑战：点击参与  id  3，4，5
+    """
+    # 5089真黄金卷轴 3036黄金卷轴
+    D.get("cmd=newAct&subtype=118&op=2&select_id=5089")
+    for _id in D.findall(r"op=1&amp;id=(\d+)"):
+        if _id in ["1", "2"]:
+            # 点击领取
+            D.get(f"cmd=newAct&subtype=118&op=1&id={_id}")
+            D.msg_append(D.find())
+        else:
+            turn_count = D.find(r"剩余转动次数：(\d+)")
+            for _ in range(int(turn_count)):
+                # 点击参与
+                D.get(f"cmd=newAct&subtype=118&op=1&id={_id}")
+                D.msg_append(D.find())
+
+
+def 深渊秘宝():
+    """
+    三魂秘宝、七魄秘宝各免费抽奖一次
+    """
+    # 深渊秘宝
+    D.get("cmd=newAct&subtype=175")
+    t_list = D.findall(r'type=(\d+)&amp;times=1">免费抽奖')
+    if not t_list:
+        D.print_info("没有免费抽奖次数了")
+        D.msg_append("没有免费抽奖次数了")
+        return
+
+    for t in t_list:
+        # 领取
+        D.get(f"cmd=newAct&subtype=175&op=1&type={t}&times=1")
+        D.msg_append(D.find())
+
+
+def 中秋礼盒():
+    """
+    领取
+    """
+    # 中秋礼盒
+    D.get("cmd=midautumngiftbag&sub=0")
+    _ids = D.findall(r"amp;id=(\d+)")
+    if not _ids:
+        D.print_info("没有礼包领取")
+        D.msg_append("没有礼包领取")
+        return
+
+    for _id in _ids:
+        # 领取
+        D.get(f"cmd=midautumngiftbag&sub=1&id={_id}")
+        D.msg_append(D.find())
+        if "已领取完该系列任务所有奖励" in D.html:
+            continue
+
+
+def 双节签到():
+    """
+    每天领取签到奖励
+    活动截止日的前一天领取奖励金
+    """
+    # 领取签到奖励
+    D.get("cmd=newAct&subtype=144&op=1")
+    D.msg_append(D.find())
+
+    month, day = D.findall(r"至(\d+)月(\d+)日")[0]
+    if (D.month == int(month)) and (D.day == (int(day) - 1)):
+        # 奖励金
+        D.get("cmd=newAct&subtype=144&op=3")
+        D.msg_append(D.find())
+
+
+def 乐斗游记():
+    """
+    每天领取积分
+    周四一键领取、兑换
+    """
+    # 乐斗游记
+    D.get("cmd=newAct&subtype=176")
+    # 今日游记任务
+    for _id in D.findall(r"task_id=(\d+)"):
+        # 领取
+        D.get(f"cmd=newAct&subtype=176&op=1&task_id={_id}")
+        D.msg_append(D.find(r"积分。<br /><br />(.*?)<br />"))
+
+    if D.week != 4:
+        return
+
+    # 一键领取
+    D.get("cmd=newAct&subtype=176&op=5")
+    D.msg_append(D.find(r"积分。<br /><br />(.*?)<br />"))
+    D.msg_append(D.find(r"十次</a><br />(.*?)<br />乐斗"))
+
+    # 兑换
+    number = int(D.find(r"溢出积分：(\d+)"))
+    quotient, remainder = divmod(number, 10)
+    for _ in range(quotient):
+        # 兑换十次
+        D.get("cmd=newAct&subtype=176&op=2&num=10")
+        D.msg_append(D.find(r"积分。<br /><br />(.*?)<br />"))
+    for _ in range(remainder):
+        # 兑换一次
+        D.get("cmd=newAct&subtype=176&op=2&num=1")
+        D.msg_append(D.find(r"积分。<br /><br />(.*?)<br />"))
+
+
+def 斗境探秘():
+    """
+    领取每日探秘奖励、累计探秘奖励
+    """
+    # 斗境探秘
+    D.get("cmd=newAct&subtype=177")
+    # 领取每日探秘奖励
+    for _id in D.findall(r"id=(\d+)&amp;type=2"):
+        # 领取
+        D.get(f"cmd=newAct&subtype=177&op=2&id={_id}&type=2")
+        D.msg_append(D.find(r"】<br /><br />(.*?)<br />"))
+
+    # 领取累计探秘奖励
+    for _id in D.findall(r"id=(\d+)&amp;type=1"):
+        # 领取
+        D.get(f"cmd=newAct&subtype=177&op=2&id={_id}&type=1")
+        D.msg_append(D.find(r"】<br /><br />(.*?)<br />"))
 
 
 def 幸运金蛋():
     c_幸运金蛋(D)
 
 
+def 春联大赛():
+    """
+    至多答题3次（字库中不存在春联则结束）、领取斗币3次
+    """
+    # 开始答题
+    D.get("cmd=newAct&subtype=146&op=1")
+    if "您的活跃度不足" in D.html:
+        D.print_info("您的活跃度不足50")
+        D.msg_append("您的活跃度不足50")
+        return
+    elif "今日答题已结束" in D.html:
+        D.print_info("今日答题已结束")
+        D.msg_append("今日答题已结束")
+        return
+
+    couplets_dict = {
+        "爆竹传吉语": "腊梅报新春",
+        "爆竹欣祝福": "银蛇喜迎春",
+        "爆竹欣祝褔": "银蛇乐报春",
+        "春呈丰稔景": "酒贺小龙年",
+        "春到田畴绿": "蛇来淑景新",
+        "春归蛇起舞": "福到鸟争鸣",
+        "春来千野绿": "蛇舞四时新",
+        "除牙难捕鼠": "添足便成龙",
+        "国强民幸福": "蛇舞世升平",
+        "花放山河丽": "蛇迎世纪春",
+        "花开四季馥": "蛇舞九州春",
+        "花柳春风绿": "蛇年瑞气盈",
+        "虎辟长安道": "兔开大吉春",
+        "虎驰金世界": "兔唤玉乾坤",
+        "虎带祥云去": "兔铺锦绣来",
+        "虎年腾大步": "兔岁展宏图",
+        "虎去雄风在": "兔来喜气浓",
+        "虎声传捷报": "兔影抖春晖",
+        "虎嘶飞雪里": "兔舞画图中",
+        "虎蹄留胜迹": "兔角搏青云",
+        "虎威惊盛世": "兔翰绘新春",
+        "虎跃前程去": "兔携好运来",
+        "虎留英雄气": "兔会世纪风",
+        "捷报飞新宇": "春潮促小龙",
+        "捷报书宏志": "春风乐小龙",
+        "金虎辞旧岁": "银兔贺新春",
+        "金蛇含瑞草": "紫燕报新春",
+        "金蛇狂舞日": "紫燕报春时",
+        "金蛇盘玉兔": "赤帜舞神州",
+        "睛点龙飞去": "珠还蛇舞来",
+        "龙去神威在": "蛇来紫气生",
+        "龙蛇交替舞": "岁月又更新",
+        "龙腾传捷报": "蛇舞兆丰年",
+        "龙腾丰稔岁": "蛇舞吉庆年",
+        "龙舞山河壮": "蛇盘世纪新",
+        "龙吟山海壮": "蛇舞国民欢",
+        "龙展强邦志": "蛇生富国情",
+        "卯来四季美": "兔献百家福",
+        "卯门生紫气": "兔岁报拜年",
+        "卯时春入户": "兔岁喜盈门",
+        "民逢大有岁": "国正小龙年",
+        "瑞雪兆丰年": "迎得玉兔归",
+        "山舞银蛇景": "梅香瑞雪春",
+        "山舞银蛇日": "地披红杏时",
+        "蛇酿新年酒": "花开盛世春",
+        "蛇舞升平世": "莺歌富贵春",
+        "笙歌辞旧岁": "兔酒庆新春",
+        "兔归皓月亮": "花绽春光妍",
+        "兔毫抒壮志": "燕梭织春光",
+        "兔俊千山秀": "春暖万水清",
+        "雪消狮子瘦": "月满兔儿肥",
+        "燕舞春光丽": "兔奔曙光新",
+        "寅年春锦绣": "卯序业辉煌",
+        "玉兔蟾宫笑": "红梅五岭香",
+        "玉兔迎春到": "红梅祝福来",
+        "玉兔迎春至": "黄莺报喜来",
+        "红梅迎春笑": "玉兔出月欢",
+        "红梅迎雪放": "玉兔踏春来",
+        "红梅赠虎岁": "彩烛耀兔年",
+        "喜迎新世纪": "欢庆小龙年",
+        "丁年歌盛世": "卯兔耀中华",
+    }
+
+    for _ in range(3):
+        shang_lian = D.find(r"上联：(.*?) ")
+        options_A, index_A = D.findall(r"<br />A.(.*?)<.*?index=(\d+)")[0]
+        options_B, index_B = D.findall(r"<br />B.(.*?)<.*?index=(\d+)")[0]
+        options_C, index_C = D.findall(r"<br />C.(.*?)<.*?index=(\d+)")[0]
+        options_dict = {
+            options_A: index_A,
+            options_B: index_B,
+            options_C: index_C,
+        }
+
+        if xia_lian := couplets_dict.get(shang_lian):
+            index = options_dict[xia_lian]
+            # 选择
+            D.get(f"cmd=newAct&subtype=146&op=3&index={index}")
+            D.msg_append(D.find(r"剩余\d+题<br />(.*?)<br />"))
+            # 确定选择
+            D.get("cmd=newAct&subtype=146&op=2")
+            D.msg_append(D.find())
+        else:
+            D.print_info("字库未找到春联，请手动答题")
+            D.msg_append("字库未找到春联，请手动答题")
+            break
+
+    for _id in range(1, 4):
+        # 领取
+        D.get(f"cmd=newAct&subtype=146&op=4&id={_id}")
+        D.msg_append(D.find())
+
+
 def 新春拜年():
     """
-    赠礼三个随机礼物
+    随机赠礼3个礼物
     """
     # 新春拜年
     D.get("cmd=newAct&subtype=147")
     if "op=1" in D.html:
-        for index in random.sample(range(5), 3):
+        for i in random.sample(range(5), 3):
             # 选中
-            D.get(f"cmd=newAct&subtype=147&op=1&index={index}")
+            D.get(f"cmd=newAct&subtype=147&op=1&index={i}")
         # 赠礼
         D.get("cmd=newAct&subtype=147&op=2")
         D.print_info("已赠礼")
         D.msg_append("已赠礼")
+
+
+def 喜从天降():
+    """
+    每天至多点燃烟花10次，活动时间20.00-22.00
+    """
+    for _ in range(10):
+        D.get("cmd=newAct&subtype=137&op=1")
+        D.msg_append(D.find())
+        if "燃放烟花次数不足" in D.html:
+            break
 
 
 def 节日福利_历练():
@@ -2088,8 +2605,258 @@ def 节日福利():
         节日福利_斗神塔()
 
 
+def 五一礼包():
+    """
+    周四领取3次劳动节礼包
+    """
+    for _id in range(3):
+        D.get(f"cmd=newAct&subtype=113&op=1&id={_id}")
+        D.msg_append(D.find(r"】<br /><br />(.*?)<"))
+
+
+def 端午有礼():
+    """
+    周四兑换礼包：2次礼包4、1次礼包3
+    活动期间最多可以得到 4x7=28 个粽子
+
+    index
+    3       礼包4：消耗10粽子得到 淬火结晶*5+真黄金卷轴*5+徽章符文石*5+修为丹*5+境界丹*5+元婴飞仙果*5
+    2       礼包3：消耗8粽子得到 2级日曜石*1+2级玛瑙石*1+2级迅捷石*1+2级月光石*1+2级紫黑玉*1
+    1       礼包2：消耗6粽子得到 阅历羊皮卷*5+无字天书*5+河图洛书*5+还童天书*1
+    0       礼包1：消耗4粽子得到 中体力*2+挑战书*2+斗神符*2
+    """
+    for _ in range(2):
+        # 礼包4
+        D.get("cmd=newAct&subtype=121&op=1&index=3")
+        D.msg_append(D.find(r"】<br /><br />(.*?)<br />"))
+        if "您的端午香粽不足" in D.html:
+            break
+
+    # 礼包3
+    D.get("cmd=newAct&subtype=121&op=1&index=2")
+    D.msg_append(D.find(r"】<br /><br />(.*?)<br />"))
+
+
+def 圣诞有礼():
+    """
+    周四领取点亮奖励和连线奖励
+    """
+    # 圣诞有礼
+    D.get("cmd=newAct&subtype=145")
+    for _id in D.findall(r"task_id=(\d+)"):
+        # 任务描述：领取奖励
+        D.get(f"cmd=newAct&subtype=145&op=1&task_id={_id}")
+        D.msg_append(D.find())
+
+    # 连线奖励
+    for i in D.findall(r"index=(\d+)"):
+        D.get(f"cmd=newAct&subtype=145&op=2&index={i}")
+        D.msg_append(D.find())
+
+
+def 新春礼包():
+    """
+    周四领取礼包
+    """
+    for _id in [280, 281, 282]:
+        # 领取
+        D.get(f"cmd=xinChunGift&subtype=2&giftid={_id}")
+        D.msg_append(D.find())
+
+
+def 登录商店():
+    """
+    周四兑换
+    """
+    t: int = D.yaml["登录商店"]
+    for _ in range(5):
+        # 兑换5次
+        D.get(f"cmd=newAct&op=exchange&subtype=52&type={t}&times=5")
+        D.msg_append(D.find(r"<br /><br />(.*?)<br /><br />"))
+    for _ in range(3):
+        # 兑换1次
+        D.get(f"cmd=newAct&op=exchange&subtype=52&type={t}&times=1")
+        D.msg_append(D.find(r"<br /><br />(.*?)<br /><br />"))
+
+
+def 盛世巡礼():
+    """
+    周四收下礼物
+    """
+    for s in range(1, 8):
+        # 点击进入
+        D.get(f"cmd=newAct&subtype=150&op=2&sceneId={s}")
+        if "他已经给过你礼物了" in D.html:
+            D.print_info("礼物已领取", f"盛世巡礼-地点{s}")
+            D.msg_append(f"地点{s}礼物已领取")
+        elif s == 7 and ("点击继续" not in D.html):
+            D.print_info("礼物已领取", f"盛世巡礼-地点{s}")
+            D.msg_append(f"地点{s}礼物已领取")
+        elif item := D.find(r"itemId=(\d+)", f"盛世巡礼-地点{s}-itemId"):
+            # 收下礼物
+            D.get(f"cmd=newAct&subtype=150&op=5&itemId={item}")
+            _msg = D.find(r"礼物<br />(.*?)<br />", f"盛世巡礼-地点{s}-收下礼物")
+            D.msg_append(f"地点{s}领取{_msg}")
+
+
+def 新春登录礼():
+    """
+    至多领取7次
+    """
+    # 新春登录礼
+    D.get("cmd=newAct&subtype=99&op=0")
+    day = D.findall(r"day=(\d+)")
+    if not day:
+        D.print_info("没有礼包领取")
+        D.msg_append("没有礼包领取")
+        return
+
+    for d in day:
+        # 领取
+        D.get(f"cmd=newAct&subtype=99&op=1&day={d}")
+        D.msg_append(D.find())
+
+
+def 年兽大作战():
+    """
+    随机武技库免费一次
+    自选武技库从大、中、小、投、技各随机选择一个补位
+    挑战3次
+    """
+    # 年兽大作战
+    D.get("cmd=newAct&subtype=170&op=0")
+    if "等级不够" in D.html:
+        D.print_info("等级不够，还未开启年兽大作战哦！")
+        D.msg_append("等级不够，还未开启年兽大作战哦！")
+        return
+
+    for _ in D.find(r"剩余免费随机次数：(\d+)"):
+        # 随机武技库 免费一次
+        D.get("cmd=newAct&subtype=170&op=6")
+        D.msg_append(D.find(r"帮助</a><br />(.*?)<br />"))
+
+    # 自选武技库
+    # 从大、中、小、投、技各随机选择一个
+    if "暂未选择" in D.html:
+        for t in range(5):
+            D.get(f"cmd=newAct&subtype=170&op=4&type={t}")
+            if "取消选择" in D.html:
+                continue
+            if ids := D.findall(r'id=(\d+)">选择'):
+                # 选择
+                D.get(f"cmd=newAct&subtype=170&op=7&id={random.choice(ids)}")
+                if "自选武技列表已满" in D.html:
+                    break
+
+    for _ in range(3):
+        # 挑战
+        D.get("cmd=newAct&subtype=170&op=8")
+        D.msg_append(D.find(r"帮助</a><br />(.*?)。"))
+
+
+def 惊喜刮刮卡():
+    """
+    至多领取3次、点击刮卡20次
+    """
+    # 领取
+    for _id in range(3):
+        D.get(f"cmd=newAct&subtype=148&op=2&id={_id}")
+        D.msg_append(D.find(r"奖池预览</a><br /><br />(.*?)<br />"))
+
+    # 刮卡
+    for _ in range(20):
+        D.get("cmd=newAct&subtype=148&op=1")
+        D.msg_append(D.find(r"奖池预览</a><br /><br />(.*?)<br />"))
+        if "您没有刮刮卡了" in D.html:
+            break
+        elif "不在刮奖时间不能刮奖" in D.html:
+            break
+
+
+def 开心娃娃机():
+    """
+    免费抓取一次
+    """
+    # 开心娃娃机
+    D.get("cmd=newAct&subtype=124&op=0")
+    if "1/1" not in D.html:
+        D.print_info("没有免费抓取次数")
+        D.msg_append("没有免费抓取次数")
+        return
+
+    # 抓取一次
+    D.get("cmd=newAct&subtype=124&op=1")
+    D.msg_append(D.find())
+
+
+def 好礼步步升():
+    """
+    每天领取一次
+    """
+    D.get("cmd=newAct&subtype=43&op=get")
+    D.msg_append(D.find())
+
+
+def 企鹅吉利兑_兑换():
+    yaml: dict = D.yaml["企鹅吉利兑"]
+    for name, number in yaml.items():
+        n = 0
+        _id = D.find(rf"{name}.*?id=(\d+)")
+        for _ in range(number):
+            D.get(f"cmd=geelyexchange&op=ExchangeProps&id={_id}")
+            D.find(r"】<br /><br />(.*?)<br />")
+            if "你的精魄不足，快去完成任务吧~" in D.html:
+                break
+            elif "该物品已达兑换上限~" in D.html:
+                break
+            n += 1
+        if n:
+            D.msg_append(f"兑换{name}*{n}")
+
+
+def 企鹅吉利兑():
+    """
+    每天领取、截止日的前一天兑换材料
+    """
+    # 企鹅吉利兑
+    D.get("cmd=geelyexchange")
+    _ids = D.findall(r'id=(\d+)">领取</a>')
+    if not _ids:
+        D.print_info("没有礼包领取")
+        D.msg_append("没有礼包领取")
+        return
+
+    for _id in _ids:
+        # 领取
+        D.get(f"cmd=geelyexchange&op=GetTaskReward&id={_id}")
+        D.msg_append(D.find(r"】<br /><br />(.*?)<br /><br />"))
+
+    year = D.year
+    month = D.find(r"至(\d+)月")
+    day = D.find(r"至\d+月(\d+)日")
+    # 判断当前日期是否到达结束日期的前一天
+    if D.is_arrive_date(1, (int(year), int(month), int(day))):
+        企鹅吉利兑_兑换()
+
+
 def 乐斗大笨钟():
     c_乐斗大笨钟(D)
+
+
+def 乐斗激运牌():
+    """
+    每天领取激运牌两次、翻牌
+    """
+    for _id in [0, 1]:
+        # 领取
+        D.get(f"cmd=realgoods&op=getTaskReward&id={_id}")
+        D.msg_append(D.find(r"<br /><br />(.*?)<br />"))
+
+    number = int(D.find(r"我的激运牌：(\d+)"))
+    for _ in range(number):
+        # 我要翻牌
+        D.get("cmd=realgoods&op=lotteryDraw")
+        D.msg_append(D.find(r"<br /><br />(.*?)<br />"))
 
 
 def 乐斗能量棒():
@@ -2130,3 +2897,51 @@ def 乐斗能量棒():
                 # 还不能挑战
                 break
             n -= 1
+
+
+def 乐斗回忆录():
+    """
+    周四领取回忆礼包、进阶礼包
+    """
+    for _id in range(1, 11):
+        # 领取
+        D.get(f"cmd=newAct&subtype=171&op=3&id={_id}")
+        D.msg_append(D.find(r"6点<br />(.*?)<br />"))
+
+
+def 爱的同心结():
+    """
+    依次兑换礼包5、4、3、2、1
+    """
+    data = {
+        4016: 20,
+        4015: 16,
+        4014: 10,
+        4013: 4,
+        4012: 2,
+    }
+    for _id, count in data.items():
+        for _ in range(count):
+            # 兑换
+            D.get(f"cmd=loveknot&sub=2&id={_id}")
+            D.msg_append(D.find())
+            if "恭喜您兑换成功" not in D.html:
+                break
+
+
+def 周年生日祝福():
+    """
+    周四领取
+    """
+    for day in range(1, 8):
+        D.get(f"cmd=newAct&subtype=165&op=3&day={day}")
+        D.msg_append(D.find())
+
+
+def 重阳太白诗会():
+    """
+    每天领取重阳礼包
+    不支持赋诗奖赏礼包
+    """
+    D.get("cmd=newAct&subtype=168&op=2")
+    D.msg_append(D.find(r"<br /><br />(.*?)<br />"))

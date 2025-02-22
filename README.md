@@ -1,11 +1,11 @@
 ## 说明
 
-**为了保险起见，斗豆及鹅币最好手动使用掉，以免使用脚本时被意外消耗**
+> 为了保险起见，不要保留斗豆及鹅币，以免被脚本意外消耗
 
 
 ## 功能
 
-- [第一轮](https://www.gaoyuanqi.cn/python-daledou/?highlight=%E5%A4%A7%E4%B9%90%E6%96%97#%E7%AC%AC%E4%B8%80%E8%BD%AE) 
+- [第一轮](https://www.gaoyuanqi.cn/python-daledou/?highlight=%E5%A4%A7%E4%B9%90%E6%96%97#%E7%AC%AC%E4%B8%80%E8%BD%AE)
 - [第二轮](https://www.gaoyuanqi.cn/python-daledou/?highlight=%E5%A4%A7%E4%B9%90%E6%96%97#%E7%AC%AC%E4%BA%8C%E8%BD%AE)
 - [其它任务](https://www.gaoyuanqi.cn/python-daledou/?highlight=%E5%A4%A7%E4%B9%90%E6%96%97#%E5%85%B6%E5%AE%83%E4%BB%BB%E5%8A%A1)
 
@@ -17,118 +17,149 @@ Python 3.12
 ```
 
 
-## Python依赖
-
-```
-loguru
-pyyaml
-requests
-schedule
-```
-
-
 ## 快速开始
 
-**1、下载脚本**
+**1.下载脚本**
 ```sh
 git clone https://github.com/gaoyuanqi/DaLeDou.git
-```
-
-**2、进入项目**
-```sh
 cd DaLeDou
 ```
 
-**3、安装依赖（三选一）**
+**2.安装依赖（三选一）**
 
-第一种方式：
+使用 `pip` 一键安装：
 ```sh
 pip3 install -r requirements.txt
 ```
 
-第二种方式：
+使用 `pip` 手动安装：
 ```sh
-pip3 install requests
-pip3 install pyyaml
-pip3 install schedule
 pip3 install loguru
+pip3 install pyyaml
+pip3 install requests
+pip3 install schedule
 ```
 
-第三种方式（如果你熟悉 `pipenv`）：
+使用 [uv](https://hellowac.github.io/uv-zh-cn/) 安装：
 ```sh
-pip3 install pipenv -i https://pypi.tuna.tsinghua.edu.cn/simple
-pipenv install
-pipenv shell
+uv sync
 ```
 
-**4、`config/settings.yaml` 配置**
+**3.添加文字版大乐斗Cookie（必须）**
 
-添加大乐斗Cookie（必须）：
+[使用Via获取大乐斗Cookie](#安卓使用via来获取文字版大乐斗cookie)
+
+修改 `config/settings.yaml`：
 ```yaml
 DALEDOU_ACCOUNT:
   - RK=xx; ptcz=xx; openId=xx; accessToken=xx; newuin=111111
   - RK=xx; ptcz=xx; openId=xx; accessToken=xx; newuin=222222
 ```
 
-添加pushplus微信通知（可选）：
+**4.添加pushplus微信通知（可选）**
+
+微信接收的消息比日志简略
+
+修改 `config/settings.yaml`：
 ```yaml
 PUSHPLUS_TOKEN: ""
 ```
 
-**5、创建大乐斗任务配置文件**
-
-如果你第一次使用，运行以下命令：
-```sh
-python main.py check
-```
-这会在 `config` 目录下创建一个以 `QQ` 命名的yaml配置文件（大乐斗Cookie有效才会创建）
-
-**6、定时任务**
-
-启动定时命令：
-```sh
-python main.py
-```
-脚本将在 `13:10` 运行 `第一轮`，`20:01` 运行 `第二轮`
-
-期间还会每隔2小时检查大乐斗Cookie有效期
-
-**7、其它任务**
-
-指 `第一轮` 和 `第二轮` 之外的任务
+**5.启动定时**
 
 ```sh
-# 比如立即运行 神装
-python main.py other -- 神装
+python main.py --timing
 ```
 
-**8、其它命令**
+**6.修改任务配置**
 
-立即运行 `第一轮`，建议 `13:10` 后运行：
+修改 `config/你的QQ.yaml` 文件
+
+
+## 脚本命令
+
+**timing 模式**
+
+启动定时：
 ```sh
-python main.py one
+python main.py --timing
 ```
 
-可以携带额外参数：
+**one 模式**
+
+运行 `第一轮`，建议 `13:10` 后运行：
 ```sh
-# 立即运行第一轮的邪神秘宝
-python main.py one -- 邪神秘宝
+python main.py --one
 ```
 
-立即运行 `第二轮`，建议 `20:01` 后运行：
+运行 `第一轮` 中的某个任务
 ```sh
-python main.py two
+python main.py --one 邪神秘宝
 ```
 
-可以携带额外参数：
+**two 模式**
+
+运行 `第二轮`，建议 `20:01` 后运行：
 ```sh
-# 立即运行第二轮的邪神秘宝
-python main.py two -- 邪神秘宝
+python main.py --two
+```
+
+运行 `第二轮` 中的某个任务
+```sh
+python main.py --two 邪神秘宝
+```
+
+**other 模式**
+
+查看携带参数：
+```sh
+python main.py --other
+```
+
+运行神装任务：
+```sh
+python main.py --other 神装
 ```
 
 
-## 大乐斗Cookie有效期
+## 安卓使用Termux来运行脚本
 
-目前测试的通过 **一键登录** 获得的Cookie有效期可以永久
+1.安装 [termux](https://github.com/termux/termux-app/releases)
 
-保险起见最好每隔几天手动登录一次大乐斗
+2.更换清华镜像源：
+```sh
+sed -i 's@^\(deb.*stable main\)$@#\1\ndeb https://mirrors.tuna.tsinghua.edu.cn/termux/apt/termux-main stable main@' $PREFIX/etc/apt/sources.list
+```
+
+3.更新包并升级：
+```sh
+apt update && apt upgrade
+```
+
+4.安装Python：
+```sh
+pkg install python
+```
+
+5.安装Git：
+```sh
+pkg install git
+```
+
+6.安装Vim：
+```sh
+pkg install vim
+```
+
+最后 [快速开始](#快速开始)
+
+
+## 安卓使用Via来获取文字版大乐斗Cookie
+
+1.应用商店安装 **via**
+
+2.将 **via** 设为默认浏览器
+
+3.[一键登录大乐斗文字版](https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index&channel=0)
+
+4.等待3秒，然后点击 **via** 左上角 **✓**，再点击 **查看Cookies**

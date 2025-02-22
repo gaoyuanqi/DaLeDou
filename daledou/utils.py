@@ -49,6 +49,7 @@ def push(title: str, content: str) -> None:
         logger.success(f"pushplus推送信息：{res.json()}")
     else:
         logger.warning("你没有配置pushplus微信推送")
+        print("--" * 20)
 
 
 class InItDaLeDou:
@@ -74,23 +75,23 @@ class InItDaLeDou:
             self._func_map = self._get_func_map()
 
     @property
-    def start_time(self):
+    def start_time(self) -> str:
         return self._start_time
 
     @property
-    def qq(self):
+    def qq(self) -> str:
         return self._qq
 
     @property
-    def session(self):
+    def session(self) -> Session | None:
         return self._session
 
     @property
-    def yaml(self):
+    def yaml(self) -> dict:
         return self._yaml
 
     @property
-    def func_map(self):
+    def func_map(self) -> dict | None:
         return self._func_map
 
     def _setup_console_logger(self) -> int:
@@ -157,7 +158,7 @@ class InItDaLeDou:
         """
         log_dir = Path(f"./log/{self.qq}")
         log_dir.mkdir(parents=True, exist_ok=True)
-        log_file = log_dir / f'{datetime.now().strftime("%Y-%m-%d")}.log'
+        log_file = log_dir / f"{datetime.now().strftime('%Y-%m-%d')}.log"
         logger.success(f"任务日志：{log_file}")
 
         return logger.add(
@@ -209,7 +210,7 @@ class InItDaLeDou:
 
     def _map_mission_names_to_function_names(self, missions: list) -> list:
         """
-        将大乐斗首页任务名称映射为 run.py 中的函数名称
+        将大乐斗首页任务名称映射为函数名称
         """
         _data = {
             # 键为大乐斗首页任务名称，值为函数名称
@@ -250,39 +251,39 @@ class DaLeDou:
         self.func_name = None
 
     @property
-    def now(self):
+    def now(self) -> datetime:
         return self._now
 
     @property
-    def year(self):
+    def year(self) -> int:
         return self._year
 
     @property
-    def month(self):
+    def month(self) -> int:
         return self._month
 
     @property
-    def day(self):
+    def day(self) -> int:
         return self._day
 
     @property
-    def week(self):
+    def week(self) -> int:
         return self._week
 
     @property
-    def qq(self):
+    def qq(self) -> str:
         return self._qq
 
     @property
-    def yaml(self):
+    def yaml(self) -> dict:
         return self._yaml
 
     @property
-    def func_map(self):
+    def func_map(self) -> dict:
         return self._func_map
 
     @property
-    def msg(self):
+    def msg(self) -> list:
         return self._msg
 
     @property
