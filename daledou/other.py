@@ -233,7 +233,7 @@ class Input:
                     s.upgrade(_input)
                     break
                 else:
-                    print(f">>>{_input}材料或者积分不足，不能升级")
+                    print(f">>>{_input}：材料或者积分不足，不能升级")
 
     def get_number(self, prompt: str) -> int | None:
         """
@@ -258,11 +258,20 @@ class ShenZhuang:
     神装自动兑换强化
     """
 
-    def __init__(self, fail_value: int):
-        # 失败祝福值
-        self.fail_value = fail_value
-
+    def __init__(self):
+        self.fail_value = self.get_fail_value()
         self.data = self.get_data()
+
+    def get_fail_value(self) -> int:
+        """
+        返回神装进阶失败祝福值
+        """
+        # 祝福合集宝库
+        D.get("cmd=newAct&subtype=143")
+        # 倍数
+        if fold := D.findall(r"神装进阶失败获得(\d+)"):
+            return 2 * int(fold[0])
+        return 2
 
     def get_data(self) -> dict:
         """
@@ -318,7 +327,7 @@ class ShenZhuang:
         # 神装
         D.get(f"cmd=outfit&op=0&magic_outfit_id={_id}")
         if ("10阶" in D.html) or ("必成" in D.html):
-            return None
+            return
 
         # 阶层
         level = D.findall(r"阶层：(.*?)<")[0]
@@ -348,12 +357,12 @@ class ShenZhuang:
             "阶层": level,
             "消耗": f"{consume_name}*{consume_num}",
             "祝福值": f"{now_value}/{total_value}",
+            "失败祝福值": self.fail_value,
             "材料消耗名称": consume_name,
             "材料消耗数量": consume_num,
             "材料拥有数量": possess_num,
             "积分": f"{store_points}（{store_num}）",
             "满祝福消耗数量": f"{full_value_consume_num}（必成再+{consume_num}）",
-            "失败祝福值": self.fail_value,
             "是否升级": (possess_num + store_num)
             >= (full_value_consume_num + consume_num),
         }
@@ -471,8 +480,7 @@ class ShenJi:
             # 当前效果
             effect = D.findall(r"当前效果：(.*?)<")[0]
 
-            if success == "必成":
-                is_upgrade = True if store_num >= consume_num else False
+            is_upgrade = True if store_num >= consume_num else False
 
             data[name] = {
                 "名称": name,
@@ -556,10 +564,7 @@ def 神装():
         return
 
     if mission_name == "神装":
-        fail_value = i.get_number("输入失败祝福值：")
-        if fail_value is None:
-            return
-        i.select_upgrade(ShenZhuang, fail_value)
+        i.select_upgrade(ShenZhuang)
     elif mission_name == "神技":
         store_name = i.select_mission(mission_dict, "选择商店名称：")
         if store_name is None:

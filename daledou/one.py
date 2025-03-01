@@ -527,9 +527,11 @@ def 竞技场():
     每天兑换10个河图洛书
     每月1~25号每天至多挑战10次、领取奖励
     """
-    # 兑换10个河图洛书
-    D.get("cmd=arena&op=exchange&id=5435&times=10")
-    D.msg_append(D.find())
+    yaml: bool = D.yaml["竞技场"]
+    if yaml:
+        # 兑换10个河图洛书
+        D.get("cmd=arena&op=exchange&id=5435&times=10")
+        D.msg_append(D.find())
 
     if D.day > 25:
         return
@@ -1158,9 +1160,13 @@ def 武林盟主():
     if D.week in [3, 5, 7]:
         # 武林盟主
         D.get("cmd=wlmz&op=view_index")
-        for s, r in D.findall(r'section_id=(\d+)&amp;round_id=(\d+)">'):
-            D.get(f"cmd=wlmz&op=get_award&section_id={s}&round_id={r}")
-            D.msg_append(D.find(r"<br /><br />(.*?)</p>"))
+        if data := D.findall(r'section_id=(\d+)&amp;round_id=(\d+)">'):
+            for s, r in data:
+                D.get(f"cmd=wlmz&op=get_award&section_id={s}&round_id={r}")
+                D.msg_append(D.find(r"<br /><br />(.*?)</p>"))
+        else:
+            D.print_info("没有奖励领取")
+            D.msg_append("没有奖励领取")
 
     if D.week in [1, 3, 5]:
         _id: int = D.yaml["武林盟主"]
@@ -1675,6 +1681,7 @@ def 任务():
     # 一键完成任务
     D.get("cmd=task&sub=7")
     for k, v in D.findall(r'id=\d+">(.*?)</a>.*?>(.*?)</a>'):
+        D.print_info(f"{k} {v}")
         D.msg_append(f"{k} {v}")
 
 
@@ -1792,6 +1799,48 @@ def 帮派祭坛():
             D.msg_append(D.find())
 
 
+def 每日奖励():
+    """
+    每天领取每日礼包、传功符礼包、达人礼包、无字天书礼包
+    """
+    for key in ["login", "meridian", "daren", "wuzitianshu"]:
+        # 每日奖励
+        D.get(f"cmd=dailygift&op=draw&key={key}")
+        D.msg_append(D.find())
+
+
+def 领取徒弟经验():
+    """
+    每天领取一次
+    """
+    # 领取徒弟经验
+    D.get("cmd=exp")
+    D.msg_append(D.find(r"每日奖励</a><br />(.*?)<br />"))
+
+
+def 今日活跃度():
+    """
+    每天领取活跃度礼包、帮派总活跃礼包
+    """
+    # 今日活跃度
+    D.get("cmd=liveness")
+    D.msg_append(D.find(r"【(.*?)】"))
+    if "帮派总活跃" in D.html:
+        D.msg_append(D.find(r"礼包</a><br />(.*?)<"))
+
+    # 领取今日活跃度礼包
+    for giftbag_id in range(1, 5):
+        D.get(f"cmd=liveness_getgiftbag&giftbagid={giftbag_id}&action=1")
+        D.msg_append(D.find(r"】<br />(.*?)<p>"))
+
+    # 领取帮派总活跃奖励
+    D.get("cmd=factionop&subtype=18")
+    if "创建帮派" in D.html:
+        D.msg_append(D.find(r"帮派</a><br />(.*?)<br />"))
+    else:
+        D.msg_append(D.find())
+
+
 def 柒承的忙碌日常(count):
     p = "cmd=jianghudream&op=chooseEvent&event_id="
     for _ in range(count):
@@ -1841,48 +1890,6 @@ def 江湖长梦():
     count: int = yaml["柒承的忙碌日常"]
 
     柒承的忙碌日常(count)
-
-
-def 每日奖励():
-    """
-    每天领取每日礼包、传功符礼包、达人礼包、无字天书礼包
-    """
-    for key in ["login", "meridian", "daren", "wuzitianshu"]:
-        # 每日奖励
-        D.get(f"cmd=dailygift&op=draw&key={key}")
-        D.msg_append(D.find())
-
-
-def 领取徒弟经验():
-    """
-    每天领取一次
-    """
-    # 领取徒弟经验
-    D.get("cmd=exp")
-    D.msg_append(D.find(r"每日奖励</a><br />(.*?)<br />"))
-
-
-def 今日活跃度():
-    """
-    每天领取活跃度礼包、帮派总活跃礼包
-    """
-    # 今日活跃度
-    D.get("cmd=liveness")
-    D.msg_append(D.find(r"【(.*?)】"))
-    if "帮派总活跃" in D.html:
-        D.msg_append(D.find(r"礼包</a><br />(.*?)<"))
-
-    # 领取今日活跃度礼包
-    for giftbag_id in range(1, 5):
-        D.get(f"cmd=liveness_getgiftbag&giftbagid={giftbag_id}&action=1")
-        D.msg_append(D.find(r"】<br />(.*?)<p>"))
-
-    # 领取帮派总活跃奖励
-    D.get("cmd=factionop&subtype=18")
-    if "创建帮派" in D.html:
-        D.msg_append(D.find(r"帮派</a><br />(.*?)<br />"))
-    else:
-        D.msg_append(D.find())
 
 
 def 仙武修真():
@@ -2047,7 +2054,7 @@ def 万圣节():
 
 def 元宵节():
     """
-    周四领取、领取形象卡
+    周四领取、领取生肖限定形象卡
     """
     # 领取
     D.get("cmd=newAct&subtype=101&op=1")
@@ -2192,7 +2199,7 @@ def 登录有礼():
 
 def 活跃礼包():
     """
-    领取两次
+    领取50活跃礼包、80活跃礼包
     """
     for p in ["1", "2"]:
         D.get(f"cmd=newAct&subtype=94&op={p}")
@@ -2816,20 +2823,18 @@ def 企鹅吉利兑_兑换():
 
 def 企鹅吉利兑():
     """
-    每天领取、截止日的前一天兑换材料
+    每天领取、截止日前一天兑换材料
     """
     # 企鹅吉利兑
     D.get("cmd=geelyexchange")
-    _ids = D.findall(r'id=(\d+)">领取</a>')
-    if not _ids:
+    if _ids := D.findall(r'id=(\d+)">领取</a>'):
+        for _id in _ids:
+            # 领取
+            D.get(f"cmd=geelyexchange&op=GetTaskReward&id={_id}")
+            D.msg_append(D.find(r"】<br /><br />(.*?)<br /><br />"))
+    else:
         D.print_info("没有礼包领取")
         D.msg_append("没有礼包领取")
-        return
-
-    for _id in _ids:
-        # 领取
-        D.get(f"cmd=geelyexchange&op=GetTaskReward&id={_id}")
-        D.msg_append(D.find(r"】<br /><br />(.*?)<br /><br />"))
 
     year = D.year
     month = D.find(r"至(\d+)月")

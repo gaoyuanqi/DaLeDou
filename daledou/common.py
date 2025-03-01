@@ -145,8 +145,9 @@ def c_任务派遣中心(D):
 
     # 任务派遣中心
     D.get("cmd=missionassign&subtype=0")
-    for _msg in D.findall(r"<br />(.*?)&nbsp;<a.*?查看"):
-        D.msg_append(_msg)
+    for msg in D.findall(r"<br />(.*?)&nbsp;<a.*?查看"):
+        D.print_info(msg)
+        D.msg_append(msg)
 
 
 def c_侠士客栈(D):
