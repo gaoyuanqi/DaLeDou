@@ -11,7 +11,6 @@ from daledou.utils import yield_dld_objects
 _FUNC_NAME = [
     "神装",
     "夺宝奇兵",
-    "江湖长梦",
     "星盘",
     "新元婴神器",
     "深渊之潮",
@@ -20,6 +19,7 @@ _FUNC_NAME = [
     "仙武修真",
     "佣兵",
     "背包",
+    "专精",
 ]
 
 
@@ -77,7 +77,7 @@ def compute(fail_value, deplete_value, now_value, total_value) -> int:
     return total_deplete
 
 
-def get_backpack_item_count(item_id: str | int) -> int:
+def get_backpack_number(item_id: str | int) -> int:
     """
     返回背包物品id数量
     """
@@ -233,7 +233,7 @@ class Input:
                     s.upgrade(_input)
                     break
                 else:
-                    print(f">>>{_input}：材料或者积分不足，不能升级")
+                    print(f">>>{_input}：材料数量不足或者不够满祝福")
 
     def get_number(self, prompt: str) -> int | None:
         """
@@ -250,6 +250,15 @@ class Input:
             print(">>>请输入一个非负整数")
 
 
+def split_consume_data(consume: str) -> tuple:
+    """
+    返回材料消耗名称、材料消耗数量、材料拥有数量
+    """
+    result = D.findall(r"^(.*?)\*(\d+)（(\d+)）", consume)
+    name, consume_num, possess_num = result[0]
+    return name, int(consume_num), int(possess_num)
+
+
 # ============================================================
 
 
@@ -264,14 +273,56 @@ class ShenZhuang:
 
     def get_fail_value(self) -> int:
         """
-        返回神装进阶失败祝福值
+        返回神装失败祝福值
         """
         # 祝福合集宝库
         D.get("cmd=newAct&subtype=143")
-        # 倍数
-        if fold := D.findall(r"神装进阶失败获得(\d+)"):
-            return 2 * int(fold[0])
-        return 2
+        if "=神装=" not in D.html:
+            return 2
+        return 2 * int(D.findall(r"神装进阶失败获得(\d+)")[0])
+
+    def get_match_data(self, name, _id, backpack_id, store_url) -> dict | None:
+        """
+        获取神装匹配数据
+        """
+        # 神装
+        D.get(f"cmd=outfit&op=0&magic_outfit_id={_id}")
+        if ("10阶" in D.html) or ("必成" in D.html):
+            return
+
+        # 阶层
+        level = D.findall(r"阶层：(.*?)<")[0]
+        # 材料消耗名称
+        consume_name = D.findall(r"进阶消耗：(.*?)\*")[0]
+        # 材料消耗数量
+        consume_num = int(D.findall(r"\*(\d+)")[0])
+        # 当前祝福值
+        now_value = int(D.findall(r"祝福值：(\d+)")[0])
+        # 满祝福值
+        total_value = int(D.findall(r"祝福值：\d+/(\d+)")[0])
+
+        # 满祝福消耗数量
+        full_value_consume_num = compute(
+            self.fail_value, consume_num, now_value, total_value
+        )
+        # 材料拥有数量
+        possess_num = get_backpack_number(backpack_id)
+        # 商店积分
+        store_points = get_store_points(store_url)
+        # 商店积分可兑换数量
+        store_num = store_points // 40
+
+        return {
+            "名称": name,
+            "id": _id,
+            "阶层": level,
+            "消耗": f"{consume_name}*{consume_num}（{possess_num}）",
+            "祝福值": f"{now_value}/{total_value}（↑{self.fail_value}）",
+            "积分": f"{store_points}（{store_num}）",
+            "满祝福消耗数量": f"{full_value_consume_num}（必成再+{consume_num}）",
+            "是否升级": (possess_num + store_num) >= consume_num,
+            "说明": "祝福值永久有效，可以随时升级",
+        }
 
     def get_data(self) -> dict:
         """
@@ -320,53 +371,6 @@ class ShenZhuang:
                 data[name] = result
         return data
 
-    def get_match_data(self, name, _id, backpack_id, store_url) -> dict | None:
-        """
-        获取神装匹配数据
-        """
-        # 神装
-        D.get(f"cmd=outfit&op=0&magic_outfit_id={_id}")
-        if ("10阶" in D.html) or ("必成" in D.html):
-            return
-
-        # 阶层
-        level = D.findall(r"阶层：(.*?)<")[0]
-        # 材料消耗名称
-        consume_name = D.findall(r"进阶消耗：(.*?)\*")[0]
-        # 材料消耗数量
-        consume_num = int(D.findall(r"\*(\d+)")[0])
-        # 当前祝福值
-        now_value = int(D.findall(r"祝福值：(\d+)")[0])
-        # 满祝福值
-        total_value = int(D.findall(r"祝福值：\d+/(\d+)")[0])
-
-        # 满祝福消耗数量
-        full_value_consume_num = compute(
-            self.fail_value, consume_num, now_value, total_value
-        )
-        # 材料拥有数量
-        possess_num = get_backpack_item_count(backpack_id)
-        # 商店积分
-        store_points = get_store_points(store_url)
-        # 商店积分可兑换数量
-        store_num = store_points // 40
-
-        return {
-            "名称": name,
-            "id": _id,
-            "阶层": level,
-            "消耗": f"{consume_name}*{consume_num}",
-            "祝福值": f"{now_value}/{total_value}",
-            "失败祝福值": self.fail_value,
-            "材料消耗名称": consume_name,
-            "材料消耗数量": consume_num,
-            "材料拥有数量": possess_num,
-            "积分": f"{store_points}（{store_num}）",
-            "满祝福消耗数量": f"{full_value_consume_num}（必成再+{consume_num}）",
-            "是否升级": (possess_num + store_num)
-            >= (full_value_consume_num + consume_num),
-        }
-
     def upgrade(self, name: str):
         """
         神装进阶
@@ -400,10 +404,8 @@ class ShenZhuang:
 
         data = self.data[name]
         _id: str = data["id"]
-        consume_name: str = data["材料消耗名称"]
-        consume_num: int = data["材料消耗数量"]
-        possess_num: int = data["材料拥有数量"]
 
+        consume_name, consume_num, possess_num = split_consume_data(data["消耗"])
         e = Exchange(url[consume_name], consume_num, possess_num)
 
         # 关闭自动斗豆兑换神装进阶材料
@@ -461,7 +463,7 @@ class ShenJi:
         """
         data = {}
         # 神秘精华拥有数量
-        possess_num = get_backpack_item_count(3567)
+        possess_num = get_backpack_number(3567)
         # 积分商店可兑换数量
         store_num = self.points // 40
 
@@ -471,8 +473,6 @@ class ShenJi:
             name = D.findall(r"<br />=(.*?)=<a")[0]
             # 当前等级
             level = D.findall(r"当前等级：(\d+)")[0]
-            # 材料消耗名称
-            consume_name = "神秘精华"
             # 升级消耗数量
             consume_num = int(D.findall(r"\*(\d+)<")[0])
             # 升级成功率
@@ -486,12 +486,9 @@ class ShenJi:
                 "名称": name,
                 "id": _id,
                 "当前等级": level,
-                "升级消耗": f"{consume_name}*{consume_num}",
+                "消耗": f"神秘精华*{consume_num}（{possess_num}）",
                 "升级成功率": success,
                 "当前效果": effect,
-                "材料消耗名称": consume_name,
-                "材料消耗数量": consume_num,
-                "材料拥有数量": possess_num,
                 f"{self.store_name}积分": f"{self.points}（{store_num}）",
                 "是否升级": is_upgrade,
             }
@@ -522,9 +519,8 @@ class ShenJi:
 
         data = self.data[name]
         _id: str = data["id"]
-        consume_num: int = data["材料消耗数量"]
-        possess_num: int = data["材料拥有数量"]
 
+        _, consume_num, possess_num = split_consume_data(data["消耗"])
         e = Exchange(url[self.store_name], consume_num, possess_num)
 
         # 关闭自动斗豆兑换神技升级材料
@@ -814,7 +810,6 @@ class XinYuanYingShenQi:
 
     def __init__(self, mission_name: str):
         self.mission_name = mission_name
-
         self.data = self.get_data(self.mission_name)
 
     def get_data(self, name: str) -> dict:
@@ -848,7 +843,7 @@ class XinYuanYingShenQi:
         # 满祝福值
         total_value_list = D.findall(r"/(\d+)")
         # 材料拥有数量
-        possess_num = get_backpack_item_count(5089)
+        possess_num = get_backpack_number(5089)
 
         # 过滤5星
         result = [(k, v) for k, v in zip(name_list, level_list) if v != "5"]
@@ -860,18 +855,17 @@ class XinYuanYingShenQi:
 
             if level in ["0", "1", "2"]:
                 number = consume_num
+                fali_value = 0
             else:
                 number = compute(2, consume_num, now_value, total_value)
+                fali_value = 2
 
             data[name] = {
                 "名称": name,
                 "id": id_list[index],
                 "星级": level,
-                "升级消耗": f"真黄金卷轴*{consume_num}（{possess_num}）",
-                "祝福值": f"{now_value}/{total_value}",
-                "材料消耗名称": "真黄金卷轴",
-                "材料消耗数量": consume_num,
-                "材料拥有数量": possess_num,
+                "消耗": f"真黄金卷轴*{consume_num}（{possess_num}）",
+                "祝福值": f"{now_value}/{total_value}（↑{fali_value}）",
                 "满祝福消耗数量": number,
                 "是否升级": possess_num >= number,
             }
@@ -893,12 +887,12 @@ class XinYuanYingShenQi:
 
         _id: str = self.data[name]["id"]
         t = params_data[self.mission_name]
-        p = f"cmd=newAct&subtype=104&op=3&one_click=0&item_id={_id}&type={t}"
 
         # 关闭自动斗豆兑换
         D.get("cmd=newAct&subtype=104&op=4&autoBuy=0&type=1")
         D.print_info("关闭自动斗豆兑换", name)
 
+        p = f"cmd=newAct&subtype=104&op=3&one_click=0&item_id={_id}&type={t}"
         while True:
             # 升级一次
             D.get(p)
@@ -931,7 +925,7 @@ def 新元婴神器():
 
 class SanHun:
     """
-    灵枢精魄三魂自动兑换强化
+    深渊之潮灵枢精魄三魂自动兑换强化
     """
 
     def __init__(self):
@@ -975,13 +969,11 @@ class SanHun:
                 "id": _id,
                 "阶段": level,
                 "消耗": f"{consume_name}*{consume_num}（{possess_num}）",
-                "进度": f"{now_value}/{total_value}",
-                "材料消耗名称": consume_name,
-                "材料消耗数量": consume_num,
-                "材料拥有数量": possess_num,
+                "进度": f"{now_value}/{total_value}（↑2）",
                 "积分": f"{self.points}（{store_num}）",
                 "满进度消耗数量": full_value_consume_num,
                 "是否升级": (possess_num + store_num) >= full_value_consume_num,
+                "说明": "进度值永久有效",
             }
         return data
 
@@ -1006,38 +998,33 @@ class SanHun:
 
         data = self.data[name]
         _id: str = data["id"]
-        consume_name: str = data["材料消耗名称"]
-        consume_num: int = data["材料消耗数量"]
-        possess_num: int = data["材料拥有数量"]
+        now_value, total_value = data["进度"].split("（")[0].split("/")
+        full_value_consume_num: int = data["满进度消耗数量"]
 
-        e = Exchange(url[consume_name], consume_num, possess_num)
+        consume_name, _, possess_num = split_consume_data(data["消耗"])
+        e = Exchange(url[consume_name], full_value_consume_num, possess_num)
 
         # 关闭自动斗豆兑换
         D.get(f"cmd=abysstide&op=setauto&value=0&soul_id={_id}")
         D.print_info("关闭自动斗豆兑换", name)
 
-        while True:
-            # 积分商店兑换材料
-            e.exchange()
+        # 积分商店兑换材料
+        e.exchange()
 
+        quotient, remainder = divmod((int(total_value) - int(now_value)), 20)
+        for _ in range(quotient):
+            # 进阶十次
+            D.get(f"cmd=abysstide&op=upgradesoul&soul_id={_id}&times=10")
+            D.find(r"进度：(.*?)&", name)
+        for _ in range(remainder // 2):
             # 进阶
             D.get(f"cmd=abysstide&op=upgradesoul&soul_id={_id}&times=1")
-            if "恭喜您升级成功" in D.html:
-                D.find(name=name)
-                break
-            elif "道具不足" in D.html:
-                D.find(name=name)
-                break
-
             D.find(r"进度：(.*?)&", name)
-
-            # 更新材料拥有数量
-            e.update_possess_num()
 
 
 def 深渊之潮():
     """
-    灵枢精魄三魂自动兑换强化
+    深渊之潮灵枢精魄三魂自动兑换强化
     """
     i = Input()
     i.select_upgrade(SanHun)
@@ -1048,13 +1035,22 @@ class LingShouPian:
     神魔录灵兽篇自动兑换强化
     """
 
-    def __init__(self, fail_value: int):
-        self.fail_value = fail_value
-
+    def __init__(self):
         # 问鼎天下商店积分
         self.points = get_store_points("cmd=exchange&subtype=10&costtype=14")
 
+        self.fail_value = self.get_fail_value()
         self.data = self.get_data()
+
+    def get_fail_value(self) -> int:
+        """
+        返回灵兽篇失败祝福值
+        """
+        # 祝福合集宝库
+        D.get("cmd=newAct&subtype=143")
+        if "=神魔录=" not in D.html:
+            return 2
+        return int(D.findall(r"灵兽经五阶5星.*?获得(\d+)")[0])
 
     def get_data(self) -> dict:
         """
@@ -1098,13 +1094,9 @@ class LingShouPian:
                 "id": _id,
                 "等级": level,
                 "消耗": f"{consume_name}*{consume_num}（{possess_num}）",
-                "祝福值": f"{now_value}/{total_value}",
-                "材料消耗名称": consume_name,
-                "材料消耗数量": consume_num,
-                "材料拥有数量": possess_num,
+                "祝福值": f"{now_value}/{total_value}（↑{self.fail_value}）",
                 "积分": f"{self.points}（{store_num}）",
                 "满祝福消耗数量": f"{full_value_number}（必成再+{consume_num}）",
-                "失败祝福值": self.fail_value,
                 "是否升级": (possess_num + store_num)
                 >= (full_value_number + consume_num),
             }
@@ -1123,10 +1115,8 @@ class LingShouPian:
 
         data = self.data[name]
         _id: str = data["id"]
-        consume_name: str = data["材料消耗名称"]
-        consume_num: int = data["材料消耗数量"]
-        possess_num: int = data["材料拥有数量"]
 
+        consume_name, consume_num, possess_num = split_consume_data(data["消耗"])
         e = Exchange(url[consume_name], consume_num, possess_num)
 
         # 关闭自动斗豆兑换
@@ -1159,6 +1149,18 @@ class GuZhenPian:
 
         self.data = self.get_data()
 
+    def _get_backpack_number(self, consume_name: str) -> int:
+        """
+        获取碎片背包数量
+        """
+        data_id = {
+            "夔牛碎片": 5154,
+            "饕餮碎片": 5155,
+            "烛龙碎片": 5156,
+            "黄鸟碎片": 5157,
+        }
+        return get_backpack_number(data_id[consume_name])
+
     def get_data(self) -> dict:
         """
         获取古阵篇数据
@@ -1174,7 +1176,7 @@ class GuZhenPian:
         # 商店积分可兑换突破石数量
         t_store_num = self.points // 40
         # 突破石拥有数量
-        t_possess_num = get_backpack_item_count(5153)
+        t_possess_num = get_backpack_number(5153)
 
         for name, _id in data_dict.items():
             # 宝物详情
@@ -1197,32 +1199,16 @@ class GuZhenPian:
             s_possess_num = self._get_backpack_number(s_consume_name)
 
             data[name] = {
-                "name": name,
+                "名称": name,
                 "id": _id,
                 "等级": now_level,
-                "消耗": f"突破石*{t_consume_num}+{s_consume_name}*{s_consume_num}",
-                "碎片消耗名称": s_consume_name,
-                "碎片消耗数量": s_consume_num,
-                "碎片拥有数量": s_possess_num,
-                "突破石消耗数量": t_consume_num,
-                "突破石拥有数量": t_possess_num,
+                "消耗": f"突破石*{t_consume_num}（{t_possess_num}）+ {s_consume_name}*{s_consume_num}（{s_possess_num}）",
                 "积分": f"{self.points}（{t_store_num}）",
                 "是否升级": ((t_possess_num + t_store_num) >= t_consume_num)
                 and (s_possess_num >= s_consume_num),
+                "说明": "仅兑换突破石",
             }
         return data
-
-    def _get_backpack_number(self, name: str) -> int:
-        """
-        获取碎片背包数量
-        """
-        data = {
-            "夔牛碎片": 5154,
-            "饕餮碎片": 5155,
-            "烛龙碎片": 5156,
-            "黄鸟碎片": 5157,
-        }
-        return get_backpack_item_count(data[name])
 
     def upgrade(self, name: str):
         """
@@ -1237,10 +1223,9 @@ class GuZhenPian:
 
         data = self.data[name]
         _id: str = data["id"]
-        t_consume_num: int = data["突破石消耗数量"]
-        t_possess_num: int = data["突破石消耗数量"]
 
-        e = Exchange(url["突破石"], t_consume_num, t_possess_num)
+        consume_name, consume_num, possess_num = split_consume_data(data["消耗"])
+        e = Exchange(url[consume_name], consume_num, possess_num)
 
         # 积分商店兑换材料
         e.exchange()
@@ -1255,7 +1240,6 @@ def 神魔录():
     神魔录：灵兽篇自动兑换强化、古阵篇自动兑换突破
     """
     mission_list = ["灵兽篇", "古阵篇"]
-
     i = Input()
 
     mission_name = i.select_mission(mission_list, "选择任务名称：")
@@ -1263,10 +1247,7 @@ def 神魔录():
         return
 
     if mission_name == "灵兽篇":
-        fail_value = i.get_number("输入失败祝福值：")
-        if fail_value is None:
-            return
-        i.select_upgrade(LingShouPian, fail_value)
+        i.select_upgrade(LingShouPian)
     elif mission_name == "古阵篇":
         i.select_upgrade(GuZhenPian)
 
@@ -1276,13 +1257,22 @@ class AoYi:
     奥义自动兑换强化
     """
 
-    def __init__(self, fail_value: int):
-        self.fail_value = fail_value
-
+    def __init__(self):
         # 帮派祭坛商店积分
         self.points = get_store_points("cmd=exchange&subtype=10&costtype=12")
 
+        self.fail_value = self.get_fail_value()
         self.data = self.get_data()
+
+    def get_fail_value(self) -> int:
+        """
+        返回奥义失败祝福值
+        """
+        # 祝福合集宝库
+        D.get("cmd=newAct&subtype=143")
+        if "=技能奥义=" not in D.html:
+            return 2
+        return int(D.findall(r"奥义五阶5星.*?获得(\d+)")[0])
 
     def get_data(self) -> dict:
         """
@@ -1297,9 +1287,7 @@ class AoYi:
             return {}
 
         # 阶段
-        level = D.findall(r"阶段：(.*?)<")[0]
-        # 材料消耗名称
-        consume_name = "奥秘元素"
+        level = D.findall(r"阶段：(.*?)<")[0].replace("&nbsp;", "")
         # 材料消耗数量
         consume_num = int(D.findall(r"\*(\d+)")[0])
         # 材料拥有数量
@@ -1309,24 +1297,20 @@ class AoYi:
         # 总祝福值
         total_value = int(D.findall(r"\d+/(\d+)")[0])
 
+        # 商店积分可兑换数量
+        store_num = self.points // 40
         # 满祝福消耗数量
         full_value_consume_num = compute(
             self.fail_value, consume_num, now_value, total_value
         )
-        # 商店积分可兑换数量
-        store_num = self.points // 40
 
         data[name] = {
             "名称": name,
             "阶段": level,
-            "消耗": f"{consume_name}*{consume_num}（{possess_num}）",
-            "祝福值": f"{now_value}/{total_value}",
-            "材料消耗名称": consume_name,
-            "材料消耗数量": consume_num,
-            "材料拥有数量": possess_num,
+            "消耗": f"奥秘元素*{consume_num}（{possess_num}）",
+            "祝福值": f"{now_value}/{total_value}（↑{self.fail_value}）",
             "积分": f"{self.points}（{store_num}）",
             "满祝福消耗数量": f"{full_value_consume_num}（必成再+{consume_num}）",
-            "失败祝福值": self.fail_value,
             "是否升级": (possess_num + store_num)
             >= (full_value_consume_num + consume_num),
         }
@@ -1344,10 +1328,8 @@ class AoYi:
         }
 
         data = self.data[name]
-        consume_name: str = data["材料消耗名称"]
-        consume_num: int = data["材料消耗数量"]
-        possess_num: int = data["材料拥有数量"]
 
+        consume_name, consume_num, possess_num = split_consume_data(data["消耗"])
         e = Exchange(url[consume_name], consume_num, possess_num)
 
         # 关闭自动斗豆兑换
@@ -1374,13 +1356,22 @@ class JiNengLan:
     奥义技能栏自动兑换强化
     """
 
-    def __init__(self, fail_value: int):
-        self.fail_value = fail_value
-
+    def __init__(self):
         # 帮派祭坛商店积分
         self.points = get_store_points("cmd=exchange&subtype=10&costtype=12")
 
+        self.fail_value = self.get_fail_value()
         self.data = self.get_data()
+
+    def get_fail_value(self) -> int:
+        """
+        返回奥义技能栏失败祝福值
+        """
+        # 祝福合集宝库
+        D.get("cmd=newAct&subtype=143")
+        if "=技能奥义=" not in D.html:
+            return 2
+        return int(D.findall(r"技能栏7星.*?失败(\d+)")[0])
 
     def get_data(self) -> dict:
         """
@@ -1398,8 +1389,6 @@ class JiNengLan:
             name = D.findall(r"<br />=(.*?)=")[0]
             # 当前等级
             level = int(D.findall(r"当前等级：(\d+)")[0])
-            # 材料消耗名称
-            consume_name = D.findall(r"升级消耗：(.*?)\*")[0]
             # 材料消耗数量
             consume_num = int(D.findall(r"\*(\d+)")[0])
             # 材料拥有数量
@@ -1416,27 +1405,23 @@ class JiNengLan:
                 # 7级后失败祝福值
                 fail_value = 2
 
+            # 商店积分可兑换数量
+            store_num = self.points // 40
             # 满祝福消耗数量
             full_value_consume_num = compute(
                 fail_value, consume_num, now_value, total_value
             )
-            # 商店积分可兑换数量
-            store_num = self.points // 40
 
             data[name] = {
                 "名称": name,
                 "id": _id,
                 "当前等级": level,
-                "升级消耗": f"{consume_name}*{consume_num}（{possess_num}）",
-                "祝福值": f"{now_value}/{total_value}",
-                "材料消耗名称": consume_name,
-                "材料消耗数量": consume_num,
-                "材料拥有数量": possess_num,
+                "消耗": f"四灵魂石*{consume_num}（{possess_num}）",
+                "祝福值": f"{now_value}/{total_value}（↑{fail_value}）",
                 "积分": f"{self.points}（{store_num}）",
                 "满祝福消耗数量": f"{full_value_consume_num}（必成再+{consume_num}）",
-                "失败祝福值": fail_value,
-                "是否升级": (possess_num + store_num)
-                >= (full_value_consume_num + consume_num),
+                "是否升级": (possess_num + store_num) >= consume_num,
+                "说明": "祝福值永久有效，可以随时升级",
             }
         return data
 
@@ -1453,10 +1438,8 @@ class JiNengLan:
 
         data = self.data[name]
         _id: str = data["id"]
-        consume_name: str = data["材料消耗名称"]
-        consume_num: int = data["材料消耗数量"]
-        possess_num: int = data["材料拥有数量"]
 
+        consume_name, consume_num, possess_num = split_consume_data(data["消耗"])
         e = Exchange(url[consume_name], consume_num, possess_num)
 
         # 关闭自动斗豆兑换
@@ -1490,15 +1473,9 @@ def 奥义():
         return
 
     if mission_name == "奥义":
-        fail_value = i.get_number("输入失败祝福值：")
-        if fail_value is None:
-            return
-        i.select_upgrade(AoYi, fail_value)
+        i.select_upgrade(AoYi)
     elif mission_name == "技能栏":
-        fail_value = i.get_number("输入7级（含）前失败祝福值：")
-        if fail_value is None:
-            return
-        i.select_upgrade(JiNengLan, fail_value)
+        i.select_upgrade(JiNengLan)
 
 
 class XianWuXiuZhen:
@@ -1513,14 +1490,28 @@ class XianWuXiuZhen:
         self.backpack_num = self.get_backpack_num()
         self.data = self.get_data()
 
+    def get_fail_value(self, consume_name, level) -> int:
+        """
+        返回史诗、传说、神话失败祝福值
+        """
+        data = {
+            "史诗残片": 6,
+            "传说残片": 8,
+            "神话残片": 10,
+        }
+        # level前（含）失败祝福值
+        if level <= data[consume_name]:
+            return self.fail_value
+        return 2
+
     def get_backpack_num(self) -> dict:
         """
         返回史诗、传说、神话残片拥有数量
         """
         return {
-            "史诗残片": get_backpack_item_count(6681),
-            "传说残片": get_backpack_item_count(6682),
-            "神话残片": get_backpack_item_count(6683),
+            "史诗残片": get_backpack_number(6681),
+            "传说残片": get_backpack_number(6682),
+            "神话残片": get_backpack_number(6683),
         }
 
     def get_data(self) -> dict:
@@ -1561,30 +1552,12 @@ class XianWuXiuZhen:
                 "名称": name,
                 "id": _id,
                 "当前等级": level,
-                "升级消耗": f"{consume_name}*{consume_num}（{possess_num}）",
-                "祝福值": f"{now_value}/{total_value}",
-                "材料消耗名称": consume_name,
-                "材料消耗数量": consume_num,
-                "材料拥有数量": possess_num,
+                "消耗": f"{consume_name}*{consume_num}（{possess_num}）",
+                "祝福值": f"{now_value}/{total_value}（↑{fail_value}）",
                 "满祝福消耗数量": f"{full_value_consume_num}（必成再+{consume_num}）",
-                "失败祝福值": fail_value,
                 "是否升级": possess_num >= (full_value_consume_num + consume_num),
             }
         return data
-
-    def get_fail_value(self, consume_name, level) -> int:
-        """
-        返回史诗、传说、神话失败祝福值
-        """
-        data = {
-            "史诗残片": 6,
-            "传说残片": 8,
-            "神话残片": 10,
-        }
-        # level前（含）失败祝福值
-        if level <= data[consume_name]:
-            return self.fail_value
-        return 2
 
     def upgrade(self, name: str):
         """
@@ -1685,7 +1658,6 @@ class YongBing:
                 "等级": level,
                 "是否升级": True,
             }
-
         return data
 
     def 还童(self, name: str, _id: str):
@@ -1791,7 +1763,6 @@ class 背包:
                         "number": number,
                     }
                 )
-
         return data
 
     def search_backpack(self, query, items):
@@ -1822,3 +1793,253 @@ class 背包:
                 print()
             else:
                 print("未找到匹配物品")
+
+
+class ZhuanJing:
+    """
+    专精自动兑换强化
+    """
+
+    def __init__(self):
+        # 镖行天下商店积分
+        self.points = get_store_points("cmd=exchange&subtype=10&costtype=4")
+
+        self.data = self.get_data()
+
+    def get_fail_value(self, level: str) -> int:
+        """
+        返回专精失败祝福值
+        """
+        # 祝福合集宝库
+        D.get("cmd=newAct&subtype=143")
+        if "=专精=" not in D.html:
+            return 2
+        if "五阶" in level:
+            return int(D.findall(r"专精.*?五阶5星.*?(\d+)")[0])
+        return int(D.findall(r"专精.*?四阶5星.*?(\d+)")[0])
+
+    def _get_backpack_number(self, consume_name: str) -> int:
+        """
+        获取消耗材料拥有数量
+        """
+        data_id = {
+            "投掷武器符文石": 3658,
+            "小型武器符文石": 3657,
+            "中型武器符文石": 3656,
+            "大型武器符文石": 3655,
+        }
+        return get_backpack_number(data_id[consume_name])
+
+    def get_data(self) -> dict:
+        """
+        获取专精数据
+        """
+        data = {}
+        for _id in range(4):
+            D.get(f"cmd=weapon_specialize&op=0&type_id={_id}")
+            if "9999" in D.html:
+                continue
+
+            # 阶段
+            level = D.findall(r"阶段：(.*?)<")[0]
+            # 星级
+            star = D.findall(r"星级：(.*?) ")[0]
+            # 材料消耗名称
+            consume_name = D.findall(r"消耗：(.*?)\*")[0]
+            # 材料消耗数量
+            consume_num = int(D.findall(r"消耗：.*?(\d+)")[0])
+            # 当前祝福值
+            now_value = int(D.findall(r"祝福值：(\d+)")[0])
+            # 总祝福值
+            total_value = int(D.findall(r"祝福值：\d+/(\d+)")[0])
+
+            name = consume_name[:4]
+            fail_value = self.get_fail_value(level)
+            # 材料拥有数量
+            possess_num = self._get_backpack_number(consume_name)
+            # 商店积分可兑换数量
+            store_num = self.points // 40
+            # 满祝福消耗数量
+            full_value_consume_num = compute(
+                fail_value, consume_num, now_value, total_value
+            )
+
+            data[name] = {
+                "名称": name,
+                "id": _id,
+                "阶段": level,
+                "星级": star,
+                "消耗": f"{consume_name}*{consume_num}（{possess_num}）",
+                "祝福值": f"{now_value}/{total_value}（↑{fail_value}）",
+                "积分": f"{self.points}（{store_num}）",
+                "满祝福消耗数量": f"{full_value_consume_num}（必成再+{consume_num}）",
+                "是否升级": (possess_num + store_num)
+                >= (full_value_consume_num + consume_num),
+            }
+        return data
+
+    def upgrade(self, name: str):
+        """
+        专精升级
+        """
+        url = {
+            "投掷武器符文石": {
+                "ten": "cmd=exchange&subtype=2&type=1208&times=10&costtype=4",
+                "one": "cmd=exchange&subtype=2&type=1208&times=1&costtype=4",
+            },
+            "小型武器符文石": {
+                "ten": "cmd=exchange&subtype=2&type=1211&times=10&costtype=4",
+                "one": "cmd=exchange&subtype=2&type=1211&times=1&costtype=4",
+            },
+            "中型武器符文石": {
+                "ten": "cmd=exchange&subtype=2&type=1210&times=10&costtype=4",
+                "one": "cmd=exchange&subtype=2&type=1210&times=1&costtype=4",
+            },
+            "大型武器符文石": {
+                "ten": "cmd=exchange&subtype=2&type=1213&times=10&costtype=4",
+                "one": "cmd=exchange&subtype=2&type=1213&times=1&costtype=4",
+            },
+        }
+
+        data = self.data[name]
+        _id: str = data["id"]
+
+        consume_name, consume_num, possess_num = split_consume_data(data["消耗"])
+        e = Exchange(url[consume_name], consume_num, possess_num)
+
+        # 关闭自动斗豆兑换
+        D.get(f"cmd=weapon_specialize&op=9&type_id={_id}&auto_buy=0")
+        D.print_info("关闭自动斗豆兑换", name)
+
+        while True:
+            # 积分商店兑换材料
+            e.exchange()
+
+            # 升级
+            D.get(f"cmd=weapon_specialize&op=2&type_id={_id}")
+            D.find(name=name)
+            D.find(r"祝福值：(.*?) ", name)
+            if "升星失败" not in D.html:
+                break
+
+            # 更新材料拥有数量
+            e.update_possess_num()
+
+
+class WuQiLan:
+    """
+    专精武器栏自动兑换强化
+    """
+
+    def __init__(self):
+        # 镖行天下商店积分
+        self.points = get_store_points("cmd=exchange&subtype=10&costtype=4")
+
+        self.fail_value = self.get_fail_value()
+        self.data = self.get_data()
+
+    def get_fail_value(self) -> int:
+        """
+        返回专精武器栏失败祝福值
+        """
+        # 祝福合集宝库
+        D.get("cmd=newAct&subtype=143")
+        if "=专精=" not in D.html:
+            return 2
+        return int(D.findall(r"武器栏失败获得(\d+)")[0])
+
+    def get_data(self) -> dict:
+        """
+        获取专精武器栏数据
+        """
+        data = {}
+        # 材料拥有数量
+        possess_num = get_backpack_number(3659)
+        for _id in range(1000, 1012):
+            D.get(f"cmd=weapon_specialize&op=4&storage_id={_id}")
+            if "当前等级：10" in D.html or "激活" in D.html:
+                continue
+
+            # 名称
+            name = D.findall(r"专精武器：(.*?) ")[0]
+            # 当前等级
+            level = D.findall(r"当前等级：(.*?)<")[0]
+            # 材料消耗名称
+            consume_name = D.findall(r"消耗：(.*?)\*")[0]
+            # 材料消耗数量
+            consume_num = int(D.findall(r"消耗：.*?(\d+)")[0])
+            # 当前祝福值
+            now_value = int(D.findall(r"祝福值：(\d+)")[0])
+            # 总祝福值
+            total_value = int(D.findall(r"祝福值：\d+/(\d+)")[0])
+
+            # 商店积分可兑换数量
+            store_num = self.points // 40
+            # 满祝福消耗数量
+            full_value_consume_num = compute(
+                self.fail_value, consume_num, now_value, total_value
+            )
+
+            data[name] = {
+                "名称": name,
+                "id": _id,
+                "等级": level,
+                "消耗": f"{consume_name}*{consume_num}（{possess_num}）",
+                "祝福值": f"{now_value}/{total_value}（↑{self.fail_value}）",
+                "积分": f"{self.points}（{store_num}）",
+                "满祝福消耗数量": f"{full_value_consume_num}（必成再+{consume_num}）",
+                "是否升级": (possess_num + store_num)
+                >= (full_value_consume_num + consume_num),
+            }
+        return data
+
+    def upgrade(self, name: str):
+        """
+        专精武器栏升级
+        """
+        url = {
+            "千年寒铁": {
+                "ten": "cmd=exchange&subtype=2&type=1209&times=10&costtype=4",
+                "one": "cmd=exchange&subtype=2&type=1209&times=1&costtype=4",
+            },
+        }
+
+        data = self.data[name]
+        _id: str = data["id"]
+
+        consume_name, consume_num, possess_num = split_consume_data(data["消耗"])
+        e = Exchange(url[consume_name], consume_num, possess_num)
+
+        # 关闭自动斗豆兑换
+        D.get(f"cmd=weapon_specialize&op=10&storage_id={_id}&auto_buy=0")
+        D.print_info("关闭自动斗豆兑换", name)
+
+        while True:
+            # 积分商店兑换材料
+            e.exchange()
+
+            # 升级
+            D.get(f"cmd=weapon_specialize&op=5&storage_id={_id}")
+            D.find(name=name)
+            D.find(r"祝福值：(.*?) ", name)
+            if "升星失败" not in D.html:
+                break
+
+            # 更新材料拥有数量
+            e.update_possess_num()
+
+
+def 专精():
+    """
+    专精自动兑换强化
+    """
+    mission_list = ["专精", "武器栏"]
+    i = Input()
+
+    mission_name = i.select_mission(mission_list, "选择任务名称：")
+    if mission_name is None:
+        return
+    if mission_name == "专精":
+        i.select_upgrade(ZhuanJing)
+    elif mission_name == "武器栏":
+        i.select_upgrade(WuQiLan)

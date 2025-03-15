@@ -1364,7 +1364,7 @@ def 八卦迷阵():
     }
     # 八卦迷阵
     D.get("cmd=spacerelic&op=goosip")
-    result = D.find(r"([乾坤震巽坎离艮兑]{4})")
+    result = D.find(r"([乾坤震巽坎离艮兑]{4})", "时空遗迹-八卦迷阵")
     if not result:
         D.print_info("首通没有八卦提示", "时空遗迹-八卦迷阵")
         D.msg_append("首通没有八卦提示")

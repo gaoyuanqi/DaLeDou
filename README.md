@@ -19,13 +19,13 @@ Python 3.12
 
 ## 快速开始
 
-**1.下载脚本**
+### 1.下载脚本
 ```sh
 git clone https://github.com/gaoyuanqi/DaLeDou.git
 cd DaLeDou
 ```
 
-**2.安装依赖（三选一）**
+### 2.安装依赖（三选一）
 
 使用 `pip` 一键安装：
 ```sh
@@ -45,18 +45,18 @@ pip3 install schedule
 uv sync
 ```
 
-**3.添加文字版大乐斗Cookie（必须）**
+### 3.添加文字版大乐斗Cookie（必须）
 
-[使用Via获取大乐斗Cookie](#安卓使用via来获取文字版大乐斗cookie)
+[获取文字版大乐斗Cookie教程](#获取文字版大乐斗cookie教程)
 
-修改 `config/settings.yaml`：
+将Cookie直接复制填入 `config/settings.yaml`：
 ```yaml
 DALEDOU_ACCOUNT:
   - RK=xx; ptcz=xx; openId=xx; accessToken=xx; newuin=111111
   - RK=xx; ptcz=xx; openId=xx; accessToken=xx; newuin=222222
 ```
 
-**4.添加pushplus微信通知（可选）**
+### 4.添加pushplus微信通知（可选）
 
 微信接收的消息比日志简略
 
@@ -65,27 +65,27 @@ DALEDOU_ACCOUNT:
 PUSHPLUS_TOKEN: ""
 ```
 
-**5.启动定时**
+### 5.启动定时
 
 ```sh
 python main.py --timing
 ```
 
-**6.修改任务配置**
+### 6.修改任务配置
 
 修改 `config/你的QQ.yaml` 文件
 
 
 ## 脚本命令
 
-**timing 模式**
+### timing 模式
 
 启动定时：
 ```sh
 python main.py --timing
 ```
 
-**one 模式**
+### one 模式
 
 运行 `第一轮`，建议 `13:10` 后运行：
 ```sh
@@ -97,7 +97,7 @@ python main.py --one
 python main.py --one 邪神秘宝
 ```
 
-**two 模式**
+### two 模式
 
 运行 `第二轮`，建议 `20:01` 后运行：
 ```sh
@@ -109,7 +109,7 @@ python main.py --two
 python main.py --two 邪神秘宝
 ```
 
-**other 模式**
+### other 模式
 
 查看携带参数：
 ```sh
@@ -154,12 +154,20 @@ pkg install vim
 最后 [快速开始](#快速开始)
 
 
-## 安卓使用Via来获取文字版大乐斗Cookie
+## 获取文字版大乐斗Cookie教程
 
-1.应用商店安装 **via**
+### 使用安卓Via浏览器
 
-2.将 **via** 设为默认浏览器
+1.应用商店安装 `via`
+
+2.将 `via` 设为默认浏览器
 
 3.[一键登录大乐斗文字版](https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index&channel=0)
 
-4.等待3秒，然后点击 **via** 左上角 **✓**，再点击 **查看Cookies**
+4.等待3秒，然后点击 `via` 左上角 `✓`，再点击 `查看Cookies`
+
+### 使用油猴脚本自动复制
+
+感谢 `chansanya` 提供的代码：https://github.com/gaoyuanqi/DaLeDou/issues/23
+
+> Via也可以运行此脚本

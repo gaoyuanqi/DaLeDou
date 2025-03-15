@@ -336,11 +336,13 @@ class DaLeDou:
         self.print_info(result, name)
         return result
 
-    def findall(self, mode: str) -> list:
+    def findall(self, mode: str, html: str = None) -> list:
         """
         查找大乐斗HTML字符串源码中所有匹配正则表达式的子串
         """
-        return re.findall(mode, self.html, re.S)
+        if html is None:
+            html = self.html
+        return re.findall(mode, html, re.S)
 
     def is_arrive_date(self, days: int, year_month_day: tuple) -> bool:
         """
