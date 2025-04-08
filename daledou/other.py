@@ -5,6 +5,8 @@
 python main.py --other 神装
 """
 
+import time
+
 from daledou.utils import yield_dld_objects
 
 
@@ -20,6 +22,7 @@ _FUNC_NAME = [
     "佣兵",
     "背包",
     "专精",
+    "掠夺",
 ]
 
 
@@ -2043,3 +2046,52 @@ def 专精():
         i.select_upgrade(ZhuanJing)
     elif mission_name == "武器栏":
         i.select_upgrade(WuQiLan)
+
+
+class 掠夺:
+    """
+    低于输入战力时自动掠夺
+    """
+
+    def __init__(self):
+        i = Input()
+        self.input_combat_power = i.get_number("输入低于多少战力时掠夺：")
+        if self.input_combat_power is None:
+            return
+
+        for _id in self.get_id():
+            while True:
+                print("--" * 20)
+                if not self.is_plunder(_id):
+                    break
+                if not self.plunder(_id):
+                    return
+                time.sleep(1)
+
+    def get_id(self) -> list:
+        """
+        获取所有可掠夺的粮仓id
+        """
+        D.get("cmd=forage_war&subtype=3")
+        return D.findall(r'gra_id=(\d+)">掠夺')
+
+    def is_plunder(self, gra_id: str) -> bool:
+        """
+        判断某粮仓第一个成员是否掠夺
+        """
+        D.get(f"cmd=forage_war&subtype=3&op=1&gra_id={gra_id}")
+        if combat_power := D.find(r"<br />1.*? (\d+)\.", f"{gra_id}战力"):
+            if int(combat_power) < self.input_combat_power:
+                return True
+        return False
+
+    def plunder(self, gra_id: str) -> bool:
+        """
+        掠夺某粮仓第一个成员
+        """
+        D.get(f"cmd=forage_war&subtype=4&gra_id={gra_id}")
+        D.find("返回</a><br />(.*?)<", name="掠夺")
+        D.find("生命：(.*?)<", name="生命")
+        if "你已经没有足够的复活次数" in D.html:
+            return False
+        return True

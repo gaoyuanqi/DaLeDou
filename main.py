@@ -49,8 +49,12 @@ def run_serve():
     parser = argparse.ArgumentParser(description="处理多个可选参数的示例程序")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--timing", nargs="*", metavar="不传参数", help="检查大乐斗配置")
-    group.add_argument("--one", nargs="*", metavar="函数名称", help="大乐斗第一轮任务")
-    group.add_argument("--two", nargs="*", metavar="函数名称", help="大乐斗第二轮任务")
+    group.add_argument(
+        "--one", nargs="*", metavar="可选函数名称", help="大乐斗第一轮任务"
+    )
+    group.add_argument(
+        "--two", nargs="*", metavar="可选函数名称", help="大乐斗第二轮任务"
+    )
     group.add_argument("--other", nargs="*", metavar="函数名称", help="大乐斗其它任务")
 
     print("--" * 20)
