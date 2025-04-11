@@ -52,8 +52,8 @@ uv sync
 将Cookie直接复制填入 `config/settings.yaml`：
 ```yaml
 DALEDOU_ACCOUNT:
-  - RK=xx; ptcz=xx; openId=xx; accessToken=xx; newuin=111111
-  - RK=xx; ptcz=xx; openId=xx; accessToken=xx; newuin=222222
+  - openId=xx; accessToken=xx; newuin=111111
+  - openId=xx; accessToken=xx; newuin=222222
 ```
 
 ### 4.添加pushplus微信通知（可选）
@@ -171,3 +171,12 @@ pkg install vim
 感谢 `chansanya` 提供的代码：https://github.com/gaoyuanqi/DaLeDou/issues/23
 
 > Via也可以运行此脚本
+
+
+## 关于大乐斗Cookie有效期（2025.4.11）
+
+同一个账号不能同时在线（多设备/多应用）
+
+每次重新登录会刷新Cookie，旧Cookie会在几分钟后失效
+
+只要不反复登录，则Cookie长期有效

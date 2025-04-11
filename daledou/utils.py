@@ -57,11 +57,11 @@ class InItDaLeDou:
     初始化大乐斗
     """
 
-    def __init__(self, dld_cookie: str):
+    def __init__(self, cookie: str):
         self._setup_console_logger()
         self._start_time = f"【开始时间】\n{self._get_datetime_weekday()}"
-        self._cookie: str = self._clean_cookie(dld_cookie)
-        self._qq: str = self._get_qq()
+        self._cookie: dict = self.parse_cookie(cookie)
+        self._qq: str = self._cookie["newuin"]
         self._session = self._session_add_cookie()
 
         if isinstance(self._session, requests.Session):
@@ -104,26 +104,12 @@ class InItDaLeDou:
             format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{message}</level>",
         )
 
-    def _clean_cookie(self, dld_cookie: str) -> str:
-        """
-        清洁大乐斗Cookie，改成 'RK=xx; ptcz=xx; openId=xx; accessToken=xx; newuin=xx'
-        """
-        required_keys = ["RK", "ptcz", "openId", "accessToken", "newuin"]
-        for key in required_keys:
-            if key not in dld_cookie:
-                raise ValueError(f"大乐斗Cookie缺失 {key} 字段：\n{dld_cookie}")
-
-        ck = ""
-        for key in ["RK", "ptcz", "openId", "accessToken", "newuin"]:
-            result = re.search(f"{key}=(.*?); ", f"{dld_cookie}; ", re.S)
-            ck += f"{result.group(0)}"
-        return ck[:-2]
-
-    def _get_qq(self) -> str:
-        """
-        返回 self._cookie 中的QQ
-        """
-        return re.search(r"newuin=(\d+)", self._cookie, re.S).group(1)
+    def parse_cookie(self, cookie: str) -> dict:
+        cookies = {}
+        for cookie in cookie.split("; "):
+            key, value = cookie.strip().split("=", 1)
+            cookies[key] = value
+        return cookies
 
     def _session_add_cookie(self) -> Session | None:
         """
@@ -131,7 +117,7 @@ class InItDaLeDou:
         """
         url = "https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index"
         with requests.Session() as session:
-            session.cookies.set("Cookie", self._cookie)
+            session.cookies.update(self._cookie)
             for _ in range(3):
                 res = session.get(url, headers=_HEADERS, allow_redirects=False)
                 res.encoding = "utf-8"
