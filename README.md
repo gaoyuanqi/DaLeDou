@@ -128,12 +128,12 @@ python main.py --other 神装
 
 2.更换清华镜像源：
 ```sh
-sed -i 's@^\(deb.*stable main\)$@#\1\ndeb https://mirrors.tuna.tsinghua.edu.cn/termux/apt/termux-main stable main@' $PREFIX/etc/apt/sources.list
+echo "deb https://mirrors.tuna.tsinghua.edu.cn/termux/termux-packages-24 stable main" > $PREFIX/etc/apt/sources.list
 ```
 
 3.更新包并升级：
 ```sh
-apt update && apt upgrade
+pkg update && pkg upgrade
 ```
 
 4.安装Python：

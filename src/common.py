@@ -2,18 +2,20 @@
 本模块抽离了 one.py 和 two.py 两个模块的公共任务函数
 """
 
+from src.utils import DaLeDou
 
-def c_邪神秘宝(D):
+
+def c_邪神秘宝(D: DaLeDou):
     """
     高级秘宝和极品秘宝免费一次或者抽奖一次
     """
     for i in [0, 1]:
         # 免费一次 或 抽奖一次
         D.get(f"cmd=tenlottery&op=2&type={i}")
-        D.msg_append(D.find(r"】</p>(.*?)<br />"))
+        D.log(D.find(r"】</p>(.*?)<br />")).append()
 
 
-def c_问鼎天下(D):
+def c_问鼎天下(D: DaLeDou):
     """
     领取帮资或放弃资源点、东海攻占倒数第一个
     """
@@ -22,21 +24,21 @@ def c_问鼎天下(D):
     if "你占领的领地已经枯竭" in D.html:
         # 领取
         D.get("cmd=tbattle&op=drawreleasereward")
-        D.msg_append(D.find())
+        D.log(D.find()).append()
     elif "放弃" in D.html:
         # 放弃
         D.get("cmd=tbattle&op=abandon")
-        D.msg_append(D.find())
+        D.log(D.find()).append()
 
     # 1东海 2南荒 3西泽 4北寒
     D.get("cmd=tbattle&op=showregion&region=1")
     # 攻占 倒数第一个
     if _id := D.findall(r"id=(\d+).*?攻占</a>"):
         D.get(f"cmd=tbattle&op=occupy&id={_id[-1]}&region=1")
-        D.msg_append(D.find())
+        D.log(D.find()).append()
 
 
-def c_帮派商会(D):
+def c_帮派商会(D: DaLeDou):
     """
     帮派宝库领取礼包、交易会所交易物品、兑换商店兑换物品
     """
@@ -51,12 +53,11 @@ def c_帮派商会(D):
     if data := D.findall(r'gift_id=(\d+)&amp;type=(\d+)">点击领取'):
         for _id, t in data:
             D.get(f"cmd=fac_corp&op=3&gift_id={_id}&type={t}")
-            D.msg_append(D.find(r"</p>(.*?)<br />", "帮派商会-帮派宝库"))
+            D.log(D.find(r"</p>(.*?)<br />"), "帮派商会-帮派宝库").append()
             if "入帮24小时才能领取商会礼包" in D.html:
                 break
     else:
-        D.print_info("没有礼包领取", "帮派商会-帮派宝库")
-        D.msg_append("没有礼包领取")
+        D.log("没有礼包领取", "帮派商会-帮派宝库").append()
 
     # 交易会所
     D.get("cmd=fac_corp&op=1")
@@ -66,7 +67,7 @@ def c_帮派商会(D):
         for t, _id in data_1:
             # 兑换
             D.get(f"cmd=fac_corp&op=4&type={t}&goods_id={_id}")
-            D.msg_append(D.find(r"</p>(.*?)<br />", f"帮派商会-交易-{_id}"))
+            D.log(D.find(r"</p>(.*?)<br />"), f"帮派商会-交易-{_id}").append()
 
     # 兑换商店
     D.get("cmd=fac_corp&op=2")
@@ -76,10 +77,10 @@ def c_帮派商会(D):
         for t in data_2:
             # 兑换
             D.get(f"cmd=fac_corp&op=5&type_id={t}")
-            D.msg_append(D.find(r"</p>(.*?)<br />", f"帮派商会-兑换-{t}"))
+            D.log(D.find(r"</p>(.*?)<br />"), f"帮派商会-兑换-{t}").append()
 
 
-def c_任务派遣中心(D):
+def c_任务派遣中心(D: DaLeDou):
     """
     至多领取奖励、接受任务3次
     """
@@ -88,7 +89,7 @@ def c_任务派遣中心(D):
     for _id in D.findall(r'mission_id=(.*?)">查看'):
         # 领取奖励
         D.get(f"cmd=missionassign&subtype=5&mission_id={_id}")
-        D.msg_append(D.find(r"\[任务派遣中心\](.*?)<br />"))
+        D.log(D.find(r"\[任务派遣中心\](.*?)<br />")).append()
 
     # 接受任务
     missions_dict = {
@@ -145,12 +146,11 @@ def c_任务派遣中心(D):
 
     # 任务派遣中心
     D.get("cmd=missionassign&subtype=0")
-    for msg in D.findall(r"<br />(.*?)&nbsp;<a.*?查看"):
-        D.print_info(msg)
-        D.msg_append(msg)
+    for info in D.findall(r"<br />(.*?)&nbsp;<a.*?查看"):
+        D.log(info).append()
 
 
-def c_侠士客栈(D):
+def c_侠士客栈(D: DaLeDou):
     """
     领取奖励3次、客栈奇遇
     """
@@ -160,7 +160,7 @@ def c_侠士客栈(D):
         for n in range(1, 4):
             # 领取奖励
             D.get(f"cmd=warriorinn&op=getlobbyreward&type={t}&num={n}")
-            D.msg_append(D.find(r"侠士客栈<br />(.*?)<br />"))
+            D.log(D.find(r"侠士客栈<br />(.*?)<br />")).append()
 
     # 奇遇
     for p in D.findall(r"pos=(\d+)"):
@@ -169,24 +169,24 @@ def c_侠士客栈(D):
             # 前来捣乱的xx -> 与TA理论 -> 确认
             D.get(f"cmd=warriorinn&op=exceptadventure&pos={p}")
             if "战斗" in D.html:
-                D.msg_append(D.find(r"侠士客栈<br />(.*?) ，"))
+                D.log(D.find(r"侠士客栈<br />(.*?) ，")).append()
                 continue
-            D.msg_append(D.find(r"侠士客栈<br />(.*?)<br />"))
+            D.log(D.find(r"侠士客栈<br />(.*?)<br />")).append()
         else:
             # 黑市商人、老乞丐 -> 你去别人家问问吧、拯救世界的任务还是交给别人把 -> 确认
             D.get(f"cmd=warriorinn&op=rejectadventure&pos={p}")
 
 
-def c_帮派巡礼(D):
+def c_帮派巡礼(D: DaLeDou):
     """
     深渊之潮-帮派巡礼
     """
     # 领取巡游赠礼
     D.get("cmd=abysstide&op=getfactiongift")
-    D.msg_append(D.find())
+    D.log(D.find()).append()
 
 
-def c_深渊秘境(D):
+def c_深渊秘境(D: DaLeDou):
     """
     深渊秘境至多通关5次
     """
@@ -196,29 +196,29 @@ def c_深渊秘境(D):
     if yaml["exchange"]:
         # 兑换一次副本
         D.get("cmd=abysstide&op=addaccess")
-        D.msg_append(D.find())
+        D.log(D.find()).append()
 
     for _ in range(5):
         D.get(f"cmd=abysstide&op=enterabyss&id={_id}")
         if "开始挑战" not in D.html:
             # 暂无可用挑战次数
             # 该副本需要顺序通关解锁
-            D.msg_append(D.find())
+            D.log(D.find()).append()
             break
 
         for _ in range(5):
             # 开始挑战
             D.get("cmd=abysstide&op=beginfight")
-            D.find()
+            D.log(D.find())
             if "憾负于" in D.html:
                 break
 
         # 退出副本
         D.get("cmd=abysstide&op=endabyss")
-        D.msg_append(D.find())
+        D.log(D.find()).append()
 
 
-def c_幸运金蛋(D):
+def c_幸运金蛋(D: DaLeDou):
     """
     砸金蛋一次
     """
@@ -227,16 +227,15 @@ def c_幸运金蛋(D):
     if i := D.find(r"index=(\d+)"):
         # 砸金蛋
         D.get(f"cmd=newAct&subtype=110&op=1&index={i}")
-        D.msg_append(D.find(r"】<br /><br />(.*?)<br />"))
+        D.log(D.find(r"】<br /><br />(.*?)<br />")).append()
     else:
-        D.print_info("没有砸蛋次数了")
-        D.msg_append("没有砸蛋次数了")
+        D.log("没有砸蛋次数了").append()
 
 
-def c_乐斗大笨钟(D):
+def c_乐斗大笨钟(D: DaLeDou):
     """
     领取一次
     """
     # 领取
     D.get("cmd=newAct&subtype=18")
-    D.msg_append(D.find(r"<br /><br /><br />(.*?)<br />"))
+    D.log(D.find(r"<br /><br /><br />(.*?)<br />")).append()

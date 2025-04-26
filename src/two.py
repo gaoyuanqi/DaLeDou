@@ -3,16 +3,19 @@
 
 默认每天 20:01 定时运行
 
-手动运行第二轮任务：
-python main.py --two
-手动运行某个函数：
-python main.py --two 邪神秘宝
-手动运行多个函数：
-python main.py --two 邪神秘宝 问鼎天下
+使用以下命令运行本模块任务：
+    >>> # 立即运行第二轮任务
+    >>> python main.py --two
+
+    >>> # 立即运行某个函数
+    >>> python main.py --two 邪神秘宝
+
+    >>> # 立即运行多个函数
+    >>> python main.py --two 邪神秘宝 矿洞
 """
 
-from daledou.utils import push, yield_dld_objects
-from daledou.common import (
+from src.utils import generate_daledou
+from src.common import (
     c_邪神秘宝,
     c_问鼎天下,
     c_帮派商会,
@@ -25,36 +28,31 @@ from daledou.common import (
 )
 
 
-def run_two(unknown_args: list = None):
+def run_two(extra_args: list):
     global D
-    for D in yield_dld_objects():
-        if unknown_args:
-            func_name_list = unknown_args
+    for D in generate_daledou():
+        if extra_args:
+            func_name_list = extra_args
             is_push = False
         else:
-            func_name_list = D.func_map["two"]
+            func_name_list = D.func_name_two
             is_push = True
 
         for func_name in func_name_list:
             print("--" * 20)
             D.func_name = func_name
-            D.msg_append(f"\n【{func_name}】")
+            D.append(f"\n【{func_name}】")
             try:
                 globals()[func_name]()
             except Exception as e:
-                D.print_info(f"出现异常，本任务结束：{e}")
-                D.msg_append("出现异常，本任务结束，详情查看日志")
-        D.run_time()
+                D.log(f"出现异常，本任务结束：{e}").append()
 
+        print("--" * 20)
         if is_push:
-            print("--" * 20)
-            # pushplus微信推送消息
-            push(f"{D.qq} two", D.msg_join)
+            D.push("第二轮")
         else:
-            print("--" * 20)
             print("--------------模拟微信信息--------------")
-            print(D.msg_join)
-
+            print(D.body())
         print("--" * 20)
 
 
@@ -94,14 +92,13 @@ def 侠客岛():
     D.get("cmd=knight_island&op=viewmissionindex")
     data = D.findall(r"getmissionreward&amp;pos=(\d+)")
     if not data:
-        D.print_info("没有奖励领取")
-        D.msg_append("没有奖励领取")
+        D.log("没有奖励领取").append()
         return
 
     for p in data:
         # 领取
         D.get(f"cmd=knight_island&op=getmissionreward&pos={p}")
-        D.msg_append(D.find(r"斗豆）<br />(.*?)<br />"))
+        D.log(D.find(r"斗豆）<br />(.*?)<br />")).append()
 
 
 def 背包():
@@ -116,9 +113,9 @@ def 背包():
     page = int(D.find(r"第1/(\d+)"))
     for p in range(1, (page + 1)):
         D.get(f"cmd=store&store_type=0&page={p}")
-        D.print_info(f"查找第 {p} 页")
+        D.log(f"查找第 {p} 页")
         if "使用规则" in D.html:
-            D.find(r"】</p><p>(.*?)<br />")
+            D.log(D.find(r"】</p><p>(.*?)<br />"))
             continue
         _, _html = D.html.split("清理")
         D.html, _ = _html.split("商店")
@@ -129,8 +126,7 @@ def 背包():
     for _id, number in set(data):
         if _id in ["3023", "3024", "3025"]:
             # xx洗刷刷，3103生命洗刷刷除外
-            D.print_info("只能生命洗刷刷，其它洗刷刷不支持")
-            D.msg_append("只能生命洗刷刷，其它洗刷刷不支持")
+            D.log("只能生命洗刷刷，其它洗刷刷不支持").append()
             continue
         for _ in range(number):
             # 使用
@@ -138,11 +134,11 @@ def 背包():
             if "使用规则" in D.html:
                 # 该物品不能被使用
                 # 该物品今天已经不能再使用了
-                D.find(r"】</p><p>(.*?)<br />")
+                D.log(D.find(r"】</p><p>(.*?)<br />"))
                 break
             # 您使用了
             # 你打开
-            D.msg_append(D.find())
+            D.log(D.find()).append()
 
 
 def 镶嵌():
@@ -165,23 +161,23 @@ def 镶嵌():
         for _ in range(50):
             # 魂珠碎片 -> 1
             D.get(f"cmd=upgradepearl&type=6&exchangetype={_id}")
-            msg = D.find(r"魂珠升级</p><p>(.*?)</p>", f"镶嵌-{_id}")
+            D.log(D.find(r"魂珠升级</p><p>(.*?)</p>"), f"镶嵌-{_id}")
             if "不能合成该物品" in D.html:
                 # 抱歉，您的xx魂珠碎片不足，不能合成该物品！
                 break
-            D.msg_append(msg)
+            D.append()
 
     n = 0
     for _id in get_p():
         for _ in range(50):
             # 1 -> 2 -> 3 -> 4
             D.get(f"cmd=upgradepearl&type=3&pearl_id={_id}")
-            D.find(r"魂珠升级</p><p>(.*?)<", f"镶嵌-{_id}")
+            D.log(D.find(r"魂珠升级</p><p>(.*?)<"), f"镶嵌-{_id}")
             if "您拥有的魂珠数量不够" in D.html:
                 break
             n += 1
     if n:
-        D.msg_append(f"升级成功*{n}")
+        D.append(f"升级成功*{n}")
 
 
 def 普通合成():
@@ -190,7 +186,7 @@ def 普通合成():
     for p in range(1, 20):
         # 下一页
         D.get(f"cmd=weapongod&sub=12&stone_type=0&quality=0&page={p}")
-        D.print_info(f"背包第 {p} 页")
+        D.log(f"背包第 {p} 页")
         data += D.findall(r"拥有：(\d+)/(\d+).*?stone_id=(\d+)")
         if "下一页" not in D.html:
             break
@@ -202,7 +198,7 @@ def 普通合成():
         for _ in range(count):
             # 普通合成
             D.get(f"cmd=weapongod&sub=13&stone_id={_id}")
-            D.msg_append(D.find(r"背包<br /></p>(.*?)!"))
+            D.log(D.find(r"背包<br /></p>(.*?)!")).append()
 
 
 def 符石分解():
@@ -213,7 +209,7 @@ def 符石分解():
     for p in range(1, 10):
         # 下一页
         D.get(f"cmd=weapongod&sub=9&stone_type=0&page={p}")
-        D.print_info(f"符石分解第 {p} 页")
+        D.log(f"符石分解第 {p} 页")
         data += D.findall(r"数量:(\d+).*?stone_id=(\d+)")
         if "下一页" not in D.html:
             break
@@ -222,7 +218,7 @@ def 符石分解():
             continue
         # 分解
         D.get(f"cmd=weapongod&sub=11&stone_id={_id}&num={num}&i_p_w=num%7C")
-        D.msg_append(D.find(r"背包</a><br /></p>(.*?)<"))
+        D.log(D.find(r"背包</a><br /></p>(.*?)<")).append()
 
 
 def 符石打造():
@@ -233,11 +229,11 @@ def 符石打造():
     for _ in range(quotient):
         # 打造十次
         D.get("cmd=weapongod&sub=8&produce_type=1&times=10")
-        D.msg_append(D.find(r"背包</a><br /></p>(.*?)<"))
+        D.log(D.find(r"背包</a><br /></p>(.*?)<")).append()
     for _ in range(remainder // 6):
         # 打造一次
         D.get("cmd=weapongod&sub=8&produce_type=1&times=1")
-        D.msg_append(D.find(r"背包</a><br /></p>(.*?)<"))
+        D.log(D.find(r"背包</a><br /></p>(.*?)<")).append()
 
 
 def 神匠坊():
@@ -258,7 +254,7 @@ def 每日宝箱():
     while t := D.find(r'type=(\d+)">打开'):
         # 打开
         D.get(f"cmd=dailychest&op=open&type={t}")
-        D.msg_append(D.find(r"说明</a><br />(.*?)<"))
+        D.log(D.find(r"说明</a><br />(.*?)<")).append()
         if "今日开宝箱次数已达上限" in D.html:
             break
 
@@ -286,7 +282,7 @@ def 商店():
     ]
     for url in urls:
         D.get(url)
-        D.msg_append(D.find())
+        D.log(D.find()).append()
 
 
 def 幸运金蛋():
@@ -300,13 +296,12 @@ def 新春拜年():
     # 新春拜年
     D.get("cmd=newAct&subtype=147")
     if "op=3" not in D.html:
-        D.print_info("没有礼物收取")
-        D.msg_append("没有礼物收取")
+        D.log("没有礼物收取").append()
         return
 
     # 收取礼物
     D.get("cmd=newAct&subtype=147&op=3")
-    D.msg_append(D.find(r"祝您：.*?<br /><br />(.*?)<br />"))
+    D.log(D.find(r"祝您：.*?<br /><br />(.*?)<br />")).append()
 
 
 def 乐斗大笨钟():

@@ -1,22 +1,22 @@
 """
 支持以下命令启动脚本:
-    定时运行第一轮和第二轮:
-        python main.py --timing
+    >>> # 定时运行第一轮和第二轮
+    >>> python main.py --timing
 
-    手动运行第一轮大乐斗任务:
-        python main.py --one
+    >>> # 立即运行第一轮大乐斗任务
+    >>> python main.py --one
 
-    手动运行 one.py 中的 邪神秘宝:
-        python main.py --one 邪神秘宝
+    >>> # 立即运行 one.py 中的 邪神秘宝
+    >>> python main.py --one 邪神秘宝
 
-    手动运行第二轮大乐斗任务:
-        python main.py --two
+    >>> # 立即运行第二轮大乐斗任务
+    >>> python main.py --two
 
-    手动运行 two.py 中的 邪神秘宝:
-        python main.py --two 邪神秘宝
+    >>> # 立即运行 two.py 中的 邪神秘宝
+    >>> python main.py --two 邪神秘宝
 
-    手动运行 other.py 中的 神装:
-        python main.py --other 神装
+    >>> # 立即运行 other.py 中的 神装
+    >>> python main.py --other 神装
 
 如果使用 uv 包管理器，则将上面 python 替换为 uv run
 """
@@ -26,22 +26,22 @@ import time
 
 from schedule import every, repeat, run_pending
 
-from daledou.other import run_other
-from daledou.one import run_one
-from daledou.two import run_two
-from daledou.utils import yield_dld_objects
+from src.other import run_other
+from src.one import run_one
+from src.two import run_two
+from src.utils import generate_daledou
 
 
 @repeat(every().day.at("13:10"))
 def job_one():
     # 每天 13:10 运行第一轮
-    run_one()
+    run_one([])
 
 
 @repeat(every().day.at("20:01"))
 def job_two():
     # 每天 20:01 运行第二轮
-    run_two()
+    run_two([])
 
 
 def run_serve():
@@ -60,14 +60,14 @@ def run_serve():
     print("--" * 20)
     args = parser.parse_args()
     if args.timing is not None:
-        for _ in yield_dld_objects():
+        for _ in generate_daledou():
             print("--" * 20)
         print("定时任务守护进程已启动：")
         print("第一轮默认 13:10 定时运行")
         print("第二轮默认 20:01 定时运行")
-        print("\n手动运行第一轮命令：")
+        print("\n立即运行第一轮命令：")
         print("python main.py --one 或者 uv run main.py --one")
-        print("\n手动运行第二轮命令：")
+        print("\n立即运行第二轮命令：")
         print("python main.py --two 或者 uv run main.py --two")
         print("\n强制结束脚本按键：CTRL + C")
         print("--" * 20)

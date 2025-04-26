@@ -1,13 +1,14 @@
 """
 本模块为大乐斗其它任务，只能命令行手动运行
 
-手动运行某个函数：
-python main.py --other 神装
+使用以下命令运行本模块任务：
+    >>> # 立即运行某个函数
+    >>> python main.py --other 神装
 """
 
 import time
 
-from daledou.utils import yield_dld_objects
+from src.utils import generate_daledou
 
 
 _FUNC_NAME = [
@@ -38,21 +39,20 @@ def check_func_name_existence(func_name: str):
         raise KeyError(func_name)
 
 
-def run_other(unknown_args: list):
+def run_other(extra_args: list):
     global D
-    if not unknown_args:
+    if not extra_args:
         print("请携带以下一个参数：")
         for i in _FUNC_NAME:
             print(i)
         print("--" * 20)
         return
 
-    for D in yield_dld_objects():
+    for D in generate_daledou():
         print("--" * 20)
-        for func_name in unknown_args:
+        for func_name in extra_args:
             check_func_name_existence(func_name)
             D.func_name = func_name
-            D.msg_append(f"\n【{func_name}】")
             globals()[func_name]()
 
         print("--" * 20)
@@ -89,7 +89,7 @@ def get_backpack_number(item_id: str | int) -> int:
     if "很抱歉" in D.html:
         number = 0
     else:
-        number = D.findall(r"数量：(\d+)")[0]
+        number = D.find(r"数量：(\d+)")
     return int(number)
 
 
@@ -99,7 +99,7 @@ def get_store_points(params: str) -> int:
     """
     # 商店
     D.get(params)
-    result = D.findall(r"<br />(.*?)<")[0]
+    result = D.find(r"<br />(.*?)<")
     _, store_points = result.split("：")
     return int(store_points)
 
@@ -144,7 +144,7 @@ class Exchange:
         """
         while count > 0:
             D.get(url)
-            D.find()
+            D.log(D.find())
             if "成功" in D.html:
                 count -= 1
             elif "不足" in D.html:
@@ -282,7 +282,7 @@ class ShenZhuang:
         D.get("cmd=newAct&subtype=143")
         if "=神装=" not in D.html:
             return 2
-        return 2 * int(D.findall(r"神装进阶失败获得(\d+)")[0])
+        return 2 * int(D.find(r"神装进阶失败获得(\d+)"))
 
     def get_match_data(self, name, _id, backpack_id, store_url) -> dict | None:
         """
@@ -294,15 +294,15 @@ class ShenZhuang:
             return
 
         # 阶层
-        level = D.findall(r"阶层：(.*?)<")[0]
+        level = D.find(r"阶层：(.*?)<")
         # 材料消耗名称
-        consume_name = D.findall(r"进阶消耗：(.*?)\*")[0]
+        consume_name = D.find(r"进阶消耗：(.*?)\*")
         # 材料消耗数量
-        consume_num = int(D.findall(r"\*(\d+)")[0])
+        consume_num = int(D.find(r"\*(\d+)"))
         # 当前祝福值
-        now_value = int(D.findall(r"祝福值：(\d+)")[0])
+        now_value = int(D.find(r"祝福值：(\d+)"))
         # 满祝福值
-        total_value = int(D.findall(r"祝福值：\d+/(\d+)")[0])
+        total_value = int(D.find(r"祝福值：\d+/(\d+)"))
 
         # 满祝福消耗数量
         full_value_consume_num = compute(
@@ -413,7 +413,7 @@ class ShenZhuang:
 
         # 关闭自动斗豆兑换神装进阶材料
         D.get(f"cmd=outfit&op=4&auto_buy=2&magic_outfit_id={_id}")
-        D.find(r"\|<br />(.*?)<br />", name)
+        D.log(D.find(r"\|<br />(.*?)<br />"), name)
 
         while True:
             # 积分商店兑换材料
@@ -421,8 +421,8 @@ class ShenZhuang:
 
             # 进阶
             D.get(f"cmd=outfit&op=1&magic_outfit_id={_id}")
-            D.find(r"神履.*?<br />(.*?)<br />", name)
-            D.find(r"祝福值：(.*?)<", name)
+            D.log(D.find(r"神履.*?<br />(.*?)<br />"), name)
+            D.log(D.find(r"祝福值：(.*?)<"), name)
             if "进阶失败" not in D.html:
                 break
 
@@ -473,15 +473,15 @@ class ShenJi:
         for _id in self.get_data_id():
             D.get(f"cmd=outfit&op=2&magic_skill_id={_id}")
             # 神技名称
-            name = D.findall(r"<br />=(.*?)=<a")[0]
+            name = D.find(r"<br />=(.*?)=<a")
             # 当前等级
-            level = D.findall(r"当前等级：(\d+)")[0]
+            level = D.find(r"当前等级：(\d+)")
             # 升级消耗数量
-            consume_num = int(D.findall(r"\*(\d+)<")[0])
+            consume_num = int(D.find(r"\*(\d+)<"))
             # 升级成功率
-            success = D.findall(r"升级成功率：(.*?)<")[0]
+            success = D.find(r"升级成功率：(.*?)<")
             # 当前效果
-            effect = D.findall(r"当前效果：(.*?)<")[0]
+            effect = D.find(r"当前效果：(.*?)<")
 
             is_upgrade = True if store_num >= consume_num else False
 
@@ -528,7 +528,7 @@ class ShenJi:
 
         # 关闭自动斗豆兑换神技升级材料
         D.get(f"cmd=outfit&op=8&auto_buy=2&magic_outfit_id={_id}")
-        D.find(r"\|<br />(.*?)<br />", name)
+        D.log(D.find(r"\|<br />(.*?)<br />"), name)
 
         while True:
             # 积分商店兑换材料
@@ -536,7 +536,7 @@ class ShenJi:
 
             # 升级
             D.get(f"cmd=outfit&op=3&magic_skill_id={_id}")
-            D.find(r"套装强化</a><br />(.*?)<br />", name)
+            D.log(D.find(r"套装强化</a><br />(.*?)<br />"), name)
             if "升级失败" not in D.html:
                 break
 
@@ -594,8 +594,7 @@ class 夺宝奇兵:
         """
         # 五行-合成
         D.get("cmd=element&subtype=4")
-        exploits = D.findall(r"拥有:(\d+)")[0]
-        return int(exploits)
+        return int(D.find(r"拥有:(\d+)"))
 
     def pelted(self):
         """
@@ -609,15 +608,14 @@ class 夺宝奇兵:
             # 投掷
             D.get("cmd=element&subtype=7")
             if "【夺宝奇兵】" in D.html:
-                D.find(r"<br /><br />(.*?)<br />")
-                D.find(r"进度：(.*?)<")
-                result = D.find(r"拥有:(\d+)")
-                self.possess_exploits = int(result)
+                D.log(D.find(r"<br /><br />(.*?)<br />"))
+                D.log(D.find(r"进度：(.*?)<"))
+                self.possess_exploits = int(D.find(r"拥有:(\d+)"))
                 if "您的战功不足" in D.html:
                     break
             elif "【选择场景】" in D.html:
                 if "你掷出了" in D.html:
-                    D.find(r"】<br />(.*?)<br />")
+                    D.log(D.find(r"】<br />(.*?)<br />"))
                 # 选择太空探宝
                 D.get("cmd=element&subtype=15&gameType=3")
                 print("--" * 20)
@@ -787,7 +785,7 @@ class XingPan:
             for _ in range(count):
                 # 合成
                 D.get(f"cmd=astrolabe&op=upgradegem&gem={_id}")
-                D.find(r"规则</a><br />(.*?)<", f"{level}级{name}")
+                D.log(D.find(r"规则</a><br />(.*?)<"), f"{level}级{name}")
 
 
 def 星盘():
@@ -893,14 +891,14 @@ class XinYuanYingShenQi:
 
         # 关闭自动斗豆兑换
         D.get("cmd=newAct&subtype=104&op=4&autoBuy=0&type=1")
-        D.print_info("关闭自动斗豆兑换", name)
+        D.log("关闭自动斗豆兑换", name)
 
         p = f"cmd=newAct&subtype=104&op=3&one_click=0&item_id={_id}&type={t}"
         while True:
             # 升级一次
             D.get(p)
-            D.find(name=name)
-            D.find(rf"{name}.*?:\d+ [\u4e00-\u9fff]+ (.*?)<br />", name)
+            D.log(D.find())
+            D.log(D.find(rf"{name}.*?:\d+ [\u4e00-\u9fff]+ (.*?)<br />"), name)
             if "恭喜您" in D.html:
                 break
 
@@ -952,17 +950,17 @@ class SanHun:
             if "五阶五星" in D.html:
                 continue
             # 阶段
-            level = D.findall(r"阶段：(.*?)<")[0]
+            level = D.find(r"阶段：(.*?)<")
             # 材料消耗名称
-            consume_name = D.findall(r"消耗：(.*?)\*")[0]
+            consume_name = D.find(r"消耗：(.*?)\*")
             # 材料消耗数量
-            consume_num = int(D.findall(r"消耗：.*?\*(\d+)")[0])
+            consume_num = int(D.find(r"消耗：.*?\*(\d+)"))
             # 材料拥有数量
-            possess_num = int(D.findall(r"\((\d+)\)")[0])
+            possess_num = int(D.find(r"\((\d+)\)"))
             # 当前进度
-            now_value = int(D.findall(r"进度：(\d+)/")[0])
+            now_value = int(D.find(r"进度：(\d+)/"))
             # 总进度
-            total_value = int(D.findall(r"进度：\d+/(\d+)")[0])
+            total_value = int(D.find(r"进度：\d+/(\d+)"))
 
             # 满进度消耗数量
             full_value_consume_num = compute(2, consume_num, now_value, total_value)
@@ -1009,7 +1007,7 @@ class SanHun:
 
         # 关闭自动斗豆兑换
         D.get(f"cmd=abysstide&op=setauto&value=0&soul_id={_id}")
-        D.print_info("关闭自动斗豆兑换", name)
+        D.log("关闭自动斗豆兑换", name)
 
         # 积分商店兑换材料
         e.exchange()
@@ -1018,11 +1016,11 @@ class SanHun:
         for _ in range(quotient):
             # 进阶十次
             D.get(f"cmd=abysstide&op=upgradesoul&soul_id={_id}&times=10")
-            D.find(r"进度：(.*?)&", name)
+            D.log(D.find(r"进度：(.*?)&"), name)
         for _ in range(remainder // 2):
             # 进阶
             D.get(f"cmd=abysstide&op=upgradesoul&soul_id={_id}&times=1")
-            D.find(r"进度：(.*?)&", name)
+            D.log(D.find(r"进度：(.*?)&"), name)
 
 
 def 深渊之潮():
@@ -1053,7 +1051,7 @@ class LingShouPian:
         D.get("cmd=newAct&subtype=143")
         if "=神魔录=" not in D.html:
             return 2
-        return int(D.findall(r"灵兽经五阶5星.*?获得(\d+)")[0])
+        return int(D.find(r"灵兽经五阶5星.*?获得(\d+)"))
 
     def get_data(self) -> dict:
         """
@@ -1073,17 +1071,17 @@ class LingShouPian:
                 continue
 
             # 等级
-            level = D.findall(r"等级：(.*?)&")[0]
+            level = D.find(r"等级：(.*?)&")
             # 材料消耗名称
-            consume_name = D.findall(r"消耗：(.*?)\*")[0]
+            consume_name = D.find(r"消耗：(.*?)\*")
             # 材料消耗数量
-            consume_num = int(D.findall(r"\*(\d+)")[0])
+            consume_num = int(D.find(r"\*(\d+)"))
             # 材料拥有数量
-            possess_num = int(D.findall(r"（(\d+)）")[0])
+            possess_num = int(D.find(r"（(\d+)）"))
             # 当前祝福值
-            now_value = int(D.findall(r"祝福值：(\d+)")[0])
+            now_value = int(D.find(r"祝福值：(\d+)"))
             # 总祝福值
-            total_value = int(D.findall(r"祝福值：\d+/(\d+)")[0])
+            total_value = int(D.find(r"祝福值：\d+/(\d+)"))
 
             # 满祝福消耗数量
             full_value_number = compute(
@@ -1124,7 +1122,7 @@ class LingShouPian:
 
         # 关闭自动斗豆兑换
         D.get(f"cmd=ancient_gods&op=5&autoBuy=0&id={_id}")
-        D.print_info("关闭自动斗豆兑换", name)
+        D.log("关闭自动斗豆兑换", name)
 
         while True:
             # 积分商店兑换材料
@@ -1132,8 +1130,8 @@ class LingShouPian:
 
             # 提升一次
             D.get(f"cmd=ancient_gods&op=6&id={_id}&times=1")
-            D.find(name=name)
-            D.find(r"祝福值：(.*?)<", name=name)
+            D.log(D.find(), name)
+            D.log(D.find(r"祝福值：(.*?)<"), name)
             if "升级失败" not in D.html:
                 break
 
@@ -1186,18 +1184,18 @@ class GuZhenPian:
             D.get(f"cmd=ancient_gods&op=4&id={_id}")
 
             # 当前等级
-            now_level = D.findall(r"等级：(\d+)")[0]
+            now_level = D.find(r"等级：(\d+)")
             # 最高等级
-            highest_level = D.findall(r"至(\d+)")[0]
+            highest_level = D.find(r"至(\d+)")
             if now_level == highest_level:
                 continue
 
             # 突破石消耗数量
-            t_consume_num = int(D.findall(r"突破石\*(\d+)")[0])
+            t_consume_num = int(D.find(r"突破石\*(\d+)"))
             # 碎片消耗名称
-            s_consume_name = D.findall(r"\+ (.*?)\*")[0]
+            s_consume_name = D.find(r"\+ (.*?)\*")
             # 碎片消耗数量
-            s_consume_num = int(D.findall(r"碎片\*(\d+)")[0])
+            s_consume_num = int(D.find(r"碎片\*(\d+)"))
             # 碎片拥有数量
             s_possess_num = self._get_backpack_number(s_consume_name)
 
@@ -1235,7 +1233,7 @@ class GuZhenPian:
 
         # 突破等级
         D.get(f"cmd=ancient_gods&op=7&id={_id}")
-        D.find(name=name)
+        D.log(D.find(), name)
 
 
 def 神魔录():
@@ -1275,7 +1273,7 @@ class AoYi:
         D.get("cmd=newAct&subtype=143")
         if "=技能奥义=" not in D.html:
             return 2
-        return int(D.findall(r"奥义五阶5星.*?获得(\d+)")[0])
+        return int(D.find(r"奥义五阶5星.*?获得(\d+)"))
 
     def get_data(self) -> dict:
         """
@@ -1290,15 +1288,15 @@ class AoYi:
             return {}
 
         # 阶段
-        level = D.findall(r"阶段：(.*?)<")[0].replace("&nbsp;", "")
+        level = D.find(r"阶段：(.*?)<").replace("&nbsp;", "")
         # 材料消耗数量
-        consume_num = int(D.findall(r"\*(\d+)")[0])
+        consume_num = int(D.find(r"\*(\d+)"))
         # 材料拥有数量
-        possess_num = int(D.findall(r"（(\d+)）")[0])
+        possess_num = int(D.find(r"（(\d+)）"))
         # 当前祝福值
-        now_value = int(D.findall(r"(\d+)/")[0])
+        now_value = int(D.find(r"(\d+)/"))
         # 总祝福值
-        total_value = int(D.findall(r"\d+/(\d+)")[0])
+        total_value = int(D.find(r"\d+/(\d+)"))
 
         # 商店积分可兑换数量
         store_num = self.points // 40
@@ -1337,7 +1335,7 @@ class AoYi:
 
         # 关闭自动斗豆兑换
         D.get("cmd=skillEnhance&op=9&autoBuy=0")
-        D.print_info("关闭自动斗豆兑换", name)
+        D.log("关闭自动斗豆兑换", name)
 
         while True:
             # 积分商店兑换材料
@@ -1345,8 +1343,8 @@ class AoYi:
 
             # 升级
             D.get("cmd=skillEnhance&op=2")
-            D.find(name=name)
-            D.find(r"祝福值：(.*?) ", name)
+            D.log(D.find(), name)
+            D.log(D.find(r"祝福值：(.*?) "), name)
             if "升星失败" not in D.html:
                 break
 
@@ -1374,7 +1372,7 @@ class JiNengLan:
         D.get("cmd=newAct&subtype=143")
         if "=技能奥义=" not in D.html:
             return 2
-        return int(D.findall(r"技能栏7星.*?失败(\d+)")[0])
+        return int(D.find(r"技能栏7星.*?失败(\d+)"))
 
     def get_data(self) -> dict:
         """
@@ -1389,17 +1387,17 @@ class JiNengLan:
             D.get(f"cmd=skillEnhance&op=4&storage_id={_id}")
 
             # 奥义名称
-            name = D.findall(r"<br />=(.*?)=")[0]
+            name = D.find(r"<br />=(.*?)=")
             # 当前等级
-            level = int(D.findall(r"当前等级：(\d+)")[0])
+            level = int(D.find(r"当前等级：(\d+)"))
             # 材料消耗数量
-            consume_num = int(D.findall(r"\*(\d+)")[0])
+            consume_num = int(D.find(r"\*(\d+)"))
             # 材料拥有数量
-            possess_num = int(D.findall(r"（(\d+)）")[0])
+            possess_num = int(D.find(r"（(\d+)）"))
             # 当前祝福值
-            now_value = int(D.findall(r"祝福值：(\d+)")[0])
+            now_value = int(D.find(r"祝福值：(\d+)"))
             # 总祝福值
-            total_value = int(D.findall(r"祝福值：\d+/(\d+)")[0])
+            total_value = int(D.find(r"祝福值：\d+/(\d+)"))
 
             if level <= 7:
                 # 7级（含）前失败祝福值
@@ -1447,7 +1445,7 @@ class JiNengLan:
 
         # 关闭自动斗豆兑换
         D.get(f"cmd=skillEnhance&op=10&storage_id={_id}&auto_buy=0")
-        D.print_info("关闭自动斗豆兑换", name)
+        D.log("关闭自动斗豆兑换", name)
 
         while True:
             # 积分商店兑换材料
@@ -1455,8 +1453,8 @@ class JiNengLan:
 
             # 升级
             D.get(f"cmd=skillEnhance&op=5&storage_id={_id}")
-            D.find(name=name)
-            D.find(r"祝福值：(.*?) ", name)
+            D.log(D.find(), name)
+            D.log(D.find(r"祝福值：(.*?) "), name)
             if "升星失败" not in D.html:
                 break
 
@@ -1530,17 +1528,17 @@ class XianWuXiuZhen:
             D.get(f"cmd=immortals&op=viewupgradepage&treasureid={_id}")
 
             # 法宝名称
-            name = D.findall(r'id">(.*?)&nbsp')[0]
+            name = D.find(r'id">(.*?)&nbsp')
             # 当前等级
-            level = int(D.findall(r"\+(\d+)")[0])
+            level = int(D.find(r"\+(\d+)"))
             # 材料消耗名称
-            consume_name = D.findall(r"消耗：(.*?)\*")[0]
+            consume_name = D.find(r"消耗：(.*?)\*")
             # 材料消耗数量
-            consume_num = int(D.findall(r"消耗：.*?(\d+)")[0])
+            consume_num = int(D.find(r"消耗：.*?(\d+)"))
             # 当前祝福值
-            now_value = int(D.findall(r"祝福值：(\d+)")[0])
+            now_value = int(D.find(r"祝福值：(\d+)"))
             # 总祝福值
-            total_value = int(D.findall(r"祝福值：\d+/(\d+)")[0])
+            total_value = int(D.find(r"祝福值：\d+/(\d+)"))
 
             # 残片拥有数量
             possess_num = self.backpack_num[consume_name]
@@ -1570,13 +1568,13 @@ class XianWuXiuZhen:
 
         # 关闭自动斗豆兑换
         D.get(f"cmd=immortals&op=setauto&type=1&status=0&treasureid={_id}")
-        D.print_info("关闭自动斗豆兑换", name)
+        D.log("关闭自动斗豆兑换", name)
 
         while True:
             # 升级
             D.get(f"cmd=immortals&op=upgrade&treasureid={_id}&times=1")
-            D.find(r'id">(.*?)<', name)
-            D.find(r"祝福值：(.*?)&", name)
+            D.log(D.find(r'id">(.*?)<'), name)
+            D.log(D.find(r"祝福值：(.*?)&"), name)
             if "升级失败" not in D.html:
                 break
 
@@ -1591,15 +1589,15 @@ def 仙武修真():
     print("--" * 20)
     # 关闭自动斗豆
     D.get("cmd=immortals&op=setauto&type=0&status=0")
-    D.print_info("问道关闭自动斗豆")
+    D.log("问道关闭自动斗豆")
     while True:
         # 问道10次
         D.get("cmd=immortals&op=asktao&times=10")
-        D.find(r"帮助</a><br />(.*?)<")
+        D.log(D.find(r"帮助</a><br />(.*?)<"))
         if "问道石不足" in D.html:
             # 一键炼化多余制作书
             D.get("cmd=immortals&op=smeltall")
-            D.find(r"帮助</a><br />(.*?)<")
+            D.log(D.find(r"帮助</a><br />(.*?)<"))
             break
 
     fail_value = i.get_number("输入失败祝福值：")
@@ -1631,15 +1629,15 @@ class YongBing:
             D.get(f"cmd=newmercenary&sub=2&id={_id}")
 
             # 名称
-            name = D.findall(r"<br /><br />(.+?)(?=<| )")[0]
+            name = D.find(r"<br /><br />(.+?)(?=<| )")
             # 战力
-            combat_power = D.findall(r"战力：(\d+)")[0]
+            combat_power = D.find(r"战力：(\d+)")
             # 资质
-            aptitude = D.findall(r"资质：(.*?)<")[0]
+            aptitude = D.find(r"资质：(.*?)<")
             # 悟性
-            savvy = D.findall(r"悟性：(\d+)")[0]
+            savvy = D.find(r"悟性：(\d+)")
             # 等级
-            level = D.findall(r"等级：(\d+)")[0]
+            level = D.find(r"等级：(\d+)")
 
             if self.mission_name == "资质还童":
                 # 卓越资质或者等级不为1时取消还童（还童会将等级重置为1）
@@ -1670,8 +1668,8 @@ class YongBing:
         while True:
             # 还童
             D.get(f"cmd=newmercenary&sub=6&id={_id}&type=1&confirm=1")
-            D.find(name=name)
-            D.find(r"资质：(.*?)<", "资质")
+            D.log(D.find(), name)
+            D.log(D.find(r"资质：(.*?)<"), "资质")
             if "卓越" in D.html:
                 return
             if "你需要还童卷轴" in D.html:
@@ -1679,7 +1677,7 @@ class YongBing:
         while True:
             # 高级还童
             D.get(f"cmd=newmercenary&sub=6&id={_id}&type=2&confirm=1")
-            D.find(name=name)
+            D.log(D.find(), name)
             if "卓越" in D.html:
                 return
             if "你需要还童天书" in D.html:
@@ -1692,8 +1690,8 @@ class YongBing:
         while True:
             # 提升
             D.get(f"cmd=newmercenary&sub=5&id={_id}")
-            D.find(name=name)
-            D.find(r"悟性：(\d+)", "悟性")
+            D.loh(D.find(), name)
+            D.log(D.find(r"悟性：(\d+)"), "悟性")
             if "升级悟性" not in D.html:
                 break
 
@@ -1704,10 +1702,10 @@ class YongBing:
         while True:
             # 提升
             D.get(f"cmd=newmercenary&sub=4&id={_id}&count=10&tfl=1")
-            D.find(name=name)
-            D.find(r"等级：(\d+)", "等级")
-            D.find(r"经验：(.*?)<", "经验")
-            D.find(r"消耗阅历（(\d+)", "阅历")
+            D.log(D.find(), name)
+            D.log(D.find(r"等级：(\d+)"), "等级")
+            D.log(D.find(r"经验：(.*?)<"), "经验")
+            D.log(D.find(r"消耗阅历（(\d+)"), "阅历")
             if "突飞成功" not in D.html:
                 break
 
@@ -1753,7 +1751,7 @@ class 背包:
         data = []
         # 背包
         D.get("cmd=store")
-        page = int(D.findall(r"第1/(\d+)")[0])
+        page = int(D.find(r"第1/(\d+)"))
         for p in range(1, (page + 1)):
             D.get(f"cmd=store&store_type=0&page={p}")
             _, _html = D.html.split("清理")
@@ -1818,8 +1816,8 @@ class ZhuanJing:
         if "=专精=" not in D.html:
             return 2
         if "五阶" in level:
-            return int(D.findall(r"专精.*?五阶5星.*?(\d+)")[0])
-        return int(D.findall(r"专精.*?四阶5星.*?(\d+)")[0])
+            return int(D.find(r"专精.*?五阶5星.*?(\d+)"))
+        return int(D.find(r"专精.*?四阶5星.*?(\d+)"))
 
     def _get_backpack_number(self, consume_name: str) -> int:
         """
@@ -1844,17 +1842,17 @@ class ZhuanJing:
                 continue
 
             # 阶段
-            level = D.findall(r"阶段：(.*?)<")[0]
+            level = D.find(r"阶段：(.*?)<")
             # 星级
-            star = D.findall(r"星级：(.*?) ")[0]
+            star = D.find(r"星级：(.*?) ")
             # 材料消耗名称
-            consume_name = D.findall(r"消耗：(.*?)\*")[0]
+            consume_name = D.find(r"消耗：(.*?)\*")
             # 材料消耗数量
-            consume_num = int(D.findall(r"消耗：.*?(\d+)")[0])
+            consume_num = int(D.find(r"消耗：.*?(\d+)"))
             # 当前祝福值
-            now_value = int(D.findall(r"祝福值：(\d+)")[0])
+            now_value = int(D.find(r"祝福值：(\d+)"))
             # 总祝福值
-            total_value = int(D.findall(r"祝福值：\d+/(\d+)")[0])
+            total_value = int(D.find(r"祝福值：\d+/(\d+)"))
 
             name = consume_name[:4]
             fail_value = self.get_fail_value(level)
@@ -1912,7 +1910,7 @@ class ZhuanJing:
 
         # 关闭自动斗豆兑换
         D.get(f"cmd=weapon_specialize&op=9&type_id={_id}&auto_buy=0")
-        D.print_info("关闭自动斗豆兑换", name)
+        D.log("关闭自动斗豆兑换", name)
 
         while True:
             # 积分商店兑换材料
@@ -1920,8 +1918,8 @@ class ZhuanJing:
 
             # 升级
             D.get(f"cmd=weapon_specialize&op=2&type_id={_id}")
-            D.find(name=name)
-            D.find(r"祝福值：(.*?) ", name)
+            D.log(D.find(), name)
+            D.log(D.find(r"祝福值：(.*?) "), name)
             if "升星失败" not in D.html:
                 break
 
@@ -1949,7 +1947,7 @@ class WuQiLan:
         D.get("cmd=newAct&subtype=143")
         if "=专精=" not in D.html:
             return 2
-        return int(D.findall(r"武器栏失败获得(\d+)")[0])
+        return int(D.find(r"武器栏失败获得(\d+)"))
 
     def get_data(self) -> dict:
         """
@@ -1964,17 +1962,17 @@ class WuQiLan:
                 continue
 
             # 名称
-            name = D.findall(r"专精武器：(.*?) ")[0]
+            name = D.find(r"专精武器：(.*?) ")
             # 当前等级
-            level = D.findall(r"当前等级：(.*?)<")[0]
+            level = D.find(r"当前等级：(.*?)<")
             # 材料消耗名称
-            consume_name = D.findall(r"消耗：(.*?)\*")[0]
+            consume_name = D.find(r"消耗：(.*?)\*")
             # 材料消耗数量
-            consume_num = int(D.findall(r"消耗：.*?(\d+)")[0])
+            consume_num = int(D.find(r"消耗：.*?(\d+)"))
             # 当前祝福值
-            now_value = int(D.findall(r"祝福值：(\d+)")[0])
+            now_value = int(D.find(r"祝福值：(\d+)"))
             # 总祝福值
-            total_value = int(D.findall(r"祝福值：\d+/(\d+)")[0])
+            total_value = int(D.find(r"祝福值：\d+/(\d+)"))
 
             # 商店积分可兑换数量
             store_num = self.points // 40
@@ -2015,7 +2013,7 @@ class WuQiLan:
 
         # 关闭自动斗豆兑换
         D.get(f"cmd=weapon_specialize&op=10&storage_id={_id}&auto_buy=0")
-        D.print_info("关闭自动斗豆兑换", name)
+        D.log("关闭自动斗豆兑换", name)
 
         while True:
             # 积分商店兑换材料
@@ -2023,8 +2021,8 @@ class WuQiLan:
 
             # 升级
             D.get(f"cmd=weapon_specialize&op=5&storage_id={_id}")
-            D.find(name=name)
-            D.find(r"祝福值：(.*?) ", name)
+            D.log(D.find(), name)
+            D.log(D.find(r"祝福值：(.*?) "))
             if "升星失败" not in D.html:
                 break
 
@@ -2080,7 +2078,9 @@ class 掠夺:
         判断某粮仓第一个成员是否掠夺
         """
         D.get(f"cmd=forage_war&subtype=3&op=1&gra_id={gra_id}")
-        if combat_power := D.find(r"<br />1.*? (\d+)\.", f"{gra_id}战力"):
+        combat_power = D.find(r"<br />1.*? (\d+)\.")
+        D.log(combat_power, f"{gra_id}战力")
+        if combat_power:
             if int(combat_power) < self.input_combat_power:
                 return True
         return False
@@ -2090,8 +2090,8 @@ class 掠夺:
         掠夺某粮仓第一个成员
         """
         D.get(f"cmd=forage_war&subtype=4&gra_id={gra_id}")
-        D.find("返回</a><br />(.*?)<", name="掠夺")
-        D.find("生命：(.*?)<", name="生命")
+        D.log(D.find("返回</a><br />(.*?)<"), "掠夺")
+        D.log(D.find("生命：(.*?)<"), "生命")
         if "你已经没有足够的复活次数" in D.html:
             return False
         return True

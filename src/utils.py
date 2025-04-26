@@ -2,15 +2,17 @@ import re
 import sys
 import time
 from datetime import datetime, timedelta
+from functools import lru_cache
 from pathlib import Path
 from shutil import copy
+from typing import Iterator, Self
 
 import requests
 import yaml
 from loguru import logger
 from requests import Session
 
-from daledou import MISSIONS_ONE, MISSIONS_TWO
+from src import MISSIONS_ONE, MISSIONS_TWO
 
 
 # 请求头
@@ -49,7 +51,6 @@ def push(title: str, content: str) -> None:
         logger.success(f"pushplus推送信息：{res.json()}")
     else:
         logger.warning("你没有配置pushplus微信推送")
-        print("--" * 20)
 
 
 class InItDaLeDou:
@@ -59,20 +60,15 @@ class InItDaLeDou:
 
     def __init__(self, cookie: str):
         self._setup_console_logger()
-        self._start_time = f"【开始时间】\n{self._get_datetime_weekday()}"
         self._cookie: dict = self.parse_cookie(cookie)
         self._qq: str = self._cookie["newuin"]
         self._session = self._session_add_cookie()
 
         if isinstance(self._session, requests.Session):
-            # 创建QQ任务配置文件
             self._create_qq_yaml()
-            # 创建QQ日志文件
             self._handler_id: int = self._create_qq_log()
-            # 大乐斗任务配置
             self._yaml: dict = read_yaml(f"{self.qq}.yaml")
-            # 获取函数映射
-            self._func_map = self._get_func_map()
+            self._func_name = self._get_func_name()
 
     @property
     def start_time(self) -> str:
@@ -91,8 +87,11 @@ class InItDaLeDou:
         return self._yaml
 
     @property
-    def func_map(self) -> dict | None:
-        return self._func_map
+    def func_name(self) -> dict | None:
+        """
+        返回第一、二轮要执行的函数名称
+        """
+        return self._func_name
 
     def _setup_console_logger(self) -> int:
         """
@@ -101,7 +100,7 @@ class InItDaLeDou:
         logger.remove()
         return logger.add(
             sink=sys.stderr,
-            format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{message}</level>",
+            format="<green>{time:YYYY-MM-DD HH:mm:ss}</green>|<level>{message}</level>",
         )
 
     def parse_cookie(self, cookie: str) -> dict:
@@ -122,11 +121,11 @@ class InItDaLeDou:
                 res = session.get(url, headers=_HEADERS, allow_redirects=False)
                 res.encoding = "utf-8"
                 if "商店" in res.text:
-                    logger.success(f"{self.qq} | Cookie有效")
+                    logger.success(f"{self.qq}|Cookie有效")
                     return session
 
-        logger.warning(f"{self.qq} | Cookie无效")
-        push(f"{self.qq} | Cookie无效", self._cookie)
+        logger.warning(f"{self.qq}|Cookie无效")
+        push(f"{self.qq} Cookie无效", "请更换Cookie")
 
     def _create_qq_yaml(self) -> None:
         """
@@ -136,7 +135,7 @@ class InItDaLeDou:
         create_path = Path(f"./config/{self.qq}.yaml")
         if not create_path.exists():
             copy(default_path, create_path)
-        logger.success(f"任务配置：{create_path}")
+        logger.success(f"任务配置|{create_path}")
 
     def _create_qq_log(self) -> int:
         """
@@ -145,37 +144,15 @@ class InItDaLeDou:
         log_dir = Path(f"./log/{self.qq}")
         log_dir.mkdir(parents=True, exist_ok=True)
         log_file = log_dir / f"{datetime.now().strftime('%Y-%m-%d')}.log"
-        logger.success(f"任务日志：{log_file}")
+        logger.success(f"任务日志|{log_file}")
 
         return logger.add(
             log_file,
-            format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{message}</level>",
+            format="<green>{time:YYYY-MM-DD HH:mm:ss}</green>|<level>{message}</level>",
             enqueue=True,
             encoding="utf-8",
             retention="30 days",
         )
-
-    def _get_datetime_weekday(self) -> str:
-        """
-        获取当前的日期和时间，并附加星期信息：2024-09-01 14:35:18 周日
-        """
-        name = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
-        now = datetime.now()
-        week = now.weekday()
-        formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-        return f"{formatted_now} {name[week]}"
-
-    def _get_func_map(self) -> dict | None:
-        """
-        过滤掉未出现在大乐斗首页的任务，并将剩余任务名称映射的函数名称以字典返回
-        """
-        if _html := self._get_dld_main_page_html():
-            _one = [k for k in MISSIONS_ONE if k in _html]
-            _two = [k for k in MISSIONS_TWO if k in _html]
-            return {
-                "one": self._map_mission_names_to_function_names(_one),
-                "two": self._map_mission_names_to_function_names(_two),
-            }
 
     def _get_dld_main_page_html(self) -> str | None:
         """
@@ -188,13 +165,13 @@ class InItDaLeDou:
             if "商店" in response.text:
                 return response.text.split("【退出】")[0]
 
-        logger.warning(f"{self.qq} | 大乐斗首页未找到，可能官方繁忙或者维护")
+        logger.warning(f"{self.qq}|大乐斗首页未找到，可能官方繁忙或者维护")
         push(
             f"{self.qq} 大乐斗首页未找到",
             "大乐斗首页未找到，可能官方繁忙或者维护",
         )
 
-    def _map_mission_names_to_function_names(self, missions: list) -> list:
+    def _map_mission_names_to_func_names(self, missions: list) -> list:
         """
         将大乐斗首页任务名称映射为函数名称
         """
@@ -203,6 +180,18 @@ class InItDaLeDou:
             "5.1礼包": "五一礼包",
         }
         return [_data.get(k, k) for k in missions]
+
+    def _get_func_name(self) -> dict | None:
+        """
+        过滤掉未出现在大乐斗首页的任务，并将剩余任务名称映射的函数名称以字典返回
+        """
+        if _html := self._get_dld_main_page_html():
+            _one = [k for k in MISSIONS_ONE if k in _html]
+            _two = [k for k in MISSIONS_TWO if k in _html]
+            return {
+                "one": self._map_mission_names_to_func_names(_one),
+                "two": self._map_mission_names_to_func_names(_two),
+            }
 
     def remove_logger_handler(self):
         """
@@ -216,7 +205,15 @@ class DaLeDou:
     大乐斗实例方法
     """
 
-    def __init__(self, qq: str, session: Session, yaml: dict, func_map: dict):
+    _compile_cache = lru_cache(maxsize=256)(re.compile)
+    _WEEKDAY_NAMES = ("周一", "周二", "周三", "周四", "周五", "周六", "周日")
+
+    def __init__(self, qq: str, session: Session, yaml: dict, func_name: dict):
+        self._qq = qq
+        self._session = session
+        self._yaml = yaml
+        self._func_name = func_name
+
         self._start_time = time.time()
         self._now = datetime.now()
         self._year: int = self._now.year
@@ -224,21 +221,18 @@ class DaLeDou:
         self._day: int = self._now.day
         self._week: int = self._now.weekday() + 1
 
-        self._qq = qq
-        self._session = session
-        self._yaml = yaml
-        self._func_map = func_map
-
-        # 储存推送消息
-        self._msg: list[str] = []
+        # pushplus内容正文
+        self._pushplus_body: list[str] = [
+            f"【开始时间】\n{self._now.strftime('%Y-%m-%d %H:%M:%S')} {self._WEEKDAY_NAMES[self._now.weekday()]}",
+        ]
         # 大乐斗当前页面HTML
-        self.html = None
+        self.html: str = None
         # 大乐斗日志任务名称
-        self.func_name = None
+        self.func_name: str = None
+        # log方法读写、append方法只读
+        self._info: str = None
 
-    @property
-    def now(self) -> datetime:
-        return self._now
+        self._default_pattern = self._compile_with_cache(r"<br />(.*?)<")
 
     @property
     def year(self) -> int:
@@ -257,38 +251,33 @@ class DaLeDou:
         return self._week
 
     @property
-    def qq(self) -> str:
-        return self._qq
-
-    @property
     def yaml(self) -> dict:
         return self._yaml
 
     @property
-    def func_map(self) -> dict:
-        return self._func_map
+    def func_name_one(self) -> list:
+        """
+        返回第一轮要执行的函数名称
+        """
+        return self._func_name["one"]
 
     @property
-    def msg(self) -> list:
-        return self._msg
+    def func_name_two(self) -> list:
+        """
+        返回第二轮要执行的函数名称
+        """
+        return self._func_name["two"]
 
-    @property
-    def msg_join(self) -> str:
+    @classmethod
+    def _compile_with_cache(cls, pattern: str) -> re.Pattern:
         """
-        将列表中的元素用换行符连接成一个字符串
+        带缓存的编译方法
         """
-        return "\n".join(self.msg)
+        return cls._compile_cache(pattern, re.DOTALL)
 
-    def msg_append(self, message: str):
+    def get(self, params: str) -> str | None:
         """
-        向列表添加字符串消息
-        """
-        if isinstance(message, str):
-            self.msg.append(message)
-
-    def get(self, params: str) -> str:
-        """
-        发送get请求获取响应内容
+        发送get请求获取HTML源码
         """
         url = f"https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?{params}"
         for _ in range(3):
@@ -300,83 +289,112 @@ class DaLeDou:
             elif "操作频繁" in self.html:
                 time.sleep(0.8)
             else:
-                break
-        return self.html
+                return self.html
 
-    def print_info(self, message: str, name=None) -> None:
+    def find(self, regex: str = None) -> str | None:
         """
-        打印信息
-        """
-        if name is None:
-            name = self.func_name
-        logger.info(f"{self.qq} | {name}：{message}")
+        返回成功匹配的首个结果，匹配失败返回None
 
-    def find(self, mode="<br />(.*?)<", name=None) -> str | None:
+        regex为None时默认使用 '<br />(.*?)<' 缓存编译
         """
-        匹配成功返回首个结果，匹配失败返回None
+        if regex is None:
+            pattern = self._default_pattern
+        else:
+            pattern = self._compile_with_cache(regex)
+        if result := pattern.search(self.html):
+            return result.group(1)
 
-        无论结果如何都会被打印并写入日志
+    def findall(self, regex: str, html: str = None) -> list:
         """
-        _match = re.search(mode, self.html, re.S)
-        result = _match.group(1) if _match else None
-        self.print_info(result, name)
-        return result
-
-    def findall(self, mode: str, html: str = None) -> list:
-        """
-        查找大乐斗HTML字符串源码中所有匹配正则表达式的子串
+        匹配所有结果
         """
         if html is None:
             html = self.html
-        return re.findall(mode, html, re.S)
+        return re.findall(regex, html, re.DOTALL)
 
-    def is_arrive_date(self, days: int, year_month_day: tuple) -> bool:
+    def log(self, info: str = None, name: str = None) -> Self:
         """
-        判断当前日期是否大于等于预定的结束日期
-
-        Arg:
-            days：结束日期的前 days 天
-            year_month_day：结束日期
-
-        举例：
-            任务结束日期为 2024-11-8
-            判断当前日期是否为2024-11-7：D.is_target_date_reached(1, (2024, 11, 8))
-            判断当前日期是否为2024-11-2：D.is_target_date_reached(6, (2024, 11, 8))
+        将传入的内容打印并写入日志
         """
-        year, month, day = year_month_day
-        # 获取当前日期
-        current_date = self.now.date()
-        # 获取结束日期
-        end_date = datetime(year, month, day).date()
-        # 计算结束日期的前 days 天日期
-        target_date = end_date - timedelta(days=days)
+        self._info = info
+        if name is None:
+            name = self.func_name
+        logger.info(f"{self._qq}|{name}|{self._info}")
+        return self
 
-        # 比较当前日期和目标日期
+    def append(self, info: str = None) -> None:
+        """
+        向pushplus正文追加消息内容
+
+        Examples：
+            >>> # 直接追加字符串
+            >>> D.append("大乐斗") # 将"大乐斗"添加到正文
+
+            >>> # 链式调用追加日志内容
+            >>> D.log("大乐斗").append() # 将日志内容写入正文
+
+            >>> # 分步操作
+            >>> D.log("旧日志内容")
+            >>> D.log("大乐斗")
+            >>> D.append() # 将最近的日志内容"大乐斗"追加到正文
+        """
+        if info is None:
+            info = self._info
+        if isinstance(info, str):
+            self._pushplus_body.append(info)
+
+    def is_target_date_reached(
+        self, days_before: int, end_date_tuple: tuple[int, int, int]
+    ) -> bool:
+        """
+        判断当前日期是否已达到或超过目标日期（结束日期的前N天）
+
+        Args:
+            days_before: 结束日期之前的天数（目标日期 = 结束日期 - days_before）
+            end_date_tuple: 结束日期的年月日三元组，格式为 (年, 月, 日)
+
+        Returns:
+            bool: 如果当前日期大于等于目标日期返回True，否则返回False
+
+        Examples:
+            >>> # 判断当前日期是否为2024-11-7（2024-11-8的前1天）
+            >>> D.is_target_date_reached(1, (2024, 11, 8))
+
+            >>> # 判断当前日期是否为2024-11-2（2024-11-8的前6天）
+            >>> D.is_target_date_reached(6, (2024, 11, 8))
+        """
+        end_year, end_month, end_day = end_date_tuple
+        current_date = self._now.date()
+        target_date = datetime(end_year, end_month, end_day).date() - timedelta(
+            days=days_before
+        )
         return current_date >= target_date
 
-    def run_time(self):
+    def body(self) -> str:
         """
-        运行耗时
+        生成pushplus推送正文内容
         """
-        self.msg_append(
-            f"\n【运行耗时】\n耗时：{int(time.time() - self._start_time)} s"
-        )
+        self.append(f"\n【运行耗时】\n耗时：{int(time.time() - self._start_time)} s")
+        return "\n".join(self._pushplus_body)
+
+    def push(self, title: str):
+        """
+        向pushplus推送消息
+        """
+        push(f"{self._qq} {title}", self.body())
 
 
-def yield_dld_objects():
+def generate_daledou() -> Iterator[DaLeDou]:
     """
     返回大乐斗实例对象
     """
     dld_cookies: list[str] = read_yaml("settings.yaml", "DALEDOU_ACCOUNT")
     for cookie in dld_cookies:
         dld = InItDaLeDou(cookie)
-        if dld.session is None:
-            continue
-        if dld.func_map is None:
+        if dld.session is None or dld.func_name is None:
             continue
 
-        D = DaLeDou(dld.qq, dld.session, dld.yaml, dld.func_map)
-        D.msg_append(dld.start_time)
+        D = DaLeDou(dld.qq, dld.session, dld.yaml, dld.func_name)
         yield D
 
         dld.remove_logger_handler()
