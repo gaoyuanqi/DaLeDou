@@ -132,21 +132,21 @@ def 战阵调整() -> bool:
 def 荣誉兑换():
     yaml: dict = D.yaml["华山论剑"]
     for name, _id, number in get_yaml_exchange(yaml):
-        n = 0
+        count = 0
         for _ in range(number // 10):
             D.get(f"cmd=knightarena&op=exchange&id={_id}&times=10")
             D.log(D.find())
             if "成功" not in D.html:
                 break
-            n += 10
-        for _ in range(number - n):
+            count += 10
+        for _ in range(number - count):
             D.get(f"cmd=knightarena&op=exchange&id={_id}&times=1")
             D.log(D.find())
             if "成功" not in D.html:
                 break
-            n += 1
-        if n:
-            D.log(f"兑换{name}*{n}").append()
+            count += 1
+        if count:
+            D.log(f"兑换{name}*{count}").append()
 
 
 def 侠士招募():
@@ -498,9 +498,6 @@ def 竞技场():
         D.get("cmd=arena&op=exchange&id=5435&times=10")
         D.log(D.find()).append()
 
-    if D.day > 25:
-        return
-
     for _ in range(10):
         # 免费挑战 or 开始挑战
         D.get("cmd=arena&op=challenge")
@@ -564,7 +561,7 @@ def 抢地盘():
 
 def 历练():
     """
-    每天至多乐斗BOSS5次
+    每天至多乐斗5次BOSS
     """
     yaml: list = D.yaml["历练"]
 
@@ -576,18 +573,18 @@ def 历练():
         D.log("取消自动使用活力药水").append()
 
     for _id in yaml:
-        for _ in range(3):
-            D.get(f"cmd=mappush&subtype=3&mapid=6&npcid={_id}&pageid=2")
-            if "您还没有打到该历练场景" in D.html:
-                D.log(D.find(r"介绍</a><br />(.*?)<br />")).append()
-                break
-            D.log(D.find(r"阅历值：\d+<br />(.*?)<br />")).append()
-            if "活力不足" in D.html:
-                return
-            elif "BOSS" not in D.html:
-                # 你今天和xx挑战次数已经达到上限了，请明天再来挑战吧
-                # 还不能挑战
-                break
+        D.get(f"cmd=mappush&subtype=3&mapid=6&npcid={_id}&pageid=2")
+        if "您还没有打到该历练场景" in D.html:
+            D.log(D.find(r"介绍</a><br />(.*?)<br />")).append()
+            continue
+
+        D.log(D.find(r"阅历值：\d+<br />(.*?)<br />")).append()
+        if "活力不足" in D.html:
+            break
+        elif "BOSS" not in D.html:
+            # 你今天和xx挑战次数已经达到上限了，请明天再来挑战吧
+            # 还不能挑战
+            continue
 
 
 def 镖行天下():
@@ -728,21 +725,21 @@ def 门派():
 def 门派邀请赛_商店兑换():
     yaml: dict = D.yaml["门派邀请赛"]
     for name, _id, number in get_yaml_exchange(yaml):
-        n = 0
+        count = 0
         for _ in range(number // 10):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=10")
             D.log(D.find())
             if "成功" not in D.html:
                 break
-            n += 10
-        for _ in range(number - n):
+            count += 10
+        for _ in range(number - count):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=1")
             D.log(D.find())
             if "成功" not in D.html:
                 break
-            n += 1
-        if n:
-            D.log(f"兑换{name}*{n}").append()
+            count += 1
+        if count:
+            D.log(f"兑换{name}*{count}").append()
 
 
 def 门派邀请赛():
@@ -781,21 +778,21 @@ def 门派邀请赛():
 def 会武_商店兑换():
     yaml: dict = D.yaml["会武"]
     for name, _id, number in get_yaml_exchange(yaml):
-        n = 0
+        count = 0
         for _ in range(number // 10):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=10")
             D.log(D.find())
             if "成功" not in D.html:
                 break
-            n += 10
-        for _ in range(number - n):
+            count += 10
+        for _ in range(number - count):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=1")
             D.log(D.find())
             if "成功" not in D.html:
                 break
-            n += 1
-        if n:
-            D.log(f"兑换{name}*{n}").append()
+            count += 1
+        if count:
+            D.log(f"兑换{name}*{count}").append()
 
 
 def 会武():
@@ -843,7 +840,7 @@ def 会武():
 
 
 def 梦幻旅行():
-    if D.html.count("已去过") < 6:
+    if D.html.count("已去过") < 5:
         return
 
     # 获取当前区域所有未去过的目的地
@@ -869,7 +866,7 @@ def 梦幻旅行():
 def 梦想之旅():
     """
     每天一次普通旅行
-    周四梦幻旅行，需已去过至少6个区域
+    周四梦幻旅行，需已去过至少5个区域
     周四领取区域礼包、超级礼包
     """
     # 普通旅行
@@ -1153,15 +1150,15 @@ def 全民乱斗():
     """
     每天乱斗竞技任务列表领取、乱斗任务领取
     """
-    n = True
+    collect_status = False
     for t in [2, 3, 4]:
         D.get(f"cmd=luandou&op=0&acttype={t}")
         for _id in D.findall(r'.*?id=(\d+)">领取</a>'):
-            n = False
+            collect_status = True
             # 领取
             D.get(f"cmd=luandou&op=8&id={_id}")
             D.log(D.find(r"斗】<br /><br />(.*?)<br />")).append()
-    if n:
+    if not collect_status:
         D.log("没有礼包领取").append()
 
 
@@ -1182,23 +1179,6 @@ def 大侠回归三重好礼():
             D.log(D.find(r"】<br /><br />(.*?)<br />")).append()
     else:
         D.log("没有礼包领取").append()
-
-
-def 乐斗黄历():
-    """
-    每天领取、占卜一次
-    """
-    # 乐斗黄历
-    D.get("cmd=calender&op=0")
-    D.log(D.find(r"今日任务：(.*?)<br />")).append()
-    # 领取
-    D.get("cmd=calender&op=2")
-    D.log(D.find(r"<br /><br />(.*?)<br />")).append()
-    if "任务未完成" in D.html:
-        return
-    # 占卜
-    D.get("cmd=calender&op=4")
-    D.log(D.find(r"<br /><br />(.*?)<br />")).append()
 
 
 def 飞升大作战():
@@ -1233,7 +1213,7 @@ def 飞升大作战():
 def 许愿帮铺():
     yaml: dict = D.yaml["深渊之潮"]["许愿帮铺"]
     for name, _id, number in get_yaml_exchange(yaml):
-        n = 0
+        count = 0
         if "之书" in name:
             quotient = number // 25
         else:
@@ -1243,15 +1223,15 @@ def 许愿帮铺():
             D.log(D.find(), name)
             if "成功" not in D.html:
                 break
-            n += 25
-        for _ in range(number - n):
+            count += 25
+        for _ in range(number - count):
             D.get(f"cmd=abysstide&op=wishexchange&id={_id}")
             D.log(D.find(), name)
             if "成功" not in D.html:
                 break
-            n += 1
-        if n:
-            D.log(f"兑换{name}*{n}").append()
+            count += 1
+        if count:
+            D.log(f"兑换{name}*{count}").append()
 
 
 def 深渊之潮():
@@ -1362,7 +1342,7 @@ def 遗迹商店():
     yaml: dict = D.yaml["时空遗迹"]["遗迹商店"]
     for t, _dict in yaml.items():
         for name, _id, number in get_yaml_exchange(_dict):
-            n = 0
+            count = 0
             for _ in range(number // 10):
                 # 兑换十次
                 D.get(f"cmd=spacerelic&op=buy&type={t}&id={_id}&num=10")
@@ -1372,8 +1352,8 @@ def 遗迹商店():
                 )
                 if "兑换成功" not in D.html:
                     break
-                n += 10
-            for _ in range(number - n):
+                count += 10
+            for _ in range(number - count):
                 # 兑换一次
                 D.get(f"cmd=spacerelic&op=buy&type={t}&id={_id}&num=1")
                 D.log(
@@ -1382,9 +1362,9 @@ def 遗迹商店():
                 )
                 if "兑换成功" not in D.html:
                     break
-                n += 1
-            if n:
-                D.log(f"兑换{name}*{n}").append()
+                count += 1
+            if count:
+                D.log(f"兑换{name}*{count}").append()
 
 
 def 异兽洞窟():
@@ -1541,9 +1521,9 @@ def 助阵():
             for index in index_list:
                 yield (f_id, index)
 
-    n = 0
+    count = 0
     for _id, i in get_id_index():
-        if n == 3:
+        if count == 3:
             break
         p = f"cmd=formation&type=4&formationid={_id}&attrindex={i}&times=1"
         for _ in range(3):
@@ -1558,7 +1538,7 @@ def 助阵():
 
             D.log(D.find(), "任务-助阵")
             if "提升成功" in D.html:
-                n += 1
+                count += 1
             elif "经验值已经达到最大" in D.html:
                 break
             elif "你还没有激活该属性" in D.html:
@@ -1678,20 +1658,20 @@ def 帮派任务():
             D.get(url)
             D.log(name)
     if "帮派修炼" in faction_missions:
-        n = 0
+        count = 0
         for _id in [2727, 2758, 2505, 2536, 2437, 2442, 2377, 2399, 2429]:
             for _ in range(4):
                 # 修炼
                 D.get(f"cmd=factiontrain&type=2&id={_id}&num=1&i_p_w=num%7C")
                 D.log(D.find(r"规则说明</a><br />(.*?)<br />"))
                 if "技能经验增加" in D.html:
-                    n += 1
+                    count += 1
                     continue
                 # 帮贡不足
                 # 你今天获得技能升级经验已达到最大！
                 # 你需要提升帮派等级来让你进行下一步的修炼
                 break
-            if n == 4:
+            if count == 4:
                 break
     # 帮派任务
     D.get("cmd=factiontask&sub=1")
@@ -1872,6 +1852,18 @@ def 仙武修真():
         D.log(D.find(r"帮助</a><br />(.*?)<a")).append()
 
 
+def 乐斗黄历():
+    """
+    每天领取、占卜一次
+    """
+    # 领取
+    D.get("cmd=calender&op=2")
+    D.log(D.find(r"<br /><br />(.*?)<br />")).append()
+    # 占卜
+    D.get("cmd=calender&op=4")
+    D.log(D.find(r"<br /><br />(.*?)<br />")).append()
+
+
 def 器魂附魔():
     """
     附魔任务领取3次
@@ -1904,8 +1896,8 @@ def 兵法():
 
     for t in range(1, 6):
         D.get(f"cmd=brofight&subtype=10&type={t}")
-        for n, u in D.findall(r"50000.*?(\d+).*?champion_uin=(\d+)"):
-            if n == "0":
+        for remainder, u in D.findall(r"50000.*?(\d+).*?champion_uin=(\d+)"):
+            if remainder == "0":
                 continue
             # 领斗币
             D.get(f"cmd=brofight&subtype=10&op=draw&champion_uin={u}&type={t}")
@@ -1993,8 +1985,8 @@ def 点亮南瓜灯():
         D.get("cmd=set&type=11")
         D.log("取消自动使用活力药水")
     for _id in get_boss_id():
-        n = 3
-        while n:
+        count = 3
+        while count:
             D.get(f"cmd=mappush&subtype=3&npcid={_id}&pageid=2")
             if "您还没有打到该历练场景" in D.html:
                 D.log(D.find(r"介绍</a><br />(.*?)<br />"), "历练").append()
@@ -2008,7 +2000,7 @@ def 点亮南瓜灯():
                 # 你今天和xx挑战次数已经达到上限了，请明天再来挑战吧
                 # 还不能挑战
                 break
-            n -= 1
+            count -= 1
 
 
 def 万圣节():
@@ -2565,20 +2557,42 @@ def 节日福利_历练():
 
 
 def 节日福利_斗神塔():
-    n = 0
+    # 达人等级对应斗神塔CD时间
+    cd = {
+        "1": 7,
+        "2": 6,
+        "3": 5,
+        "4": 4,
+        "5": 3,
+        "6": 2,
+        "7": 1,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+    }
+    # 乐斗达人
+    D.get("cmd=ledouvip")
+    if level := D.find(r"当前级别：(\d+)"):
+        second = cd[level]
+    else:
+        # 还未成为达人
+        second = 10
+
+    count = 0
     for _ in range(16):
         # 自动挑战
         D.get("cmd=towerfight&type=11")
-        D.log(D.find(), "节日福利-斗神塔").append()
+        D.log(D.find(), "节日福利-斗神塔")
         if "结束挑战" in D.html:
+            time.sleep(second)
             # 结束挑战
             D.get("cmd=towerfight&type=7")
             D.log(D.find(), "节日福利-斗神塔")
-            time.sleep(3)
         else:
+            D.append()
             break
-        n += 1
-    D.log(f"斗神塔自动挑战*{n}").append()
+        count += 1
+    D.append(f"斗神塔自动挑战*{count}")
 
 
 def 节日福利():
@@ -2780,7 +2794,7 @@ def 好礼步步升():
 def 企鹅吉利兑_兑换():
     yaml: dict = D.yaml["企鹅吉利兑"]
     for name, number in yaml.items():
-        n = 0
+        count = 0
         _id = D.find(rf"{name}.*?id=(\d+)")
         for _ in range(number):
             D.get(f"cmd=geelyexchange&op=ExchangeProps&id={_id}")
@@ -2789,9 +2803,9 @@ def 企鹅吉利兑_兑换():
                 break
             elif "该物品已达兑换上限~" in D.html:
                 break
-            n += 1
-        if n:
-            D.log(f"兑换{name}*{n}").append()
+            count += 1
+        if count:
+            D.log(f"兑换{name}*{count}").append()
 
 
 def 企鹅吉利兑():
@@ -2854,8 +2868,8 @@ def 乐斗能量棒():
         D.get("cmd=set&type=11")
         D.log("取消自动使用活力药水")
     for _id in get_boss_id():
-        n = 3
-        while n:
+        count = 3
+        while count:
             D.get(f"cmd=mappush&subtype=3&npcid={_id}&pageid=2")
             if "您还没有打到该历练场景" in D.html:
                 D.log(D.find(r"介绍</a><br />(.*?)<br />"), "历练").append()
@@ -2872,7 +2886,7 @@ def 乐斗能量棒():
                 # 你今天和xx挑战次数已经达到上限了，请明天再来挑战吧
                 # 还不能挑战
                 break
-            n -= 1
+            count -= 1
 
 
 def 乐斗回忆录():

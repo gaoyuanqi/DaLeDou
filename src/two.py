@@ -14,6 +14,8 @@
     >>> python main.py --two 邪神秘宝 矿洞
 """
 
+from collections import Counter
+
 from src.utils import generate_daledou
 from src.common import (
     c_邪神秘宝,
@@ -123,6 +125,7 @@ def 背包():
             for number, _id in D.findall(rf"{_m}.*?</a>数量：(\d+).*?id=(\d+)"):
                 data.append((_id, int(number)))
 
+    counter = Counter()
     for _id, number in set(data):
         if _id in ["3023", "3024", "3025"]:
             # xx洗刷刷，3103生命洗刷刷除外
@@ -138,7 +141,12 @@ def 背包():
                 break
             # 您使用了
             # 你打开
-            D.log(D.find()).append()
+            msg = D.find()
+            D.log(msg)
+            counter.update({msg: 1})
+
+    for k, v in counter.items():
+        D.append(f"{v}次{k}")
 
 
 def 镶嵌():
@@ -167,7 +175,7 @@ def 镶嵌():
                 break
             D.append()
 
-    n = 0
+    count = 0
     for _id in get_p():
         for _ in range(50):
             # 1 -> 2 -> 3 -> 4
@@ -175,9 +183,9 @@ def 镶嵌():
             D.log(D.find(r"魂珠升级</p><p>(.*?)<"), f"镶嵌-{_id}")
             if "您拥有的魂珠数量不够" in D.html:
                 break
-            n += 1
-    if n:
-        D.append(f"升级成功*{n}")
+            count += 1
+    if count:
+        D.append(f"升级成功*{count}")
 
 
 def 普通合成():
