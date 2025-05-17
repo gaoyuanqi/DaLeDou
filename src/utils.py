@@ -161,10 +161,9 @@ class InItDaLeDou:
         url = "https://dld.qzapp.z.qq.com/qpet/cgi-bin/phonepk?cmd=index"
         for _ in range(3):
             response = self._session.get(url, headers=_HEADERS)
-            time.sleep(0.3)
-        response.encoding = "utf-8"
-        if "商店" in response.text:
-            return response.text.split("【退出】")[0]
+            response.encoding = "utf-8"
+            if "商店" in response.text:
+                return response.text.split("【退出】")[0]
 
         logger.warning(f"{self.qq}|大乐斗首页未找到，可能官方繁忙或者维护")
         push(

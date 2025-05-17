@@ -325,29 +325,37 @@ def 乐斗():
             break
 
 
-def 报名():
+def 武林():
     """
-    每天报名武林大会、笑傲群侠
-    周二、五、日报名侠侣争霸
+    每天报名武林大会
     """
-    # 武林大会
+    # 报名
     D.get("cmd=fastSignWulin&ifFirstSign=1")
     if "使用规则" in D.html:
         D.log(D.find(r"】</p><p>(.*?)<br />")).append()
     else:
         D.log(D.find(r"升级。<br />(.*?) ")).append()
 
-    # 笑傲群侠
+
+def 群侠():
+    """
+    每天报名笑傲群侠
+    """
+    # 报名
     D.get("cmd=knightfight&op=signup")
     D.log(D.find(r"侠士侠号.*?<br />(.*?)<br />")).append()
 
-    # 侠侣争霸
-    if D.week in [2, 5, 7]:
-        D.get("cmd=cfight&subtype=9")
-        if "使用规则" in D.html:
-            D.log(D.find(r"】</p><p>(.*?)<br />")).append()
-        else:
-            D.log(D.find(r"报名状态.*?<br />(.*?)<br />")).append()
+
+def 侠侣():
+    """
+    周二、周五、周日报名侠侣争霸
+    """
+    # 报名
+    D.get("cmd=cfight&subtype=9")
+    if "使用规则" in D.html:
+        D.log(D.find(r"】</p><p>(.*?)<br />")).append()
+    else:
+        D.log(D.find(r"报名状态.*?<br />(.*?)<br />")).append()
 
 
 def 巅峰之战进行中():
@@ -561,7 +569,7 @@ def 抢地盘():
 
 def 历练():
     """
-    每天至多乐斗5次BOSS
+    每天乐斗BOSS一次，至多乐斗5个BOSS
     """
     yaml: list = D.yaml["历练"]
 
@@ -1684,7 +1692,7 @@ def 帮派任务():
 def 我的帮派():
     """
     每天供奉5次、帮派任务至多领取奖励3次
-    周日帮战领取奖励、激活祝福
+    周六领取奖励、报名帮战、激活祝福
     """
     # 我的帮派
     D.get("cmd=factionop&subtype=3&facid=0")
@@ -1695,11 +1703,12 @@ def 我的帮派():
     帮派供奉()
     帮派任务()
 
-    if D.week == 7:
-        # 周日 领取奖励 》激活祝福
-        for sub in [4, 6]:
-            D.get(f"cmd=facwar&sub={sub}")
-            D.log(D.find(r"</p>(.*?)<br /><a.*?查看上届")).append()
+    if D.week != 6:
+        return
+    # 领取奖励 》报名帮战 》激活祝福
+    for sub in [4, 9, 6]:
+        D.get(f"cmd=facwar&sub={sub}")
+        D.log(D.find(r"</p>(.*?)<br /><a.*?查看上届")).append()
 
 
 def 帮派祭坛():
