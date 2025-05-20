@@ -358,6 +358,20 @@ def 侠侣():
         D.log(D.find(r"报名状态.*?<br />(.*?)<br />")).append()
 
 
+def 结拜():
+    """
+    周一、周二报名结拜（从上往下依次报名）
+    """
+    for _id in [1, 2, 3, 5, 4]:
+        # 报名
+        D.get(f"cmd=brofight&subtype=1&gidIdx={_id}")
+        D.log(D.find(r"排行</a><br />(.*?)<"))
+        if "请换一个赛区报名" in D.html or "你们无法报名" in D.html:
+            continue
+        D.append()
+        break
+
+
 def 巅峰之战进行中():
     """
     周一、二随机加入、领奖
@@ -1140,10 +1154,10 @@ def 武林盟主():
     if D.week in [1, 3, 5]:
         _id: int = D.yaml["武林盟主"]
         D.get(f"cmd=wlmz&op=signup&ground_id={_id}")
-        if "总决赛周不允许报名" in D.html:
+        if "总决赛周不允许报名" in D.html or "您的战力不足" in D.html:
             D.log(D.find(r"战报</a><br />(.*?)<br />")).append()
-            return
-        D.log(D.find(r"赛场】<br />(.*?)<br />")).append()
+        elif "您已报名" in D.html:
+            D.log(D.find(r"赛场】<br />(.*?)<br />")).append()
     elif D.week in [2, 4, 6]:
         for index in range(8):
             # 选择
@@ -1462,13 +1476,41 @@ def 时空遗迹():
 
 def 世界树():
     """
-    每天奇树灵鉴一键领取经验奖励
+    每天一键领取经验奖励、免费温养（无武器时自动选择武器）
     """
     # 世界树
     D.get("cmd=worldtree")
     # 一键领取经验奖励
     D.get("cmd=worldtree&op=autoget&id=1")
     D.log(D.find(r"福宝<br /><br />(.*?)<br />")).append()
+
+    def get_id() -> str | None:
+        # 温养武器选择
+        for t in range(4):
+            D.get(f"cmd=worldtree&op=viewweaponpage&type={t}")
+            for _id in D.findall(r"weapon_id=(\d+)"):
+                # 选择
+                D.get(f"cmd=worldtree&op=setweapon&weapon_id={_id}&type={t}")
+                D.log(D.find(r"当前武器：(.*?)<"))
+                return _id
+
+    # 源宝树
+    D.get("cmd=worldtree&op=viewexpandindex")
+    if "免费温养" not in D.html:
+        D.log("下一次免费温养：" + D.find(r"免费：(.*?)<")).append()
+        return
+
+    if "weapon_id=0" in D.html and not get_id():
+        D.log("没有武器可选择").append()
+        return
+
+    # 源宝树
+    D.get("cmd=worldtree&op=viewexpandindex")
+    _id = D.find(r"weapon_id=(\d+)")
+    # 免费温养
+    D.get(f"cmd=worldtree&op=dostrengh&times=1&weapon_id={_id}")
+    D.log("免费温养：" + D.find(r"规则</a><br />(.*?)<br />")).append()
+    D.log("下一次免费温养：" + D.find(r"免费：(.*?)<")).append()
 
 
 def 增强经脉():
@@ -1713,35 +1755,37 @@ def 我的帮派():
 
 def 帮派祭坛():
     """
-    每天至多转动轮盘30次、领取通关奖励
+    每天转动轮盘至多30次
     """
     # 帮派祭坛
     D.get("cmd=altar")
     for _ in range(30):
-        if "【祭坛轮盘】" in D.html:
+        if "转动轮盘" in D.html:
             # 转动轮盘
             D.get("cmd=altar&op=spinwheel")
-            if "【祭坛轮盘】" in D.html:
+            if "转动轮盘" in D.html:
                 D.log(D.find()).append()
-            if "转转券不足" in D.html:
-                break
-            elif "已达转转券转动次数上限" in D.html:
-                break
+            if "转转券不足" in D.html or "已达转转券转动次数上限" in D.html:
+                return
         if "【随机分配】" in D.html:
-            for op, _id in D.findall(r"op=(.*?)&amp;id=(\d+)"):
+            all_disbanded = True
+            data = D.findall(r"op=(.*?)&amp;id=(\d+)")
+            for op, _id in data:
                 # 选择
                 D.get(f"cmd=altar&op={op}&id={_id}")
                 if "选择路线" in D.html:
-                    # 选择路线
+                    # 向前|向左|向右
                     D.get(f"cmd=altar&op=dosteal&id={_id}")
-                if "【随机分配】" in D.html:
-                    # 该帮派已解散，无法操作！
-                    # 系统繁忙
+                if "该帮派已解散" in D.html:
                     D.log(D.find(r"<br /><br />(.*?)<br />"))
                     continue
-                if "【祭坛轮盘】" in D.html:
+                all_disbanded = False
+                if "转动轮盘" in D.html:
                     D.log(D.find()).append()
                     break
+            if all_disbanded and data:
+                D.append()
+                return
         if "领取奖励" in D.html:
             D.get("cmd=altar&op=drawreward")
             D.log(D.find()).append()

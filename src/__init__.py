@@ -17,6 +17,7 @@ ONE = {
     "武林": True,
     "群侠": True,
     "侠侣": WEEK in [2, 5, 7],
+    "结拜": WEEK in [1, 2],
     "巅峰之战进行中": True,
     "矿洞": True,
     "掠夺": WEEK in [2, 3],

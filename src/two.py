@@ -257,14 +257,20 @@ def 每日宝箱():
     """
     每月20号打开所有的铜质、银质、金质宝箱
     """
+    counter = Counter()
     # 每日宝箱
     D.get("cmd=dailychest")
     while t := D.find(r'type=(\d+)">打开'):
         # 打开
         D.get(f"cmd=dailychest&op=open&type={t}")
-        D.log(D.find(r"说明</a><br />(.*?)<")).append()
+        msg = D.find(r"说明</a><br />(.*?)<")
+        D.log(msg)
+        counter.update({msg: 1})
         if "今日开宝箱次数已达上限" in D.html:
             break
+
+    for k, v in counter.items():
+        D.append(f"{v}次{k}")
 
 
 def 商店():
