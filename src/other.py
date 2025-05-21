@@ -1690,7 +1690,7 @@ class YongBing:
         while True:
             # 提升
             D.get(f"cmd=newmercenary&sub=5&id={_id}")
-            D.loh(D.find(), name)
+            D.log(D.find(), name)
             D.log(D.find(r"悟性：(\d+)"), "悟性")
             if "升级悟性" not in D.html:
                 break

@@ -1497,7 +1497,7 @@ def 世界树():
     # 源宝树
     D.get("cmd=worldtree&op=viewexpandindex")
     if "免费温养" not in D.html:
-        D.log("下一次免费温养：" + D.find(r"免费：(.*?)<")).append()
+        D.log("没有免费温养次数").append()
         return
 
     if "weapon_id=0" in D.html and not get_id():
@@ -1510,7 +1510,6 @@ def 世界树():
     # 免费温养
     D.get(f"cmd=worldtree&op=dostrengh&times=1&weapon_id={_id}")
     D.log("免费温养：" + D.find(r"规则</a><br />(.*?)<br />")).append()
-    D.log("下一次免费温养：" + D.find(r"免费：(.*?)<")).append()
 
 
 def 增强经脉():
@@ -1755,7 +1754,7 @@ def 我的帮派():
 
 def 帮派祭坛():
     """
-    每天转动轮盘至多30次
+    每天转动轮盘至多30次、领取奖励
     """
     # 帮派祭坛
     D.get("cmd=altar")
@@ -2988,3 +2987,17 @@ def 重阳太白诗会():
     """
     D.get("cmd=newAct&subtype=168&op=2")
     D.log(D.find(r"<br /><br />(.*?)<br />")).append()
+
+
+def 五一预订礼包():
+    """
+    每天领取登录礼包
+    """
+    # 5.1预订礼包
+    D.get("cmd=lokireservation")
+    if _id := D.find(r"idx=(\d+)"):
+        # 领取
+        D.get(f"cmd=lokireservation&op=draw&idx={_id}")
+        D.log(D.find(r"<br /><br />(.*?)<")).append()
+    else:
+        D.log("没有登录礼包领取").append()

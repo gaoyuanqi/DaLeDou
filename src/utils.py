@@ -178,6 +178,7 @@ class InItDaLeDou:
         _data = {
             # 键为大乐斗首页任务名称，值为函数名称
             "5.1礼包": "五一礼包",
+            "5.1预订礼包": "五一预订礼包",
         }
         return [_data.get(k, k) for k in missions]
 
