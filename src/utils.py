@@ -12,8 +12,6 @@ import yaml
 from loguru import logger
 from requests import Session
 
-from src import MISSIONS_ONE, MISSIONS_TWO
-
 
 # 请求头
 _HEADERS = {
@@ -21,7 +19,147 @@ _HEADERS = {
 }
 
 
-def read_yaml(file: str, key: str | None = None):
+def _current_day_and_week():
+    now = datetime.now()
+    return now.day, now.isoweekday()
+
+
+def _one() -> list:
+    """
+    返回当天可做的第一轮任务
+    """
+    day, week = _current_day_and_week()
+    mission = {
+        "邪神秘宝": True,
+        "华山论剑": day <= 26,
+        "斗豆月卡": True,
+        "分享": True,
+        "乐斗": True,
+        "武林": True,
+        "群侠": True,
+        "侠侣": week in [2, 5, 7],
+        "结拜": week in [1, 2],
+        "巅峰之战进行中": True,
+        "矿洞": True,
+        "掠夺": week in [2, 3],
+        "踢馆": week in [5, 6],
+        "竞技场": day <= 25,
+        "十二宫": True,
+        "许愿": True,
+        "抢地盘": True,
+        "历练": True,
+        "镖行天下": True,
+        "幻境": True,
+        "群雄逐鹿": week == 6,
+        "画卷迷踪": True,
+        "门派": True,
+        "门派邀请赛": True,
+        "会武": True,
+        "梦想之旅": True,
+        "问鼎天下": True,
+        "帮派商会": True,
+        "帮派远征军": True,
+        "帮派黄金联赛": True,
+        "任务派遣中心": True,
+        "武林盟主": True,
+        "全民乱斗": True,
+        "侠士客栈": True,
+        "大侠回归三重好礼": week == 4,
+        "飞升大作战": True,
+        "深渊之潮": True,
+        "侠客岛": True,
+        "时空遗迹": True,
+        "世界树": True,
+        "任务": True,
+        "我的帮派": True,
+        "帮派祭坛": True,
+        "每日奖励": True,
+        "领取徒弟经验": True,
+        "今日活跃度": True,
+        "江湖长梦": True,
+        "仙武修真": True,
+        "乐斗黄历": True,
+        "器魂附魔": True,
+        "兵法": week in [4, 6],
+        "猜单双": True,
+        "煮元宵": True,
+        "万圣节": True,
+        "元宵节": week == 4,
+        "神魔转盘": True,
+        "乐斗驿站": True,
+        "浩劫宝箱": True,
+        "幸运转盘": True,
+        "冰雪企缘": True,
+        "甜蜜夫妻": True,
+        "乐斗菜单": True,
+        "客栈同福": True,
+        "周周礼包": True,
+        "登录有礼": True,
+        "活跃礼包": True,
+        "上香活动": True,
+        "徽章战令": True,
+        "生肖福卡": True,
+        "长安盛会": True,
+        "深渊秘宝": True,
+        "中秋礼盒": True,
+        "双节签到": True,
+        "乐斗游记": True,
+        "斗境探秘": True,
+        "幸运金蛋": True,
+        "春联大赛": True,
+        "新春拜年": True,
+        "喜从天降": True,
+        "节日福利": True,
+        "5.1礼包": week == 4,
+        "端午有礼": week == 4,
+        "圣诞有礼": week == 4,
+        "新春礼包": week == 4,
+        "登录商店": week == 4,
+        "盛世巡礼": week == 4,
+        "新春登录礼": True,
+        "年兽大作战": True,
+        "惊喜刮刮卡": True,
+        "开心娃娃机": True,
+        "好礼步步升": True,
+        "企鹅吉利兑": True,
+        "乐斗大笨钟": True,
+        "乐斗激运牌": True,
+        "乐斗能量棒": True,
+        "乐斗回忆录": week == 4,
+        "爱的同心结": week == 4,
+        "周年生日祝福": week == 4,
+        "重阳太白诗会": True,
+        "5.1预订礼包": True,
+    }
+    return [k for k, v in mission.items() if v]
+
+
+def _two() -> list:
+    """
+    返回当天可做的第二轮任务
+    """
+    day, week = _current_day_and_week()
+    mission = {
+        "邪神秘宝": True,
+        "问鼎天下": week not in [6, 7],
+        "帮派商会": True,
+        "任务派遣中心": True,
+        "侠士客栈": True,
+        "深渊之潮": True,
+        "侠客岛": True,
+        "背包": True,
+        "镶嵌": week == 4,
+        "神匠坊": day == 20,
+        "每日宝箱": day == 20,
+        "商店": True,
+        "幸运金蛋": True,
+        "新春拜年": True,
+        "乐斗大笨钟": True,
+    }
+    return [k for k, v in mission.items() if v]
+
+
+def _load_yaml(file: str, key: str | None = None):
     """
     读取config目录下的yaml配置文件
     """
@@ -32,15 +170,15 @@ def read_yaml(file: str, key: str | None = None):
             return users[key] if key else users
     except FileNotFoundError:
         raise FileNotFoundError(f"{path} 文件不存在")
-    except yaml.YAMLError:
-        raise yaml.YAMLError(f"{path} 文件格式不正确")
+    except yaml.YAMLError as e:
+        raise yaml.YAMLError(f"{path} 第{e.problem_mark.line}行解析失败")
 
 
 def push(title: str, content: str) -> None:
     """
     pushplus微信通知
     """
-    if token := read_yaml("settings.yaml", "PUSHPLUS_TOKEN"):
+    if token := _load_yaml("settings.yaml", "PUSHPLUS_TOKEN"):
         url = "http://www.pushplus.plus/send/"
         data = {
             "token": token,
@@ -53,7 +191,7 @@ def push(title: str, content: str) -> None:
         logger.warning("你没有配置pushplus微信推送")
 
 
-class InItDaLeDou:
+class InitDaLeDou:
     """
     初始化大乐斗
     """
@@ -67,7 +205,7 @@ class InItDaLeDou:
         if isinstance(self._session, requests.Session):
             self._create_qq_yaml()
             self._handler_id: int = self._create_qq_log()
-            self._yaml: dict = read_yaml(f"{self.qq}.yaml")
+            self._yaml: dict = _load_yaml(f"{self.qq}.yaml")
             self._func_name = self._get_func_name()
 
     @property
@@ -187,11 +325,11 @@ class InItDaLeDou:
         过滤掉未出现在大乐斗首页的任务，并将剩余任务名称映射的函数名称以字典返回
         """
         if _html := self._get_dld_main_page_html():
-            _one = [k for k in MISSIONS_ONE if k in _html]
-            _two = [k for k in MISSIONS_TWO if k in _html]
+            one = [k for k in _one() if k in _html]
+            two = [k for k in _two() if k in _html]
             return {
-                "one": self._map_mission_names_to_func_names(_one),
-                "two": self._map_mission_names_to_func_names(_two),
+                "one": self._map_mission_names_to_func_names(one),
+                "two": self._map_mission_names_to_func_names(two),
             }
 
     def remove_logger_handler(self):
@@ -207,7 +345,6 @@ class DaLeDou:
     """
 
     _compile_cache = lru_cache(maxsize=256)(re.compile)
-    _WEEKDAY_NAMES = ("周一", "周二", "周三", "周四", "周五", "周六", "周日")
 
     def __init__(self, qq: str, session: Session, yaml: dict, func_name: dict):
         self._qq = qq
@@ -217,14 +354,10 @@ class DaLeDou:
 
         self._start_time = time.time()
         self._now = datetime.now()
-        self._year: int = self._now.year
-        self._month: int = self._now.month
-        self._day: int = self._now.day
-        self._week: int = self._now.weekday() + 1
 
         # pushplus内容正文
         self._pushplus_body: list[str] = [
-            f"【开始时间】\n{self._now.strftime('%Y-%m-%d %H:%M:%S')} {self._WEEKDAY_NAMES[self._now.weekday()]}",
+            f"【开始时间】\n{self._now.strftime('%Y-%m-%d %H:%M:%S')} 星期{self.week}",
         ]
         # 大乐斗当前页面HTML
         self.html: str = None
@@ -237,19 +370,19 @@ class DaLeDou:
 
     @property
     def year(self) -> int:
-        return self._year
+        return self._now.year
 
     @property
     def month(self) -> int:
-        return self._month
+        return self._now.month
 
     @property
     def day(self) -> int:
-        return self._day
+        return self._now.day
 
     @property
     def week(self) -> int:
-        return self._week
+        return self._now.isoweekday()
 
     @property
     def yaml(self) -> dict:
@@ -389,9 +522,9 @@ def generate_daledou() -> Iterator[DaLeDou]:
     """
     返回大乐斗实例对象
     """
-    dld_cookies: list[str] = read_yaml("settings.yaml", "DALEDOU_ACCOUNT")
+    dld_cookies: list[str] = _load_yaml("settings.yaml", "DALEDOU_ACCOUNT")
     for cookie in dld_cookies:
-        dld = InItDaLeDou(cookie)
+        dld = InitDaLeDou(cookie)
         if dld.session is None or dld.func_name is None:
             continue
 
