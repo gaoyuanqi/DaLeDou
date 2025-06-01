@@ -11,13 +11,14 @@
     >>> python main.py --two 邪神秘宝
 
     >>> # 立即运行多个函数
-    >>> python main.py --two 邪神秘宝 矿洞
+    >>> python main.py --two 邪神秘宝 侠士客栈
 """
 
+import traceback
 from collections import Counter
 
-from src.utils import generate_daledou
-from src.common import (
+from ..core.daledou import DaLeDou
+from .common import (
     c_邪神秘宝,
     c_问鼎天下,
     c_帮派商会,
@@ -30,32 +31,36 @@ from src.common import (
 )
 
 
-def run_two(extra_args: list):
+def _run(d: DaLeDou, func_names: list):
     global D
-    for D in generate_daledou():
-        if extra_args:
-            func_name_list = extra_args
-            is_push = False
-        else:
-            func_name_list = D.func_name_two
-            is_push = True
-
-        for func_name in func_name_list:
-            print("--" * 20)
-            D.func_name = func_name
-            D.append(f"\n【{func_name}】")
-            try:
-                globals()[func_name]()
-            except Exception as e:
-                D.log(f"出现异常，本任务结束：{e}").append()
-
+    D = d
+    for func in func_names:
         print("--" * 20)
-        if is_push:
-            D.push("第二轮")
-        else:
-            print("--------------模拟微信信息--------------")
-            print(D.body())
-        print("--" * 20)
+        D.current_task = func
+        D.append(f"\n【{func}】")
+        try:
+            globals()[func]()
+        except Exception:
+            D.log(f"{traceback.format_exc()}").append()
+
+
+def run_two_args(d: DaLeDou, extra_args: list):
+    """
+    运行two模式携带的函数参数列表
+    """
+    _run(d, extra_args)
+    print("--" * 20)
+    print(d.pushplus_content())
+    print("--" * 20)
+
+
+def run_two_all(d: DaLeDou, title: str):
+    """
+    运行two模式所有任务
+    """
+    _run(d, d.func_names_two)
+    print("--" * 20)
+    d.pushplus_send(title)
 
 
 # ============================================================
@@ -107,7 +112,7 @@ def 背包():
     """
     背包物品使用
     """
-    yaml: list = D.yaml["背包"]
+    config: list = D.config["背包"]
     data = []
 
     # 背包
@@ -121,7 +126,7 @@ def 背包():
             continue
         _, _html = D.html.split("清理")
         D.html, _ = _html.split("商店")
-        for _m in yaml:
+        for _m in config:
             for number, _id in D.findall(rf"{_m}.*?</a>数量：(\d+).*?id=(\d+)"):
                 data.append((_id, int(number)))
 
@@ -210,7 +215,7 @@ def 普通合成():
 
 
 def 符石分解():
-    yaml: list[int] = D.yaml["神匠坊"]
+    config: list[int] = D.config["神匠坊"]
     data = []
 
     # 符石分解
@@ -222,7 +227,7 @@ def 符石分解():
         if "下一页" not in D.html:
             break
     for num, _id in data:
-        if int(_id) not in yaml:
+        if int(_id) not in config:
             continue
         # 分解
         D.get(f"cmd=weapongod&sub=11&stone_id={_id}&num={num}&i_p_w=num%7C")

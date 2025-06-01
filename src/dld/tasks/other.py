@@ -8,10 +8,10 @@
 
 import time
 
-from src.utils import generate_daledou
+from ..core.daledou import DaLeDou
 
 
-_FUNC_NAME = [
+_FUNC_NAMES = [
     "神装",
     "夺宝奇兵",
     "星盘",
@@ -27,34 +27,31 @@ _FUNC_NAME = [
 ]
 
 
-def check_func_name_existence(func_name: str):
+def _get_help_message() -> str:
     """
-    判断函数名称是否存在
+    生成带格式的任务列表帮助信息
     """
-    if func_name not in _FUNC_NAME:
-        print("other 模式支持以下参数：")
-        for i in _FUNC_NAME:
-            print(i)
-        print("--" * 20)
-        raise KeyError(func_name)
+    print("--" * 20)
+    print("可携带参数列表：\n" + "\n".join(f"  • {name}" for name in _FUNC_NAMES))
 
 
-def run_other(extra_args: list):
+def run_other_args(d: DaLeDou, extra_args: list):
     global D
+    D = d
     if not extra_args:
-        print("请携带以下一个参数：")
-        for i in _FUNC_NAME:
-            print(i)
-        print("--" * 20)
+        _get_help_message()
+        raise ValueError("至少指定一个参数")
         return
 
-    for D in generate_daledou():
-        print("--" * 20)
-        for func_name in extra_args:
-            check_func_name_existence(func_name)
-            D.func_name = func_name
-            globals()[func_name]()
+    for args in extra_args:
+        if args not in _FUNC_NAMES:
+            _get_help_message()
+            raise ValueError(f"无效参数：{args}")
 
+    for func in extra_args:
+        print("--" * 20)
+        D.current_task = func
+        globals()[func]()
         print("--" * 20)
 
 

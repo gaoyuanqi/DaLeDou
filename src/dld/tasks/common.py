@@ -2,7 +2,7 @@
 本模块抽离了 one.py 和 two.py 两个模块的公共任务函数
 """
 
-from src.utils import DaLeDou
+from ..core.daledou import DaLeDou
 
 
 def c_邪神秘宝(D: DaLeDou):
@@ -42,9 +42,9 @@ def c_帮派商会(D: DaLeDou):
     """
     帮派宝库领取礼包、交易会所交易物品、兑换商店兑换物品
     """
-    yaml: dict = D.yaml["帮派商会"]
-    jiaoyi = yaml["交易会所"]
-    duihuan = yaml["兑换商店"]
+    config: dict = D.config["帮派商会"]
+    jiaoyi = config["交易会所"]
+    duihuan = config["兑换商店"]
     data_1 = []
     data_2 = []
 
@@ -190,10 +190,10 @@ def c_深渊秘境(D: DaLeDou):
     """
     深渊秘境至多通关5次
     """
-    yaml: dict = D.yaml["深渊之潮"]["深渊秘境"]
-    _id: int = yaml["id"]
+    config: dict = D.config["深渊之潮"]["深渊秘境"]
+    _id: int = config["id"]
 
-    if yaml["exchange"]:
+    if config["is_exchange"]:
         # 兑换一次副本
         D.get("cmd=abysstide&op=addaccess")
         D.log(D.find()).append()

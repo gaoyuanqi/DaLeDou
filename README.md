@@ -51,7 +51,7 @@ uv sync
 
 将Cookie直接复制填入 `config/settings.yaml`：
 ```yaml
-DALEDOU_ACCOUNT:
+DALEDOU_COOKIES:
   - openId=xx; accessToken=xx; newuin=111111
   - openId=xx; accessToken=xx; newuin=222222
 ```
@@ -87,7 +87,7 @@ python main.py --timing
 
 ### one 模式
 
-运行 `第一轮`，建议 `13:10` 后运行：
+运行 `第一轮`，建议 `13:01` 后运行：
 ```sh
 python main.py --one
 ```
@@ -173,10 +173,10 @@ pkg install vim
 > Via也可以运行此脚本
 
 
-## 关于大乐斗Cookie有效期（2025.4.11）
+~~## 关于大乐斗Cookie有效期（2025.4.11）~~
 
-同一个账号不能同时在线（多设备/多应用）
+~~同一个账号不能同时在线（多设备/多应用）~~
 
-每次重新登录会刷新Cookie，旧Cookie会在几分钟后失效
+~~每次重新登录会刷新Cookie，旧Cookie会在几分钟后失效~~
 
-只要不反复登录，则Cookie长期有效
+~~只要不反复登录，则Cookie长期有效~~

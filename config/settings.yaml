@@ -1,8 +1,8 @@
 # 大乐斗Cookie，直接复制填入即可
 # 支持多账号，每行对应一个账号（以短横线 - 开始）
-DALEDOU_ACCOUNT:
+DALEDOU_COOKIES:
   - openId=xx; accessToken=xx; newuin=111111
   - openId=xx; accessToken=xx; newuin=222222
 
-# pushplus微信公众号一对一推送token
+# pushplus推送加微信服务号 > 个人中心 > 开发设置 > 用户token
 PUSHPLUS_TOKEN: ""

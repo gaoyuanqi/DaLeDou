@@ -1,7 +1,7 @@
 """
 本模块为大乐斗第一轮任务
 
-默认每天 13:10 定时运行
+默认每天 13:01 定时运行
 
 使用以下命令运行本模块任务：
     >>> # 立即运行第一轮任务
@@ -14,12 +14,14 @@
     >>> python main.py --one 邪神秘宝 矿洞
 """
 
-import time
 import random
 import re
+import time
+import traceback
+from datetime import datetime, timedelta
 
-from src.utils import generate_daledou
-from src.common import (
+from ..core.daledou import DaLeDou
+from .common import (
     c_邪神秘宝,
     c_问鼎天下,
     c_帮派商会,
@@ -32,46 +34,79 @@ from src.common import (
 )
 
 
-def run_one(extra_args: list):
+def _run(d: DaLeDou, func_names: list):
     global D
-    for D in generate_daledou():
-        if extra_args:
-            func_name_list = extra_args
-            is_push = False
-        else:
-            func_name_list = D.func_name_one
-            is_push = True
-
-        for func_name in func_name_list:
-            print("--" * 20)
-            D.func_name = func_name
-            D.append(f"\n【{func_name}】")
-            try:
-                globals()[func_name]()
-            except Exception as e:
-                D.log(f"出现异常，本任务结束：{e}").append()
-
+    D = d
+    for func in func_names:
         print("--" * 20)
-        if is_push:
-            D.push("第一轮")
-        else:
-            print("--------------模拟微信信息--------------")
-            print(D.body())
-        print("--" * 20)
+        D.current_task = func
+        D.append(f"\n【{func}】")
+        try:
+            globals()[func]()
+        except Exception:
+            D.log(f"{traceback.format_exc()}").append()
+
+
+def run_one_args(d: DaLeDou, extra_args: list):
+    """
+    运行one模式携带的函数参数列表
+    """
+    _run(d, extra_args)
+    print("--" * 20)
+    print(d.pushplus_content())
+    print("--" * 20)
+
+
+def run_one_all(d: DaLeDou, title: str):
+    """
+    运行one模式所有任务
+    """
+    _run(d, d.func_names_one)
+    print("--" * 20)
+    d.pushplus_send(title)
 
 
 # ============================================================
 
 
-def get_yaml_exchange(yaml: dict):
+def get_exchange_config(config: list):
     """
-    返回yaml兑换名称、兑换id和兑换数量
+    返回兑换名称、兑换id和兑换数量
     """
-    for name, _dict in yaml.items():
-        _id: int = _dict["id"]
-        number: int = _dict["number"]
-        if number > 0:
-            yield name, _id, number
+    for item in config:
+        name: str = item["name"]
+        _id: int = item["id"]
+        exchange_quantity: int = item["exchange_quantity"]
+        if exchange_quantity > 0:
+            yield name, _id, exchange_quantity
+
+
+def is_target_date_reached(
+    days_before: int, end_date_tuple: tuple[int, int, int]
+) -> bool:
+    """
+    判断当前日期是否已达到或超过目标日期（结束日期的前N天）
+
+    Args:
+        days_before: 结束日期之前的天数（目标日期 = 结束日期 - days_before）
+        end_date_tuple: 结束日期的年月日三元组，格式为 (年, 月, 日)
+
+    Returns:
+        bool: 如果当前日期大于等于目标日期返回True，否则返回False
+
+    Examples:
+        >>> # 判断当前日期是否为2024-11-7（2024-11-8的前1天）
+        >>> is_target_date_reached(1, (2024, 11, 8))
+
+        >>> # 判断当前日期是否为2024-11-2（2024-11-8的前6天）
+        >>> is_target_date_reached(6, (2024, 11, 8))
+    """
+    end_year, end_month, end_day = end_date_tuple
+    current_date = datetime.now().date()
+    target_date = datetime(end_year, end_month, end_day).date() - timedelta(
+        days=days_before
+    )
+    return current_date >= target_date
 
 
 # ============================================================
@@ -130,16 +165,16 @@ def 战阵调整() -> bool:
 
 
 def 荣誉兑换():
-    yaml: dict = D.yaml["华山论剑"]
-    for name, _id, number in get_yaml_exchange(yaml):
+    config: list[dict] = D.config["华山论剑"]
+    for name, _id, exchange_quantity in get_exchange_config(config):
         count = 0
-        for _ in range(number // 10):
+        for _ in range(exchange_quantity // 10):
             D.get(f"cmd=knightarena&op=exchange&id={_id}&times=10")
             D.log(D.find())
             if "成功" not in D.html:
                 break
             count += 10
-        for _ in range(number - count):
+        for _ in range(exchange_quantity - count):
             D.get(f"cmd=knightarena&op=exchange&id={_id}&times=1")
             D.log(D.find())
             if "成功" not in D.html:
@@ -413,9 +448,7 @@ def 矿洞():
     领取通关奖励
     开启副本
     """
-    yaml: dict = D.yaml["矿洞"]
-    f = yaml["floor"]
-    m = yaml["mode"]
+    config: str = D.config["矿洞"]
 
     # 矿洞
     D.get("cmd=factionmine")
@@ -428,7 +461,7 @@ def 矿洞():
                 break
         elif "开启副本" in D.html:
             # 确认开启
-            D.get(f"cmd=factionmine&op=start&floor={f}&mode={m}")
+            D.get(f"cmd=factionmine&op=start&{config}")
             D.log(D.find()).append()
             if "当前不能开启此副本" in D.html:
                 break
@@ -514,8 +547,8 @@ def 竞技场():
     """
     每月1~25号每天兑换10个河图洛书、至多挑战10次、领取奖励
     """
-    yaml: bool = D.yaml["竞技场"]
-    if yaml:
+    config: bool = D.config["竞技场"]
+    if config:
         # 兑换10个河图洛书
         D.get("cmd=arena&op=exchange&id=5435&times=10")
         D.log(D.find()).append()
@@ -585,7 +618,7 @@ def 历练():
     """
     每天乐斗BOSS一次，至多乐斗5个BOSS
     """
-    yaml: list = D.yaml["历练"]
+    config: list = D.config["历练"]
 
     # 乐斗助手
     D.get("cmd=view&type=6")
@@ -594,7 +627,7 @@ def 历练():
         D.get("cmd=set&type=11")
         D.log("取消自动使用活力药水").append()
 
-    for _id in yaml:
+    for _id in config:
         D.get(f"cmd=mappush&subtype=3&mapid=6&npcid={_id}&pageid=2")
         if "您还没有打到该历练场景" in D.html:
             D.log(D.find(r"介绍</a><br />(.*?)<br />")).append()
@@ -745,16 +778,16 @@ def 门派():
 
 
 def 门派邀请赛_商店兑换():
-    yaml: dict = D.yaml["门派邀请赛"]
-    for name, _id, number in get_yaml_exchange(yaml):
+    config: list[dict] = D.config["门派邀请赛"]
+    for name, _id, exchange_quantity in get_exchange_config(config):
         count = 0
-        for _ in range(number // 10):
+        for _ in range(exchange_quantity // 10):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=10")
             D.log(D.find())
             if "成功" not in D.html:
                 break
             count += 10
-        for _ in range(number - count):
+        for _ in range(exchange_quantity - count):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=1")
             D.log(D.find())
             if "成功" not in D.html:
@@ -798,16 +831,16 @@ def 门派邀请赛():
 
 
 def 会武_商店兑换():
-    yaml: dict = D.yaml["会武"]
-    for name, _id, number in get_yaml_exchange(yaml):
+    config: list[dict] = D.config["会武"]
+    for name, _id, exchange_quantity in get_exchange_config(config):
         count = 0
-        for _ in range(number // 10):
+        for _ in range(exchange_quantity // 10):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=10")
             D.log(D.find())
             if "成功" not in D.html:
                 break
             count += 10
-        for _ in range(number - count):
+        for _ in range(exchange_quantity - count):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=1")
             D.log(D.find())
             if "成功" not in D.html:
@@ -986,12 +1019,12 @@ def 问鼎天下():
     """
     if D.week == 6:
         # 淘汰赛助威
-        _id = D.yaml["问鼎天下"]["淘汰赛"]
+        _id = D.config["问鼎天下"]["淘汰赛"]
         D.get(f"cmd=tbattle&op=cheerregionbattle&id={_id}")
         D.log(D.find()).append()
     elif D.week == 7:
         # 排名赛助威
-        _id = D.yaml["问鼎天下"]["排名赛"]
+        _id = D.config["问鼎天下"]["排名赛"]
         D.get(f"cmd=tbattle&op=cheerchampionbattle&id={_id}")
         D.log(D.find()).append()
 
@@ -1152,7 +1185,7 @@ def 武林盟主():
             D.log("没有奖励领取").append()
 
     if D.week in [1, 3, 5]:
-        _id: int = D.yaml["武林盟主"]
+        _id: int = D.config["武林盟主"]
         D.get(f"cmd=wlmz&op=signup&ground_id={_id}")
         if "总决赛周不允许报名" in D.html or "您的战力不足" in D.html:
             D.log(D.find(r"战报</a><br />(.*?)<br />")).append()
@@ -1233,11 +1266,11 @@ def 飞升大作战():
 
 
 def 许愿帮铺():
-    yaml: dict = D.yaml["深渊之潮"]["许愿帮铺"]
-    for name, _id, number in get_yaml_exchange(yaml):
+    config: list[dict] = D.config["深渊之潮"]["许愿帮铺"]
+    for name, _id, exchange_quantity in get_exchange_config(config):
         count = 0
         if "之书" in name:
-            quotient = number // 25
+            quotient = exchange_quantity // 25
         else:
             quotient = 0
         for _ in range(quotient):
@@ -1246,7 +1279,7 @@ def 许愿帮铺():
             if "成功" not in D.html:
                 break
             count += 25
-        for _ in range(number - count):
+        for _ in range(exchange_quantity - count):
             D.get(f"cmd=abysstide&op=wishexchange&id={_id}")
             D.log(D.find(), name)
             if "成功" not in D.html:
@@ -1361,11 +1394,11 @@ def 遗迹商店():
     赛季结束日期的前一天执行
     遗迹征伐-遗迹商店特惠区、售卖区兑换
     """
-    yaml: dict = D.yaml["时空遗迹"]["遗迹商店"]
-    for t, _dict in yaml.items():
-        for name, _id, number in get_yaml_exchange(_dict):
+    config: dict = D.config["时空遗迹"]["遗迹商店"]
+    for t, _list in config.items():
+        for name, _id, exchange_quantity in get_exchange_config(_list):
             count = 0
-            for _ in range(number // 10):
+            for _ in range(exchange_quantity // 10):
                 # 兑换十次
                 D.get(f"cmd=spacerelic&op=buy&type={t}&id={_id}&num=10")
                 D.log(
@@ -1375,7 +1408,7 @@ def 遗迹商店():
                 if "兑换成功" not in D.html:
                     break
                 count += 10
-            for _ in range(number - count):
+            for _ in range(exchange_quantity - count):
                 # 兑换一次
                 D.get(f"cmd=spacerelic&op=buy&type={t}&id={_id}&num=1")
                 D.log(
@@ -1390,8 +1423,8 @@ def 遗迹商店():
 
 
 def 异兽洞窟():
-    yaml: list = D.yaml["时空遗迹"]["异兽洞窟"]
-    for _id in yaml:
+    config: list = D.config["时空遗迹"]["异兽洞窟"]
+    for _id in config:
         D.get(f"cmd=spacerelic&op=monsterdetail&id={_id}")
         if "剩余挑战次数：0" in D.html:
             D.log("异兽洞窟没有挑战次数", "时空遗迹-异兽洞窟").append()
@@ -1441,7 +1474,7 @@ def 遗迹征伐():
     day = D.find(r"(\d+)日")
 
     # 判断当前日期是否到达结束日期的前一天
-    if D.is_target_date_reached(1, (int(year), int(month), int(day))):
+    if is_target_date_reached(1, (int(year), int(month), int(day))):
         # 悬赏任务-登录奖励
         D.get("cmd=spacerelic&op=task&type=1&id=1")
         D.log(D.find(r"赛季任务</a><br /><br />(.*?)<"), "时空遗迹-悬赏任务").append()
@@ -1453,7 +1486,7 @@ def 遗迹征伐():
         return
 
     # 判断当前日期是否到达第八周
-    if D.is_target_date_reached(7, (int(year), int(month), int(day))):
+    if is_target_date_reached(7, (int(year), int(month), int(day))):
         D.log("当前处于休赛期，结束前一天领取赛季奖励和悬赏商店兑换").append()
         return
 
@@ -1675,8 +1708,8 @@ def 任务():
 
 
 def 帮派供奉():
-    yaml: list = D.yaml["我的帮派"]
-    for _id in yaml:
+    config: list = D.config["我的帮派"]
+    for _id in config:
         for _ in range(5):
             # 供奉
             D.get(f"cmd=oblation&id={_id}&page=1")
@@ -1733,7 +1766,7 @@ def 帮派任务():
 def 我的帮派():
     """
     每天供奉5次、帮派任务至多领取奖励3次
-    周六领取奖励、报名帮战、激活祝福
+    周日领取奖励、报名帮战、激活祝福
     """
     # 我的帮派
     D.get("cmd=factionop&subtype=3&facid=0")
@@ -1744,7 +1777,7 @@ def 我的帮派():
     帮派供奉()
     帮派任务()
 
-    if D.week != 6:
+    if D.week != 7:
         return
     # 领取奖励 》报名帮战 》激活祝福
     for sub in [4, 9, 6]:
@@ -1877,8 +1910,8 @@ def 江湖长梦():
     """
     周四挑战柒承的忙碌日常
     """
-    yaml: dict = D.yaml["江湖长梦"]
-    count: int = yaml["柒承的忙碌日常"]
+    config: dict = D.config["江湖长梦"]
+    count: int = config["柒承的忙碌日常"]
 
     柒承的忙碌日常(count)
 
@@ -2068,7 +2101,7 @@ def 万圣节():
     month = D.find(r"~(\d+)月")
     day = D.find(r"~\d+月(\d+)日")
     # 判断当前日期是否到达结束日期的前一天
-    if not D.is_target_date_reached(1, (int(year), int(month), int(day))):
+    if not is_target_date_reached(1, (int(year), int(month), int(day))):
         return
 
     number = int(D.find(r"南瓜灯：(\d+)个"))
@@ -2271,7 +2304,7 @@ def 生肖福卡():
 
     # 生肖福卡
     D.get("cmd=newAct&subtype=174")
-    if qq := D.yaml["生肖福卡"]:
+    if qq := D.config["生肖福卡"]:
         pattern = "[子丑寅卯辰巳午未申酉戌亥][鼠牛虎兔龙蛇马羊猴鸡狗猪]"
         data = D.findall(rf"({pattern})\s+(\d+).*?id=(\d+)")
         name, max_number, _id = max(data, key=lambda x: int(x[1]))
@@ -2657,6 +2690,13 @@ def 节日福利():
         节日福利_斗神塔()
 
 
+def 预热礼包():
+    """每天领取一次礼包"""
+    # 领取
+    D.get("cmd=newAct&subtype=117&op=1")
+    D.log(D.find(r"<br /><br />(.*?)<")).append()
+
+
 def 五一礼包():
     """
     周四领取3次劳动节礼包
@@ -2720,7 +2760,7 @@ def 登录商店():
     """
     周四兑换
     """
-    t: int = D.yaml["登录商店"]
+    t: int = D.config["登录商店"]
     for _ in range(5):
         # 兑换5次
         D.get(f"cmd=newAct&op=exchange&subtype=52&type={t}&times=5")
@@ -2844,8 +2884,8 @@ def 好礼步步升():
 
 
 def 企鹅吉利兑_兑换():
-    yaml: dict = D.yaml["企鹅吉利兑"]
-    for name, number in yaml.items():
+    config: dict = D.config["企鹅吉利兑"]
+    for name, number in config.items():
         count = 0
         _id = D.find(rf"{name}.*?id=(\d+)")
         for _ in range(number):
@@ -2878,7 +2918,7 @@ def 企鹅吉利兑():
     month = D.find(r"至(\d+)月")
     day = D.find(r"至\d+月(\d+)日")
     # 判断当前日期是否到达结束日期的前一天
-    if D.is_target_date_reached(1, (int(year), int(month), int(day))):
+    if is_target_date_reached(1, (int(year), int(month), int(day))):
         企鹅吉利兑_兑换()
 
 
@@ -2969,6 +3009,27 @@ def 爱的同心结():
             D.log(D.find()).append()
             if "恭喜您兑换成功" not in D.html:
                 break
+
+
+def 乐斗儿童节():
+    """周四领取选择奖励"""
+    # 乐斗儿童节
+    D.get("cmd=newAct&subtype=130")
+    if "取消返回" in D.html:
+        # 取消返回
+        D.get("cmd=newAct&subtype=130&op=6")
+
+    if "op=2" not in D.html:
+        D.log("你已经领取过了").append()
+        return
+
+    config: str = D.config["乐斗儿童节"]
+    t, s = D.findall(r"type=(\d+)&sub_type=(\d+)", config)[0]
+    # 选择分类
+    D.get(f"cmd=newAct&subtype=130&op=2&type={t}")
+    # 选择
+    D.get(f"cmd=newAct&subtype=130&op=3&type={t}&sub_type={s}")
+    D.log(D.find(r"】</p>(.*?)<")).append()
 
 
 def 周年生日祝福():
