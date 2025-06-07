@@ -28,9 +28,7 @@ _FUNC_NAMES = [
 
 
 def _get_help_message() -> str:
-    """
-    生成带格式的任务列表帮助信息
-    """
+    """生成带格式的任务列表帮助信息"""
     print("--" * 20)
     print("可携带参数列表：\n" + "\n".join(f"  • {name}" for name in _FUNC_NAMES))
 
@@ -78,9 +76,7 @@ def compute(fail_value, deplete_value, now_value, total_value) -> int:
 
 
 def get_backpack_number(item_id: str | int) -> int:
-    """
-    返回背包物品id数量
-    """
+    """返回背包物品id数量"""
     # 背包物品详情
     D.get(f"cmd=owngoods&id={item_id}")
     if "很抱歉" in D.html:
@@ -91,9 +87,7 @@ def get_backpack_number(item_id: str | int) -> int:
 
 
 def get_store_points(params: str) -> int:
-    """
-    返回商店积分
-    """
+    """返回商店积分"""
     # 商店
     D.get(params)
     result = D.find(r"<br />(.*?)<")
@@ -102,9 +96,7 @@ def get_store_points(params: str) -> int:
 
 
 class Exchange:
-    """
-    积分商店兑换
-    """
+    """积分商店兑换"""
 
     def __init__(self, url: dict, consume_num: int, possess_num: int):
         # 材料兑换10个链接
@@ -117,9 +109,7 @@ class Exchange:
         self.possess_num = possess_num
 
     def exchange(self):
-        """
-        如果材料消耗数量大于材料拥有数量则兑换两者差值数量的材料
-        """
+        """如果材料消耗数量大于材料拥有数量则兑换两者差值数量的材料"""
         print("--" * 20)
         if self.possess_num >= self.consume_num:
             return
@@ -136,9 +126,7 @@ class Exchange:
         print("--" * 20)
 
     def exchange_count(self, url: str, count: int) -> bool:
-        """
-        兑换足够数量返回True，否则返回False
-        """
+        """兑换足够数量返回True，否则返回False"""
         while count > 0:
             D.get(url)
             D.log(D.find())
@@ -149,33 +137,25 @@ class Exchange:
         return True
 
     def update_possess_num(self):
-        """
-        更新材料拥有数量
-        """
+        """更新材料拥有数量"""
         if self.possess_num >= self.consume_num:
             self.possess_num -= self.consume_num
 
 
 class Input:
-    """
-    处理用户输入
-    """
+    """处理用户输入"""
 
     def __init__(self):
         self.print_header()
 
     def print_header(self):
-        """
-        打印头部信息
-        """
+        """打印头部信息"""
         print("任意位置输入 q 退出当前账号任务")
         print("--" * 20)
         print("技能强化不会使用斗豆自动兑换")
 
     def print_mission(self, mission: dict | list):
-        """
-        打印任务信息
-        """
+        """打印任务信息"""
         if isinstance(mission, dict):
             for key, value in mission.items():
                 print(f"{key}：{value}")
@@ -186,14 +166,12 @@ class Input:
             raise TypeError("mission类型必须是字典或者列表")
 
     def select_mission(self, mission: dict | list, prompt: str) -> str | None:
-        """
-        返回用户选择的任务
-        """
+        """返回用户选择的任务"""
         while True:
             print("--" * 20)
             self.print_mission(mission)
             _input = input(prompt).strip()
-            if _input == "q":
+            if _input.lower() == "q":
                 return None
             if _input in mission:
                 return _input
@@ -201,9 +179,7 @@ class Input:
             print(f">>>不存在：{_input}")
 
     def select_upgrade(self, skill_class, skill_params=None):
-        """
-        将用户选择的技能升级
-        """
+        """将用户选择的技能升级"""
         while True:
             if skill_params is None:
                 s = skill_class()
@@ -223,7 +199,7 @@ class Input:
             while True:
                 print("--" * 20)
                 _input = input("选择强化名称：").strip()
-                if _input == "q":
+                if _input.lower() == "q":
                     return
                 print("--" * 20)
                 if _input not in s.data:
@@ -236,13 +212,11 @@ class Input:
                     print(f">>>{_input}：材料数量不足或者不够满祝福")
 
     def get_number(self, prompt: str) -> int | None:
-        """
-        返回用户输入的数字
-        """
+        """返回用户输入的数字"""
         while True:
             print("--" * 20)
             _input = input(prompt).strip()
-            if _input == "q":
+            if _input.lower() == "q":
                 return None
             if _input.isdigit():
                 return int(_input)
@@ -251,9 +225,7 @@ class Input:
 
 
 def split_consume_data(consume: str) -> tuple:
-    """
-    返回材料消耗名称、材料消耗数量、材料拥有数量
-    """
+    """返回材料消耗名称、材料消耗数量、材料拥有数量"""
     result = D.findall(r"^(.*?)\*(\d+)（(\d+)）", consume)
     name, consume_num, possess_num = result[0]
     return name, int(consume_num), int(possess_num)
@@ -263,18 +235,14 @@ def split_consume_data(consume: str) -> tuple:
 
 
 class ShenZhuang:
-    """
-    神装自动兑换强化
-    """
+    """神装自动兑换强化"""
 
     def __init__(self):
         self.fail_value = self.get_fail_value()
         self.data = self.get_data()
 
     def get_fail_value(self) -> int:
-        """
-        返回神装失败祝福值
-        """
+        """返回神装失败祝福值"""
         # 祝福合集宝库
         D.get("cmd=newAct&subtype=143")
         if "=神装=" not in D.html:
@@ -282,9 +250,7 @@ class ShenZhuang:
         return 2 * int(D.find(r"神装进阶失败获得(\d+)"))
 
     def get_match_data(self, name, _id, backpack_id, store_url) -> dict | None:
-        """
-        获取神装匹配数据
-        """
+        """获取神装匹配数据"""
         # 神装
         D.get(f"cmd=outfit&op=0&magic_outfit_id={_id}")
         if ("10阶" in D.html) or ("必成" in D.html):
@@ -325,9 +291,7 @@ class ShenZhuang:
         }
 
     def get_data(self) -> dict:
-        """
-        获取神装数据，不包含满阶和必成数据
-        """
+        """获取神装数据，不包含满阶和必成数据"""
         data_dict = {
             "神兵": {
                 "id": "0",
@@ -372,9 +336,7 @@ class ShenZhuang:
         return data
 
     def upgrade(self, name: str):
-        """
-        神装进阶
-        """
+        """神装进阶"""
         url = {
             "凤凰羽毛": {
                 "ten": "cmd=exchange&subtype=2&type=1100&times=10&costtype=1",
@@ -428,9 +390,7 @@ class ShenZhuang:
 
 
 class ShenJi:
-    """
-    神技自动兑换强化
-    """
+    """神技自动兑换强化"""
 
     def __init__(self, store_name: str):
         store = {
@@ -446,9 +406,7 @@ class ShenJi:
         self.data = self.get_data()
 
     def get_data_id(self) -> list:
-        """
-        获取神装附带技能id，不包含满级id
-        """
+        """获取神装附带技能id，不包含满级id"""
         data = []
         for _id in range(6):
             # 神装
@@ -458,9 +416,7 @@ class ShenJi:
         return [_id for _id, level in data if level != "10"]
 
     def get_data(self) -> dict:
-        """
-        获取神技详情数据
-        """
+        """获取神技详情数据"""
         data = {}
         # 神秘精华拥有数量
         possess_num = get_backpack_number(3567)
@@ -495,9 +451,7 @@ class ShenJi:
         return data
 
     def upgrade(self, name: str):
-        """
-        神技升级
-        """
+        """神技升级"""
         url = {
             "矿洞": {
                 "ten": "cmd=exchange&subtype=2&type=1206&times=10&costtype=3",
@@ -542,9 +496,7 @@ class ShenJi:
 
 
 def 神装():
-    """
-    神装自动兑换强化：神装进阶和神技升级
-    """
+    """神装自动兑换强化：神装进阶和神技升级"""
     mission_list = ["神装", "神技"]
     mission_dict = {
         "矿洞": get_store_points("cmd=exchange&subtype=10&costtype=3"),
@@ -569,9 +521,7 @@ def 神装():
 
 
 class 夺宝奇兵:
-    """
-    五行夺宝奇兵太空探宝场景自动投掷
-    """
+    """五行夺宝奇兵太空探宝场景自动投掷"""
 
     def __init__(self):
         i = Input()
@@ -586,17 +536,13 @@ class 夺宝奇兵:
             self.pelted()
 
     def get_exploits(self) -> int:
-        """
-        获取五行战功
-        """
+        """获取五行战功"""
         # 五行-合成
         D.get("cmd=element&subtype=4")
         return int(D.find(r"拥有:(\d+)"))
 
     def pelted(self):
-        """
-        太空探宝16倍场景投掷
-        """
+        """太空探宝16倍场景投掷"""
         print("--" * 20)
         while True:
             if self.input_exploits > self.possess_exploits:
@@ -619,9 +565,7 @@ class 夺宝奇兵:
 
 
 class XingPan:
-    """
-    星石自动兑换合成
-    """
+    """星石自动兑换合成"""
 
     def __init__(self, level: int):
         # 合成等级
@@ -655,9 +599,7 @@ class XingPan:
         self.data = self.get_data()
 
     def get_star_id(self) -> dict:
-        """
-        返回2~7级星石合成id
-        """
+        """返回2~7级星石合成id"""
         data = {}
         for name, gem in self.star_gem.items():
             D.get(f"cmd=astrolabe&op=showgemupgrade&gem_type={gem}")
@@ -671,9 +613,7 @@ class XingPan:
         return data
 
     def get_data(self) -> dict:
-        """
-        获取1~6级星石数量及2~7级星石合成id
-        """
+        """获取1~6级星石数量及2~7级星石合成id"""
         data = {}
         for name, gem in self.star_gem.items():
             D.get(f"cmd=astrolabe&op=showgemupgrade&gem_type={gem}")
@@ -703,9 +643,7 @@ class XingPan:
         return data
 
     def get_store_max_number(self, name: str) -> int:
-        """
-        返回幻境商店星石最大兑换数量
-        """
+        """返回幻境商店星石最大兑换数量"""
         data = {
             "翡翠石": 32,
             "玛瑙石": 40,
@@ -719,9 +657,7 @@ class XingPan:
         return 0
 
     def compute(self, name: str, level: int, star_number: dict, count=1) -> int:
-        """
-        返回一级某星石兑换数量
-        """
+        """返回一级某星石兑换数量"""
         self.count[name][level] = count
         # 下一级
         level -= 1
@@ -741,9 +677,7 @@ class XingPan:
                 return self.compute(name, level, star_number, number)
 
     def upgrade(self, name: str):
-        """
-        星石合成
-        """
+        """星石合成"""
         url = {
             "翡翠石": {
                 "ten": "cmd=exchange&subtype=2&type=1233&times=10&costtype=9",
@@ -786,9 +720,7 @@ class XingPan:
 
 
 def 星盘():
-    """
-    星石自动兑换合成
-    """
+    """星石自动兑换合成"""
     i = Input()
 
     upgrade_level = i.get_number("输入合成星石等级（2~7）：")
@@ -802,18 +734,14 @@ def 星盘():
 
 
 class XinYuanYingShenQi:
-    """
-    新元婴神器自动强化
-    """
+    """新元婴神器自动强化"""
 
     def __init__(self, mission_name: str):
         self.mission_name = mission_name
         self.data = self.get_data(self.mission_name)
 
     def get_data(self, name: str) -> dict:
-        """
-        获取神器数据
-        """
+        """获取神器数据"""
         url_params = {
             "投掷武器": "op=1&type=0",
             "小型武器": "op=1&type=1",
@@ -870,9 +798,7 @@ class XinYuanYingShenQi:
         return data
 
     def upgrade(self, name: str):
-        """
-        升级神器
-        """
+        """升级神器"""
         params_data = {
             "投掷武器": "0",
             "小型武器": "1",
@@ -901,9 +827,7 @@ class XinYuanYingShenQi:
 
 
 def 新元婴神器():
-    """
-    神器自动强化
-    """
+    """神器自动强化"""
     mission_list = [
         "投掷武器",
         "小型武器",
@@ -922,9 +846,7 @@ def 新元婴神器():
 
 
 class SanHun:
-    """
-    深渊之潮灵枢精魄三魂自动兑换强化
-    """
+    """深渊之潮灵枢精魄三魂自动兑换强化"""
 
     def __init__(self):
         # 深渊积分
@@ -933,9 +855,7 @@ class SanHun:
         self.data = self.get_data()
 
     def get_data(self) -> dict:
-        """
-        获取三魂数据
-        """
+        """获取三魂数据"""
         data_dict = {"天魂": "1", "地魂": "2", "命魂": "3"}
         data = {}
 
@@ -976,9 +896,7 @@ class SanHun:
         return data
 
     def upgrade(self, name: str):
-        """
-        三魂进阶
-        """
+        """三魂进阶"""
         url = {
             "御魂丹-天": {
                 "ten": "cmd=abysstide&op=abyssexchange&id=1&times=10",
@@ -1029,9 +947,7 @@ def 深渊之潮():
 
 
 class LingShouPian:
-    """
-    神魔录灵兽篇自动兑换强化
-    """
+    """神魔录灵兽篇自动兑换强化"""
 
     def __init__(self):
         # 问鼎天下商店积分
@@ -1041,9 +957,7 @@ class LingShouPian:
         self.data = self.get_data()
 
     def get_fail_value(self) -> int:
-        """
-        返回灵兽篇失败祝福值
-        """
+        """返回灵兽篇失败祝福值"""
         # 祝福合集宝库
         D.get("cmd=newAct&subtype=143")
         if "=神魔录=" not in D.html:
@@ -1051,9 +965,7 @@ class LingShouPian:
         return int(D.find(r"灵兽经五阶5星.*?获得(\d+)"))
 
     def get_data(self) -> dict:
-        """
-        获取灵兽篇数据
-        """
+        """获取灵兽篇数据"""
         data_dict = {
             "夔牛经": "1",
             "饕餮经": "2",
@@ -1101,9 +1013,7 @@ class LingShouPian:
         return data
 
     def upgrade(self, name: str):
-        """
-        灵兽篇提升
-        """
+        """灵兽篇提升"""
         url = {
             "神魔残卷": {
                 "ten": "cmd=exchange&subtype=2&type=1267&times=10&costtype=14",
@@ -1137,9 +1047,7 @@ class LingShouPian:
 
 
 class GuZhenPian:
-    """
-    古阵篇自动兑换突破
-    """
+    """古阵篇自动兑换突破"""
 
     def __init__(self):
         # 问鼎天下商店积分
@@ -1148,9 +1056,7 @@ class GuZhenPian:
         self.data = self.get_data()
 
     def _get_backpack_number(self, consume_name: str) -> int:
-        """
-        获取碎片背包数量
-        """
+        """获取碎片背包数量"""
         data_id = {
             "夔牛碎片": 5154,
             "饕餮碎片": 5155,
@@ -1160,9 +1066,7 @@ class GuZhenPian:
         return get_backpack_number(data_id[consume_name])
 
     def get_data(self) -> dict:
-        """
-        获取古阵篇数据
-        """
+        """获取古阵篇数据"""
         data_dict = {
             "夔牛鼓": "1",
             "饕餮鼎": "2",
@@ -1209,9 +1113,7 @@ class GuZhenPian:
         return data
 
     def upgrade(self, name: str):
-        """
-        古阵篇突破
-        """
+        """古阵篇突破"""
         url = {
             "突破石": {
                 "ten": "cmd=exchange&subtype=2&type=1266&times=10&costtype=14",
@@ -1234,9 +1136,7 @@ class GuZhenPian:
 
 
 def 神魔录():
-    """
-    神魔录：灵兽篇自动兑换强化、古阵篇自动兑换突破
-    """
+    """神魔录：灵兽篇自动兑换强化、古阵篇自动兑换突破"""
     mission_list = ["灵兽篇", "古阵篇"]
     i = Input()
 
@@ -1251,9 +1151,7 @@ def 神魔录():
 
 
 class AoYi:
-    """
-    奥义自动兑换强化
-    """
+    """奥义自动兑换强化"""
 
     def __init__(self):
         # 帮派祭坛商店积分
@@ -1263,9 +1161,7 @@ class AoYi:
         self.data = self.get_data()
 
     def get_fail_value(self) -> int:
-        """
-        返回奥义失败祝福值
-        """
+        """返回奥义失败祝福值"""
         # 祝福合集宝库
         D.get("cmd=newAct&subtype=143")
         if "=技能奥义=" not in D.html:
@@ -1273,9 +1169,7 @@ class AoYi:
         return int(D.find(r"奥义五阶5星.*?获得(\d+)"))
 
     def get_data(self) -> dict:
-        """
-        获取奥义数据
-        """
+        """获取奥义数据"""
         data = {}
         name = "奥义"
 
@@ -1315,9 +1209,7 @@ class AoYi:
         return data
 
     def upgrade(self, name):
-        """
-        奥义升级
-        """
+        """奥义升级"""
         url = {
             "奥秘元素": {
                 "ten": "cmd=exchange&subtype=2&type=1261&times=10&costtype=12",
@@ -1350,9 +1242,7 @@ class AoYi:
 
 
 class JiNengLan:
-    """
-    奥义技能栏自动兑换强化
-    """
+    """奥义技能栏自动兑换强化"""
 
     def __init__(self):
         # 帮派祭坛商店积分
@@ -1362,9 +1252,7 @@ class JiNengLan:
         self.data = self.get_data()
 
     def get_fail_value(self) -> int:
-        """
-        返回奥义技能栏失败祝福值
-        """
+        """返回奥义技能栏失败祝福值"""
         # 祝福合集宝库
         D.get("cmd=newAct&subtype=143")
         if "=技能奥义=" not in D.html:
@@ -1372,9 +1260,7 @@ class JiNengLan:
         return int(D.find(r"技能栏7星.*?失败(\d+)"))
 
     def get_data(self) -> dict:
-        """
-        获取奥义技能栏数据
-        """
+        """获取奥义技能栏数据"""
         data = {}
 
         # 技能栏
@@ -1424,9 +1310,7 @@ class JiNengLan:
         return data
 
     def upgrade(self, name: str):
-        """
-        奥义技能栏升级
-        """
+        """奥义技能栏升级"""
         url = {
             "四灵魂石": {
                 "ten": "cmd=exchange&subtype=2&type=1262&times=10&costtype=12",
@@ -1460,9 +1344,7 @@ class JiNengLan:
 
 
 def 奥义():
-    """
-    奥义、技能栏自动兑换强化
-    """
+    """奥义、技能栏自动兑换强化"""
     mission_list = ["奥义", "技能栏"]
     i = Input()
 
@@ -1477,9 +1359,7 @@ def 奥义():
 
 
 class XianWuXiuZhen:
-    """
-    仙武修真宝物自动强化
-    """
+    """仙武修真宝物自动强化"""
 
     def __init__(self, fail_value: int):
         self.fail_value = fail_value
@@ -1489,9 +1369,7 @@ class XianWuXiuZhen:
         self.data = self.get_data()
 
     def get_fail_value(self, consume_name, level) -> int:
-        """
-        返回史诗、传说、神话失败祝福值
-        """
+        """返回史诗、传说、神话失败祝福值"""
         data = {
             "史诗残片": 6,
             "传说残片": 8,
@@ -1503,9 +1381,7 @@ class XianWuXiuZhen:
         return 2
 
     def get_backpack_num(self) -> dict:
-        """
-        返回史诗、传说、神话残片拥有数量
-        """
+        """返回史诗、传说、神话残片拥有数量"""
         return {
             "史诗残片": get_backpack_number(6681),
             "传说残片": get_backpack_number(6682),
@@ -1513,9 +1389,7 @@ class XianWuXiuZhen:
         }
 
     def get_data(self) -> dict:
-        """
-        获取仙武修真宝物数据
-        """
+        """获取仙武修真宝物数据"""
         data = {}
 
         # 宝物
@@ -1558,9 +1432,7 @@ class XianWuXiuZhen:
         return data
 
     def upgrade(self, name: str):
-        """
-        法宝升级
-        """
+        """法宝升级"""
         _id: str = self.data[name]["id"]
 
         # 关闭自动斗豆兑换
@@ -1604,9 +1476,7 @@ def 仙武修真():
 
 
 class YongBing:
-    """
-    佣兵自动资质还童、悟性提升、阅历突飞
-    """
+    """佣兵自动资质还童、悟性提升、阅历突飞"""
 
     def __init__(self, mission_name: str):
         self.mission_name = mission_name
@@ -1614,9 +1484,7 @@ class YongBing:
         self.data = self.get_data()
 
     def get_data(self) -> dict:
-        """
-        获取佣兵数据
-        """
+        """获取佣兵数据"""
         data = {}
 
         # 佣兵
@@ -1659,9 +1527,7 @@ class YongBing:
         return data
 
     def 还童(self, name: str, _id: str):
-        """
-        佣兵还童或者高级还童为卓越资质
-        """
+        """佣兵还童或者高级还童为卓越资质"""
         while True:
             # 还童
             D.get(f"cmd=newmercenary&sub=6&id={_id}&type=1&confirm=1")
@@ -1681,9 +1547,7 @@ class YongBing:
                 break
 
     def 提升(self, name: str, _id: str):
-        """
-        佣兵悟性提升
-        """
+        """佣兵悟性提升"""
         while True:
             # 提升
             D.get(f"cmd=newmercenary&sub=5&id={_id}")
@@ -1693,9 +1557,7 @@ class YongBing:
                 break
 
     def 突飞(self, name: str, _id: str):
-        """
-        佣兵突飞十次
-        """
+        """佣兵突飞十次"""
         while True:
             # 提升
             D.get(f"cmd=newmercenary&sub=4&id={_id}&count=10&tfl=1")
@@ -1707,9 +1569,7 @@ class YongBing:
                 break
 
     def upgrade(self, name: str):
-        """
-        执行佣兵任务
-        """
+        """执行佣兵任务"""
         _id: str = self.data[name]["id"]
 
         if self.mission_name == "资质还童":
@@ -1721,9 +1581,7 @@ class YongBing:
 
 
 def 佣兵():
-    """
-    佣兵自动资质还童、悟性提升、阅历突飞
-    """
+    """佣兵自动资质还童、悟性提升、阅历突飞"""
     mission_list = ["资质还童", "悟性提升", "阅历突飞"]
     i = Input()
 
@@ -1734,17 +1592,13 @@ def 佣兵():
 
 
 class 背包:
-    """
-    背包搜索工具
-    """
+    """背包搜索工具"""
 
     def __init__(self):
         self.search(self.get_data())
 
     def get_data(self) -> list[dict]:
-        """
-        获取背包数据
-        """
+        """获取背包数据"""
         data = []
         # 背包
         D.get("cmd=store")
@@ -1764,9 +1618,7 @@ class 背包:
         return data
 
     def search_backpack(self, query, items):
-        """
-        执行背包搜索
-        """
+        """执行背包搜索"""
         results = []
         for item in items:
             # 同时匹配ID（精确匹配）和名称（模糊匹配）
@@ -1794,9 +1646,7 @@ class 背包:
 
 
 class ZhuanJing:
-    """
-    专精自动兑换强化
-    """
+    """专精自动兑换强化"""
 
     def __init__(self):
         # 镖行天下商店积分
@@ -1805,9 +1655,7 @@ class ZhuanJing:
         self.data = self.get_data()
 
     def get_fail_value(self, level: str) -> int:
-        """
-        返回专精失败祝福值
-        """
+        """返回专精失败祝福值"""
         # 祝福合集宝库
         D.get("cmd=newAct&subtype=143")
         if "=专精=" not in D.html:
@@ -1817,9 +1665,7 @@ class ZhuanJing:
         return int(D.find(r"专精.*?四阶5星.*?(\d+)"))
 
     def _get_backpack_number(self, consume_name: str) -> int:
-        """
-        获取消耗材料拥有数量
-        """
+        """获取消耗材料拥有数量"""
         data_id = {
             "投掷武器符文石": 3658,
             "小型武器符文石": 3657,
@@ -1829,9 +1675,7 @@ class ZhuanJing:
         return get_backpack_number(data_id[consume_name])
 
     def get_data(self) -> dict:
-        """
-        获取专精数据
-        """
+        """获取专精数据"""
         data = {}
         for _id in range(4):
             D.get(f"cmd=weapon_specialize&op=0&type_id={_id}")
@@ -1877,9 +1721,7 @@ class ZhuanJing:
         return data
 
     def upgrade(self, name: str):
-        """
-        专精升级
-        """
+        """专精升级"""
         url = {
             "投掷武器符文石": {
                 "ten": "cmd=exchange&subtype=2&type=1208&times=10&costtype=4",
@@ -1925,9 +1767,7 @@ class ZhuanJing:
 
 
 class WuQiLan:
-    """
-    专精武器栏自动兑换强化
-    """
+    """专精武器栏自动兑换强化"""
 
     def __init__(self):
         # 镖行天下商店积分
@@ -1937,9 +1777,7 @@ class WuQiLan:
         self.data = self.get_data()
 
     def get_fail_value(self) -> int:
-        """
-        返回专精武器栏失败祝福值
-        """
+        """返回专精武器栏失败祝福值"""
         # 祝福合集宝库
         D.get("cmd=newAct&subtype=143")
         if "=专精=" not in D.html:
@@ -1947,9 +1785,7 @@ class WuQiLan:
         return int(D.find(r"武器栏失败获得(\d+)"))
 
     def get_data(self) -> dict:
-        """
-        获取专精武器栏数据
-        """
+        """获取专精武器栏数据"""
         data = {}
         # 材料拥有数量
         possess_num = get_backpack_number(3659)
@@ -1992,9 +1828,7 @@ class WuQiLan:
         return data
 
     def upgrade(self, name: str):
-        """
-        专精武器栏升级
-        """
+        """专精武器栏升级"""
         url = {
             "千年寒铁": {
                 "ten": "cmd=exchange&subtype=2&type=1209&times=10&costtype=4",
@@ -2028,9 +1862,7 @@ class WuQiLan:
 
 
 def 专精():
-    """
-    专精自动兑换强化
-    """
+    """专精自动兑换强化"""
     mission_list = ["专精", "武器栏"]
     i = Input()
 
@@ -2044,9 +1876,7 @@ def 专精():
 
 
 class 掠夺:
-    """
-    低于输入战力时自动掠夺
-    """
+    """低于输入战力时自动掠夺"""
 
     def __init__(self):
         i = Input()
@@ -2064,16 +1894,12 @@ class 掠夺:
                 time.sleep(1)
 
     def get_id(self) -> list:
-        """
-        获取所有可掠夺的粮仓id
-        """
+        """获取所有可掠夺的粮仓id"""
         D.get("cmd=forage_war&subtype=3")
         return D.findall(r'gra_id=(\d+)">掠夺')
 
     def is_plunder(self, gra_id: str) -> bool:
-        """
-        判断某粮仓第一个成员是否掠夺
-        """
+        """判断某粮仓第一个成员是否掠夺"""
         D.get(f"cmd=forage_war&subtype=3&op=1&gra_id={gra_id}")
         combat_power = D.find(r"<br />1.*? (\d+)\.")
         D.log(combat_power, f"{gra_id}战力")
@@ -2083,9 +1909,7 @@ class 掠夺:
         return False
 
     def plunder(self, gra_id: str) -> bool:
-        """
-        掠夺某粮仓第一个成员
-        """
+        """掠夺某粮仓第一个成员"""
         D.get(f"cmd=forage_war&subtype=4&gra_id={gra_id}")
         D.log(D.find("返回</a><br />(.*?)<"), "掠夺")
         D.log(D.find("生命：(.*?)<"), "生命")

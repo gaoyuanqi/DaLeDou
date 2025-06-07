@@ -6,9 +6,7 @@ from ..core.daledou import DaLeDou
 
 
 def c_邪神秘宝(D: DaLeDou):
-    """
-    高级秘宝和极品秘宝免费一次或者抽奖一次
-    """
+    """高级秘宝和极品秘宝免费一次或者抽奖一次"""
     for i in [0, 1]:
         # 免费一次 或 抽奖一次
         D.get(f"cmd=tenlottery&op=2&type={i}")
@@ -16,9 +14,6 @@ def c_邪神秘宝(D: DaLeDou):
 
 
 def c_问鼎天下(D: DaLeDou):
-    """
-    领取帮资或放弃资源点、东海攻占倒数第一个
-    """
     # 问鼎天下
     D.get("cmd=tbattle")
     if "你占领的领地已经枯竭" in D.html:
@@ -33,57 +28,77 @@ def c_问鼎天下(D: DaLeDou):
     # 1东海 2南荒 3西泽 4北寒
     D.get("cmd=tbattle&op=showregion&region=1")
     # 攻占 倒数第一个
-    if _id := D.findall(r"id=(\d+).*?攻占</a>"):
-        D.get(f"cmd=tbattle&op=occupy&id={_id[-1]}&region=1")
+    if _ids := D.findall(r"id=(\d+).*?攻占</a>"):
+        D.get(f"cmd=tbattle&op=occupy&id={_ids[-1]}&region=1")
         D.log(D.find()).append()
+
+
+def 帮派宝库(D: DaLeDou):
+    # 帮派宝库
+    D.get("cmd=fac_corp&op=0")
+    data = D.findall(r'gift_id=(\d+)&amp;type=(\d+)">点击领取')
+    if not data:
+        D.log("帮派宝库没有礼包领取", "帮派商会-帮派宝库").append()
+        return
+
+    for _id, t in data:
+        D.get(f"cmd=fac_corp&op=3&gift_id={_id}&type={t}")
+        D.log(D.find(r"</p>(.*?)<br />"), "帮派商会-帮派宝库").append()
+        if "入帮24小时才能领取商会礼包" in D.html:
+            break
+
+
+def 交易会所(D: DaLeDou):
+    config: dict = D.config["帮派商会"]["交易会所"]
+    if config is None:
+        return
+
+    # 交易会所
+    D.get("cmd=fac_corp&op=1")
+    if "已交易" in D.html:
+        return
+
+    data = []
+    for mode in config:
+        data += D.findall(rf"{mode}.*?type=(\d+)&amp;goods_id=(\d+)")
+    for t, _id in data:
+        # 兑换
+        D.get(f"cmd=fac_corp&op=4&type={t}&goods_id={_id}")
+        D.log(D.find(r"</p>(.*?)<br />"), f"帮派商会-交易-{_id}").append()
+
+
+def 兑换商店(D: DaLeDou):
+    config: dict = D.config["帮派商会"]["兑换商店"]
+    if config is None:
+        return
+
+    # 兑换商店
+    D.get("cmd=fac_corp&op=2")
+    if "已兑换" in D.html:
+        return
+
+    data = []
+    for mode in config:
+        data += D.findall(rf"{mode}.*?type_id=(\d+)")
+    for t in data:
+        # 兑换
+        D.get(f"cmd=fac_corp&op=5&type_id={t}")
+        D.log(D.find(r"</p>(.*?)<br />"), f"帮派商会-兑换-{t}").append()
 
 
 def c_帮派商会(D: DaLeDou):
     """
-    帮派宝库领取礼包、交易会所交易物品、兑换商店兑换物品
+    帮派宝库：每天领取礼包
+    交易会所：每天交易物品
+    兑换商店：每天兑换物品
     """
-    config: dict = D.config["帮派商会"]
-    jiaoyi = config["交易会所"]
-    duihuan = config["兑换商店"]
-    data_1 = []
-    data_2 = []
-
-    # 帮派宝库
-    D.get("cmd=fac_corp&op=0")
-    if data := D.findall(r'gift_id=(\d+)&amp;type=(\d+)">点击领取'):
-        for _id, t in data:
-            D.get(f"cmd=fac_corp&op=3&gift_id={_id}&type={t}")
-            D.log(D.find(r"</p>(.*?)<br />"), "帮派商会-帮派宝库").append()
-            if "入帮24小时才能领取商会礼包" in D.html:
-                break
-    else:
-        D.log("没有礼包领取", "帮派商会-帮派宝库").append()
-
-    # 交易会所
-    D.get("cmd=fac_corp&op=1")
-    if "已交易" not in D.html:
-        for mode in jiaoyi:
-            data_1 += D.findall(rf"{mode}.*?type=(\d+)&amp;goods_id=(\d+)")
-        for t, _id in data_1:
-            # 兑换
-            D.get(f"cmd=fac_corp&op=4&type={t}&goods_id={_id}")
-            D.log(D.find(r"</p>(.*?)<br />"), f"帮派商会-交易-{_id}").append()
-
-    # 兑换商店
-    D.get("cmd=fac_corp&op=2")
-    if "已兑换" not in D.html:
-        for mode in duihuan:
-            data_2 += D.findall(rf"{mode}.*?type_id=(\d+)")
-        for t in data_2:
-            # 兑换
-            D.get(f"cmd=fac_corp&op=5&type_id={t}")
-            D.log(D.find(r"</p>(.*?)<br />"), f"帮派商会-兑换-{t}").append()
+    帮派宝库(D)
+    交易会所(D)
+    兑换商店(D)
 
 
 def c_任务派遣中心(D: DaLeDou):
-    """
-    至多领取奖励、接受任务3次
-    """
+    """至多领取奖励、接受任务3次"""
     # 任务派遣中心
     D.get("cmd=missionassign&subtype=0")
     for _id in D.findall(r'mission_id=(.*?)">查看'):
@@ -151,9 +166,7 @@ def c_任务派遣中心(D: DaLeDou):
 
 
 def c_侠士客栈(D: DaLeDou):
-    """
-    领取奖励3次、客栈奇遇
-    """
+    """领取奖励3次、客栈奇遇"""
     # 侠士客栈
     D.get("cmd=warriorinn")
     if t := D.find(r"type=(\d+).*?领取奖励</a>"):
@@ -178,20 +191,20 @@ def c_侠士客栈(D: DaLeDou):
 
 
 def c_帮派巡礼(D: DaLeDou):
-    """
-    深渊之潮-帮派巡礼
-    """
+    """深渊之潮-帮派巡礼"""
     # 领取巡游赠礼
     D.get("cmd=abysstide&op=getfactiongift")
     D.log(D.find()).append()
 
 
 def c_深渊秘境(D: DaLeDou):
-    """
-    深渊秘境至多通关5次
-    """
+    """深渊秘境至多通关5次"""
     config: dict = D.config["深渊之潮"]["深渊秘境"]
     _id: int = config["id"]
+
+    if _id is None:
+        D.log("你没有配置深渊秘境副本").append()
+        return
 
     if config["is_exchange"]:
         # 兑换一次副本
@@ -218,10 +231,40 @@ def c_深渊秘境(D: DaLeDou):
         D.log(D.find()).append()
 
 
+def c_客栈同福(D: DaLeDou):
+    """
+    献酒：每天当有匹配项时献酒，详见配置文件
+    """
+    config: list = D.config["客栈同福"]
+    if config is None:
+        D.log("你没有配置匹配").append()
+        return
+
+    # 客栈同福
+    D.get("cmd=newAct&subtype=154")
+    count: str = D.find(r"现有黄酒数量：(\d+)")
+    if count == "0":
+        D.log("黄酒数量不足，本次无操作").append()
+        return
+
+    is_libation = False
+    for _ in range(int(count)):
+        for pattern in config:
+            if pattern not in D.html:
+                continue
+            is_libation = True
+            # 献酒
+            D.get("cmd=newAct&subtype=155")
+            D.log(D.find(r"】<br /><p>(.*?)<br />")).append()
+            if "黄酒不足" in D.html:
+                return
+        if not is_libation:
+            D.log("没有找到匹配，本次无操作").append()
+            break
+
+
 def c_幸运金蛋(D: DaLeDou):
-    """
-    砸金蛋一次
-    """
+    """砸金蛋一次"""
     # 幸运金蛋
     D.get("cmd=newAct&subtype=110&op=0")
     if i := D.find(r"index=(\d+)"):
@@ -233,9 +276,7 @@ def c_幸运金蛋(D: DaLeDou):
 
 
 def c_乐斗大笨钟(D: DaLeDou):
-    """
-    领取一次
-    """
+    """领取一次"""
     # 领取
     D.get("cmd=newAct&subtype=18")
     D.log(D.find(r"<br /><br /><br />(.*?)<br />")).append()

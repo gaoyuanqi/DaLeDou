@@ -30,6 +30,7 @@ from .common import (
     c_帮派巡礼,
     c_深渊秘境,
     c_幸运金蛋,
+    c_客栈同福,
     c_乐斗大笨钟,
 )
 
@@ -48,9 +49,7 @@ def _run(d: DaLeDou, func_names: list):
 
 
 def run_one_args(d: DaLeDou, extra_args: list):
-    """
-    运行one模式携带的函数参数列表
-    """
+    """运行one模式携带的函数参数列表"""
     _run(d, extra_args)
     print("--" * 20)
     print(d.pushplus_content())
@@ -58,9 +57,7 @@ def run_one_args(d: DaLeDou, extra_args: list):
 
 
 def run_one_all(d: DaLeDou, title: str):
-    """
-    运行one模式所有任务
-    """
+    """运行one模式所有任务"""
     _run(d, d.func_names_one)
     print("--" * 20)
     d.pushplus_send(title)
@@ -70,9 +67,7 @@ def run_one_all(d: DaLeDou, title: str):
 
 
 def get_exchange_config(config: list):
-    """
-    返回兑换名称、兑换id和兑换数量
-    """
+    """返回兑换名称、兑换id和兑换数量"""
     for item in config:
         name: str = item["name"]
         _id: int = item["id"]
@@ -166,6 +161,9 @@ def 战阵调整() -> bool:
 
 def 荣誉兑换():
     config: list[dict] = D.config["华山论剑"]
+    if config is None:
+        return
+
     for name, _id, exchange_quantity in get_exchange_config(config):
         count = 0
         for _ in range(exchange_quantity // 10):
@@ -196,8 +194,10 @@ def 侠士招募():
 
 def 华山论剑():
     """
-    每月1~25号每天免费挑战8次，自动战阵调整
-    每月26号领取赛季段位奖励、荣誉兑换、侠士招募
+    免费挑战：每月1~25号每天挑战8次，耐久不足或者侠士未上阵时自动战阵调整
+    赛季段位奖励：每月26号领取
+    荣誉兑换：每月26号兑换，详见配置文件
+    侠士招募：每月26号招募
     """
     if D.day == 26:
         # 领取赛季段位奖励
@@ -227,9 +227,7 @@ def 华山论剑():
 
 
 def 斗豆月卡():
-    """
-    每天领取150斗豆
-    """
+    """每天领取150斗豆"""
     # 领取150斗豆
     D.get("cmd=monthcard&sub=1")
     D.log(D.find(r"<p>(.*?)<br />")).append()
@@ -361,9 +359,7 @@ def 乐斗():
 
 
 def 武林():
-    """
-    每天报名武林大会
-    """
+    """每天报名武林大会"""
     # 报名
     D.get("cmd=fastSignWulin&ifFirstSign=1")
     if "使用规则" in D.html:
@@ -373,18 +369,14 @@ def 武林():
 
 
 def 群侠():
-    """
-    每天报名笑傲群侠
-    """
+    """每天报名笑傲群侠"""
     # 报名
     D.get("cmd=knightfight&op=signup")
     D.log(D.find(r"侠士侠号.*?<br />(.*?)<br />")).append()
 
 
 def 侠侣():
-    """
-    周二、周五、周日报名侠侣争霸
-    """
+    """周二、周五、周日报名侠侣争霸"""
     # 报名
     D.get("cmd=cfight&subtype=9")
     if "使用规则" in D.html:
@@ -394,9 +386,7 @@ def 侠侣():
 
 
 def 结拜():
-    """
-    周一、周二报名结拜（从上往下依次报名）
-    """
+    """周一、周二报名结拜（从上往下依次报名）"""
     for _id in [1, 2, 3, 5, 4]:
         # 报名
         D.get(f"cmd=brofight&subtype=1&gidIdx={_id}")
@@ -444,9 +434,9 @@ def 巅峰之战进行中():
 
 def 矿洞():
     """
-    每天挑战三次
-    领取通关奖励
-    开启副本
+    挑战：每天3次
+    通关奖励：有就领取
+    开启副本：详见配置文件
     """
     config: str = D.config["矿洞"]
 
@@ -460,11 +450,14 @@ def 矿洞():
             if "挑战次数不足" in D.html:
                 break
         elif "开启副本" in D.html:
+            if config is None:
+                D.log("你没有配置开启副本").append()
+                return
             # 确认开启
             D.get(f"cmd=factionmine&op=start&{config}")
             D.log(D.find()).append()
             if "当前不能开启此副本" in D.html:
-                break
+                return
         elif "领取奖励" in D.html:
             D.get("cmd=factionmine&op=reward")
             D.log(D.find()).append()
@@ -545,7 +538,9 @@ def 踢馆():
 
 def 竞技场():
     """
-    每月1~25号每天兑换10个河图洛书、至多挑战10次、领取奖励
+    兑换10个河图洛书：每月1~25号每天兑换，详见配置文件
+    挑战：每月1~25号每天至多10次
+    领取奖励：每月1~25号每天领取
     """
     config: bool = D.config["竞技场"]
     if config:
@@ -566,9 +561,7 @@ def 竞技场():
 
 
 def 十二宫():
-    """
-    每天自动选择最高场景请猴王扫荡
-    """
+    """每天自动选择最高场景请猴王扫荡"""
     # 十二宫
     D.get("cmd=zodiacdungeon")
     if scene_id := D.findall(r"scene_id=(\d+)\">扫荡"):
@@ -588,9 +581,7 @@ def 十二宫():
 
 
 def 许愿():
-    """
-    每天领取许愿奖励、上香许愿、领取魂珠碎片宝箱
-    """
+    """每天领取许愿奖励、上香许愿、领取魂珠碎片宝箱"""
     for sub in [5, 1, 6]:
         D.get(f"cmd=wish&sub={sub}")
         D.log(D.find()).append()
@@ -615,10 +606,11 @@ def 抢地盘():
 
 
 def 历练():
-    """
-    每天乐斗BOSS一次，至多乐斗5个BOSS
-    """
+    """每天乐斗BOSS一次，至多乐斗5个BOSS"""
     config: list = D.config["历练"]
+    if config is None:
+        D.log("你没有配置历练BOSS").append()
+        return
 
     # 乐斗助手
     D.get("cmd=view&type=6")
@@ -643,9 +635,7 @@ def 历练():
 
 
 def 镖行天下():
-    """
-    每天领取奖励、刷新押镖、启程护送、拦截3次
-    """
+    """每天领取奖励、刷新押镖、启程护送、拦截3次"""
     for op in [16, 8, 6]:
         # 领取奖励、刷新押镖、启程护送
         D.get(f"cmd=cargo&op={op}")
@@ -698,18 +688,14 @@ def 幻境():
 
 
 def 群雄逐鹿():
-    """
-    周六报名、领奖
-    """
+    """周六报名、领奖"""
     for op in ["signup", "drawreward"]:
         D.get(f"cmd=thronesbattle&op={op}")
         D.log(D.find(r"届群雄逐鹿<br />(.*?)<br />")).append()
 
 
 def 画卷迷踪():
-    """
-    每天至多挑战20次
-    """
+    """每天至多挑战20次"""
     for _ in range(20):
         # 准备完成进入战斗
         D.get("cmd=scroll_dungeon&op=fight&buff=0")
@@ -779,6 +765,9 @@ def 门派():
 
 def 门派邀请赛_商店兑换():
     config: list[dict] = D.config["门派邀请赛"]
+    if config is None:
+        return
+
     for name, _id, exchange_quantity in get_exchange_config(config):
         count = 0
         for _ in range(exchange_quantity // 10):
@@ -832,6 +821,9 @@ def 门派邀请赛():
 
 def 会武_商店兑换():
     config: list[dict] = D.config["会武"]
+    if config is None:
+        return
+
     for name, _id, exchange_quantity in get_exchange_config(config):
         count = 0
         for _ in range(exchange_quantity // 10):
@@ -920,9 +912,10 @@ def 梦幻旅行():
 
 def 梦想之旅():
     """
-    每天一次普通旅行
-    周四梦幻旅行，需已去过至少5个区域
-    周四领取区域礼包、超级礼包
+    普通旅行：每天一次
+    梦幻旅行：周四且需已去过至少5个区域时
+    区域礼包：有就周四领取
+    超级礼包：有就周四领取
     """
     # 普通旅行
     D.get("cmd=dreamtrip&sub=2")
@@ -932,9 +925,7 @@ def 梦想之旅():
 
 
 def 问鼎天下_商店兑换():
-    """
-    仅兑换碎片（需神魔录古阵篇可以升一级且碎片拥有数量少于突破需要数量）
-    """
+    """仅兑换碎片（需神魔录古阵篇可以升一级且碎片拥有数量少于突破需要数量）"""
 
     def get_number():
         """获取背包物品数量"""
@@ -1012,19 +1003,28 @@ def 问鼎天下_商店兑换():
 
 def 问鼎天下():
     """
-    周一领取奖励
-    周一~周五领取帮资或放弃资源点、东海攻占倒数第一个
-    周六淘汰赛助威、商店兑换
-    周日排名赛助威、商店兑换
+    领取奖励：周一领取
+    领取帮资：周一~周五有就领取
+    放弃资源点：周一~周五有就放弃
+    东海：周一~周五攻占倒数第一个
+    淘汰赛：周六助威，详见配置文件
+    排名赛：周日助威，详见配置文件
+    商店兑换：周六周日兑换
     """
     if D.week == 6:
         # 淘汰赛助威
         _id = D.config["问鼎天下"]["淘汰赛"]
+        if _id is None:
+            D.log("你没有配置淘汰赛助威帮派id").append()
+            return
         D.get(f"cmd=tbattle&op=cheerregionbattle&id={_id}")
         D.log(D.find()).append()
     elif D.week == 7:
         # 排名赛助威
         _id = D.config["问鼎天下"]["排名赛"]
+        if _id is None:
+            D.log("你没有配置排名赛助威帮派id").append()
+            return
         D.get(f"cmd=tbattle&op=cheerchampionbattle&id={_id}")
         D.log(D.find()).append()
 
@@ -1140,9 +1140,7 @@ def 帮派黄金联赛_参战():
 
 
 def 帮派黄金联赛():
-    """
-    每天领取奖励、领取帮派赛季奖励、参与防守、参战攻击
-    """
+    """每天领取奖励、领取帮派赛季奖励、参与防守、参战攻击"""
     # 帮派黄金联赛
     D.get("cmd=factionleague&op=0")
     if "领取奖励" in D.html:
@@ -1186,6 +1184,9 @@ def 武林盟主():
 
     if D.week in [1, 3, 5]:
         _id: int = D.config["武林盟主"]
+        if _id is None:
+            D.log("你没有配置报名赛场id").append()
+            return
         D.get(f"cmd=wlmz&op=signup&ground_id={_id}")
         if "总决赛周不允许报名" in D.html or "您的战力不足" in D.html:
             D.log(D.find(r"战报</a><br />(.*?)<br />")).append()
@@ -1202,9 +1203,7 @@ def 武林盟主():
 
 
 def 全民乱斗():
-    """
-    每天乱斗竞技任务列表领取、乱斗任务领取
-    """
+    """每天乱斗竞技任务列表领取、乱斗任务领取"""
     collect_status = False
     for t in [2, 3, 4]:
         D.get(f"cmd=luandou&op=0&acttype={t}")
@@ -1222,9 +1221,7 @@ def 侠士客栈():
 
 
 def 大侠回归三重好礼():
-    """
-    周四领取奖励
-    """
+    """周四领取奖励"""
     # 大侠回归三重好礼
     D.get("cmd=newAct&subtype=173&op=1")
     if data := D.findall(r"subtype=(\d+).*?taskid=(\d+)"):
@@ -1267,6 +1264,9 @@ def 飞升大作战():
 
 def 许愿帮铺():
     config: list[dict] = D.config["深渊之潮"]["许愿帮铺"]
+    if config is None:
+        return
+
     for name, _id, exchange_quantity in get_exchange_config(config):
         count = 0
         if "之书" in name:
@@ -1291,9 +1291,9 @@ def 许愿帮铺():
 
 def 深渊之潮():
     """
-    每天帮派巡礼领取巡游赠礼
-    每天深渊秘境至多通关5次
-    周四许愿帮铺材料兑换
+    帮派巡礼：每天领取巡游赠礼
+    深渊秘境：每天至多通关5次，是否兑换次数详见配置文件
+    许愿帮铺：周四兑换，详见配置文件
     """
     c_帮派巡礼(D)
     c_深渊秘境(D)
@@ -1302,9 +1302,7 @@ def 深渊之潮():
 
 
 def 侠客岛():
-    """
-    侠客行至多接受任务3次（免费次数为0时不再刷新）
-    """
+    """侠客行至多接受任务3次（免费次数为0时不再刷新）"""
     count = "4"
     mission_success = False
     # 侠客行
@@ -1349,9 +1347,6 @@ def 侠客岛():
 
 
 def 八卦迷阵():
-    """
-    每天根据首通提示通关、领取通关奖励
-    """
     _data = {
         "离": 1,
         "坤": 2,
@@ -1390,11 +1385,10 @@ def 八卦迷阵():
 
 
 def 遗迹商店():
-    """
-    赛季结束日期的前一天执行
-    遗迹征伐-遗迹商店特惠区、售卖区兑换
-    """
     config: dict = D.config["时空遗迹"]["遗迹商店"]
+    if config is None:
+        return
+
     for t, _list in config.items():
         for name, _id, exchange_quantity in get_exchange_config(_list):
             count = 0
@@ -1403,7 +1397,7 @@ def 遗迹商店():
                 D.get(f"cmd=spacerelic&op=buy&type={t}&id={_id}&num=10")
                 D.log(
                     D.find(r"售卖区.*?<br /><br /><br />(.*?)<"),
-                    f"时空遗迹-遗迹商店-{name}",
+                    name,
                 )
                 if "兑换成功" not in D.html:
                     break
@@ -1413,7 +1407,7 @@ def 遗迹商店():
                 D.get(f"cmd=spacerelic&op=buy&type={t}&id={_id}&num=1")
                 D.log(
                     D.find(r"售卖区.*?<br /><br /><br />(.*?)<"),
-                    f"时空遗迹-遗迹商店-{name}",
+                    name,
                 )
                 if "兑换成功" not in D.html:
                     break
@@ -1423,8 +1417,12 @@ def 遗迹商店():
 
 
 def 异兽洞窟():
-    config: list = D.config["时空遗迹"]["异兽洞窟"]
-    for _id in config:
+    _ids: list = D.config["时空遗迹"]["异兽洞窟"]
+    if _ids is None:
+        D.log("你没有配置异兽洞窟id").append()
+        return
+
+    for _id in _ids:
         D.get(f"cmd=spacerelic&op=monsterdetail&id={_id}")
         if "剩余挑战次数：0" in D.html:
             D.log("异兽洞窟没有挑战次数", "时空遗迹-异兽洞窟").append()
@@ -1456,17 +1454,6 @@ def 悬赏任务():
 
 
 def 遗迹征伐():
-    """
-    第七周的最后一个周三（含）之前执行：
-    1.异兽洞窟：优先扫荡，否则挑战
-    2.联合征伐：每天挑战一次
-    3.悬赏任务：每天领取
-
-    赛季结束日期的前一天执行：
-    1.领取悬赏任务登录奖励
-    2.领取赛季排行奖励
-    3.悬赏商店兑换
-    """
     # 遗迹征伐
     D.get("cmd=spacerelic&op=relicindex")
     year = D.find(r"(\d+)年")
@@ -1501,16 +1488,25 @@ def 遗迹征伐():
 
 def 时空遗迹():
     """
-    八卦迷阵、遗迹征伐
+    八卦迷阵：
+        八卦门：每天根据首通提示通关
+        领取通关奖励：通关八卦后领取
+    遗迹征伐：
+        第七周的最后一个周三（含）之前执行：
+            异兽洞窟：优先扫荡，否则挑战
+            联合征伐：每天挑战一次
+            悬赏任务：每天领取
+        赛季结束日期的前一天执行：
+            领取悬赏任务登录奖励
+            领取赛季排行奖励
+            悬赏商店兑换
     """
     八卦迷阵()
     遗迹征伐()
 
 
 def 世界树():
-    """
-    每天一键领取经验奖励、免费温养（无武器时自动选择武器）
-    """
+    """每天一键领取经验奖励、免费温养（无武器时自动选择武器）"""
     # 世界树
     D.get("cmd=worldtree")
     # 一键领取经验奖励
@@ -1545,10 +1541,94 @@ def 世界树():
     D.log("免费温养：" + D.find(r"规则</a><br />(.*?)<br />")).append()
 
 
+def 龙凰论武():
+    if D.day > 25:
+        return
+
+    if 1 <= D.day <= 3:
+        # 该任务脚本还未完善
+        D.log("脚本还没有自动报名功能").append()
+        return
+
+    # 龙凰之境
+    D.get("cmd=dragonphoenix&op=lunwu")
+    if "已报名" in D.html:
+        D.log("已过报名期，系统已随机报名，次日8:00正式进入赛区").append()
+        return
+    elif "论武榜" not in D.html:
+        D.log("已过报名期").append()
+        return
+
+    config: int = D.config["龙凰之境"]["龙凰论武"]
+    for _ in range(config):
+        # 获取挑战次数
+        D.get("cmd=dragonphoenix&op=buypk")
+        D.log(D.find(r"/5</a><br /><br />(.*?)<")).append()
+        if "兑换所需论武券不足" in D.html:
+            break
+
+    # 每日领奖
+    D.get("cmd=dragonphoenix&op=gift")
+    D.log(D.find(r"/5</a><br /><br />(.*?)<")).append()
+
+    for _ in range(7):
+        data = D.findall(r"uin=(\d+).*?idx=(\d+)")
+        uin, _idx = random.choice(data)
+        # 挑战
+        D.get(f"cmd=dragonphoenix&op=pk&zone=1&uin={uin}&idx={_idx}")
+        D.log(D.find(r"/5</a><br /><br />(.*?)<")).append()
+        if "挑战次数不足" in D.html:
+            break
+
+
+def 龙凰云集():
+    if D.day != 27:
+        return
+
+    for _id in range(1, 6):
+        # 领奖
+        D.get(f"cmd=dragonphoenix&op=reward&idx={_id}")
+        D.log(D.find(r"<br /><br /><br />(.*?)<")).append()
+
+    config: list[dict] = D.config["龙凰之境"]["龙凰云集"]
+    if config is None:
+        return
+
+    for name, _id, exchange_quantity in get_exchange_config(config):
+        count = 0
+        for _ in range(exchange_quantity // 10):
+            D.get(f"cmd=dragonphoenix&op=buy&id={_id}&num=10")
+            D.log(D.find(r"<br /><br /><br />(.*?)<"), name)
+            if "成功" not in D.html:
+                break
+            count += 10
+        for _ in range(exchange_quantity - count):
+            D.get(f"cmd=dragonphoenix&op=buy&id={_id}&num=1")
+            D.log(D.find(r"<br /><br /><br />(.*?)<"), name)
+            if "成功" not in D.html:
+                break
+            count += 1
+        if count:
+            D.log(f"兑换{name}*{count}").append()
+
+
+def 龙凰之境():
+    """
+    龙凰论武：
+        报名：每月1~3号每天报名（报名还未完善，只是进入论武）
+        每日领奖：每月4~25号每天一次
+        获取挑战次数：每月4~25号每天兑换，兑换次数详见配置文件
+        挑战：每月4~25号每天至多挑战7次（随机选择玩家）
+    龙凰云集：
+        领奖：每月27号领取所有
+        商店兑换：每月27号兑换，兑换次数详见配置文件
+    """
+    龙凰论武()
+    龙凰云集()
+
+
 def 增强经脉():
-    """
-    每天至多传功12次
-    """
+    """每天至多传功12次"""
     # 关闭传功符不足用斗豆代替
     D.get("cmd=intfmerid&sub=21&doudou=0")
     if "关闭" in D.html:
@@ -1574,9 +1654,7 @@ def 增强经脉():
 
 
 def 助阵():
-    """
-    无字天书或者河图洛书提升3次
-    """
+    """无字天书或者河图洛书提升3次"""
     data = {
         1: [0],
         2: [0, 1],
@@ -1628,9 +1706,7 @@ def 助阵():
 
 
 def 查看好友资料():
-    """
-    查看第2页所有好友
-    """
+    """查看第2页所有好友"""
     # 乐斗助手
     D.get("cmd=view&type=6")
     if "开启查看好友信息和收徒" in D.html:
@@ -1644,9 +1720,7 @@ def 查看好友资料():
 
 
 def 徽章进阶():
-    """
-    进阶一次
-    """
+    """进阶一次"""
     # 关闭道具不足自动购买
     D.get("cmd=achievement&op=setautobuy&enable=0&achievement_id=12")
     for _id in range(1, 41):
@@ -1673,9 +1747,7 @@ def 兵法研习():
 
 
 def 挑战陌生人():
-    """
-    乐斗陌生人4次
-    """
+    """乐斗陌生人4次"""
     # 斗友
     D.get("cmd=friendlist&type=1")
     for u in D.findall(r"</a>\d+.*?B_UID=(\d+)")[:4]:
@@ -1684,9 +1756,7 @@ def 挑战陌生人():
 
 
 def 任务():
-    """
-    增强经脉、助阵每天必做
-    """
+    """增强经脉、助阵每天必做"""
     增强经脉()
     助阵()
 
@@ -1708,8 +1778,12 @@ def 任务():
 
 
 def 帮派供奉():
-    config: list = D.config["我的帮派"]
-    for _id in config:
+    _ids: list = D.config["我的帮派"]
+    if _ids is None:
+        D.log("你没有配置帮派供奉物品id").append()
+        return
+
+    for _id in _ids:
         for _ in range(5):
             # 供奉
             D.get(f"cmd=oblation&id={_id}&page=1")
@@ -1786,9 +1860,7 @@ def 我的帮派():
 
 
 def 帮派祭坛():
-    """
-    每天转动轮盘至多30次、领取奖励
-    """
+    """每天转动轮盘至多30次、领取奖励"""
     # 帮派祭坛
     D.get("cmd=altar")
     for _ in range(30):
@@ -1824,9 +1896,7 @@ def 帮派祭坛():
 
 
 def 每日奖励():
-    """
-    每天领取每日礼包、传功符礼包、达人礼包、无字天书礼包
-    """
+    """每天领取每日礼包、传功符礼包、达人礼包、无字天书礼包"""
     for key in ["login", "meridian", "daren", "wuzitianshu"]:
         # 每日奖励
         D.get(f"cmd=dailygift&op=draw&key={key}")
@@ -1834,18 +1904,14 @@ def 每日奖励():
 
 
 def 领取徒弟经验():
-    """
-    每天领取一次
-    """
+    """每天领取一次"""
     # 领取徒弟经验
     D.get("cmd=exp")
     D.log(D.find(r"每日奖励</a><br />(.*?)<br />")).append()
 
 
 def 今日活跃度():
-    """
-    每天领取活跃度礼包、帮派总活跃礼包
-    """
+    """每天领取活跃度礼包、帮派总活跃礼包"""
     # 今日活跃度
     D.get("cmd=liveness")
     D.log(D.find(r"【(.*?)】")).append()
@@ -1907,19 +1973,19 @@ def 柒承的忙碌日常(count):
 
 
 def 江湖长梦():
-    """
-    周四挑战柒承的忙碌日常
-    """
+    """周四挑战柒承的忙碌日常"""
     config: dict = D.config["江湖长梦"]
     count: int = config["柒承的忙碌日常"]
+
+    if count is None:
+        D.log("你没有配置柒承的忙碌日常").append()
+        return
 
     柒承的忙碌日常(count)
 
 
 def 仙武修真():
-    """
-    每天领取3次任务、长留山至多挑战5次
-    """
+    """每天领取3次任务、长留山至多挑战5次"""
     for task_id in range(1, 4):
         # 领取
         D.get(f"cmd=immortals&op=getreward&taskid={task_id}")
@@ -1938,9 +2004,7 @@ def 仙武修真():
 
 
 def 乐斗黄历():
-    """
-    每天领取、占卜一次
-    """
+    """每天领取、占卜一次"""
     # 领取
     D.get("cmd=calender&op=2")
     D.log(D.find(r"<br /><br />(.*?)<br />")).append()
@@ -1950,9 +2014,7 @@ def 乐斗黄历():
 
 
 def 器魂附魔():
-    """
-    附魔任务领取3次
-    """
+    """附魔任务领取3次"""
     for _id in range(1, 4):
         # 领取
         D.get(f"cmd=enchant&op=gettaskreward&task_id={_id}")
@@ -2001,9 +2063,7 @@ def get_boss_id():
 
 
 def 猜单双():
-    """
-    随机单数、双数
-    """
+    """随机单数、双数"""
     # 猜单双
     D.get("cmd=oddeven")
     for _ in range(5):
@@ -2019,9 +2079,7 @@ def 猜单双():
 
 
 def 煮元宵():
-    """
-    成熟度>=96时赶紧出锅
-    """
+    """成熟度>=96时赶紧出锅"""
     # 煮元宵
     D.get("cmd=yuanxiao2014")
     for _ in range(4):
@@ -2060,9 +2118,7 @@ def 点亮() -> bool:
 
 
 def 点亮南瓜灯():
-    """
-    万圣节-点亮南瓜灯
-    """
+    """万圣节-点亮南瓜灯"""
     # 乐斗助手
     D.get("cmd=view&type=6")
     if "取消自动使用活力药水" in D.html:
@@ -2118,9 +2174,7 @@ def 万圣节():
 
 
 def 元宵节():
-    """
-    周四领取、领取生肖限定形象卡
-    """
+    """周四领取、领取生肖限定形象卡"""
     # 领取
     D.get("cmd=newAct&subtype=101&op=1")
     D.log(D.find(r"】</p>(.*?)<br />")).append()
@@ -2130,9 +2184,7 @@ def 元宵节():
 
 
 def 神魔转盘():
-    """
-    幸运抽奖免费抽奖一次
-    """
+    """幸运抽奖免费抽奖一次"""
     # 神魔转盘
     D.get("cmd=newAct&subtype=88&op=0")
     if "免费抽奖一次" not in D.html:
@@ -2145,33 +2197,25 @@ def 神魔转盘():
 
 
 def 乐斗驿站():
-    """
-    免费领取淬火结晶*1
-    """
+    """免费领取淬火结晶*1"""
     D.get("cmd=newAct&subtype=167&op=2")
     D.log(D.find()).append()
 
 
 def 浩劫宝箱():
-    """
-    领取一次
-    """
+    """领取一次"""
     D.get("cmd=newAct&subtype=152")
     D.log(D.find(r"浩劫宝箱<br />(.*?)<br />")).append()
 
 
 def 幸运转盘():
-    """
-    转动轮盘一次
-    """
+    """转动轮盘一次"""
     D.get("cmd=newAct&subtype=57&op=roll")
     D.log(D.find(r"0<br /><br />(.*?)<br />")).append()
 
 
 def 冰雪企缘():
-    """
-    至多领取两次
-    """
+    """至多领取两次"""
     # 冰雪企缘
     D.get("cmd=newAct&subtype=158&op=0")
     gift = D.findall(r"gift_type=(\d+)")
@@ -2204,9 +2248,7 @@ def 甜蜜夫妻():
 
 
 def 乐斗菜单():
-    """
-    点单一次
-    """
+    """点单一次"""
     # 乐斗菜单
     D.get("cmd=menuact")
     if gift := D.find(r"套餐.*?gift=(\d+).*?点单</a>"):
@@ -2218,21 +2260,11 @@ def 乐斗菜单():
 
 
 def 客栈同福():
-    """
-    献酒3次
-    """
-    for _ in range(3):
-        # 献酒
-        D.get("cmd=newAct&subtype=155")
-        D.log(D.find(r"】<br /><p>(.*?)<br />")).append()
-        if "黄酒不足" in D.html:
-            break
+    c_客栈同福(D)
 
 
 def 周周礼包():
-    """
-    领取一次
-    """
+    """领取一次"""
     # 周周礼包
     D.get("cmd=weekgiftbag&sub=0")
     if _id := D.find(r';id=(\d+)">领取'):
@@ -2244,9 +2276,7 @@ def 周周礼包():
 
 
 def 登录有礼():
-    """
-    领取一次登录奖励
-    """
+    """领取一次登录奖励"""
     # 登录有礼
     D.get("cmd=newAct&subtype=56")
     if g := D.find(r"gift_index=(\d+)"):
@@ -2258,18 +2288,14 @@ def 登录有礼():
 
 
 def 活跃礼包():
-    """
-    领取50活跃礼包、80活跃礼包
-    """
+    """领取50活跃礼包、80活跃礼包"""
     for p in ["1", "2"]:
         D.get(f"cmd=newAct&subtype=94&op={p}")
         D.log(D.find(r"】.*?<br />(.*?)<br />")).append()
 
 
 def 上香活动():
-    """
-    领取檀木香、龙涎香各两次
-    """
+    """领取檀木香、龙涎香各两次"""
     for _ in range(2):
         # 檀木香
         D.get("cmd=newAct&subtype=142&op=1&id=1")
@@ -2280,21 +2306,13 @@ def 上香活动():
 
 
 def 徽章战令():
-    """
-    领取每日礼包
-    """
+    """领取每日礼包"""
     # 每日礼包
     D.get("cmd=badge&op=1")
     D.log(D.find()).append()
 
 
-def 生肖福卡():
-    """
-    好友赠卡：领取好友赠卡
-    分享福卡：向指定好友分享一次福卡（单类福卡数量至少为2）
-    领取福卡：领取
-    周四合成周年福卡、分斗豆、抽奖（需已合成周年福卡）或者继续抽奖（需已过合卡时间）
-    """
+def 生肖福卡_好友赠卡():
     # 好友赠卡
     D.get("cmd=newAct&subtype=174&op=4")
     for name, qq, card_id in D.findall(r"送您(.*?)\*.*?oppuin=(\d+).*?id=(\d+)"):
@@ -2302,17 +2320,24 @@ def 生肖福卡():
         D.get(f"cmd=newAct&subtype=174&op=6&oppuin={qq}&card_id={card_id}")
         D.log(D.find()).append()
 
+
+def 生肖福卡_分享福卡():
+    qq = D.config["生肖福卡"]
+    if qq is None:
+        return
+
     # 生肖福卡
     D.get("cmd=newAct&subtype=174")
-    if qq := D.config["生肖福卡"]:
-        pattern = "[子丑寅卯辰巳午未申酉戌亥][鼠牛虎兔龙蛇马羊猴鸡狗猪]"
-        data = D.findall(rf"({pattern})\s+(\d+).*?id=(\d+)")
-        name, max_number, _id = max(data, key=lambda x: int(x[1]))
-        if int(max_number) >= 2:
-            # 分享福卡
-            D.get(f"cmd=newAct&subtype=174&op=5&oppuin={qq}&card_id={_id}&confirm=1")
-            D.log(D.find(r"~<br /><br />(.*?)<br />")).append()
+    pattern = "[子丑寅卯辰巳午未申酉戌亥][鼠牛虎兔龙蛇马羊猴鸡狗猪]"
+    data = D.findall(rf"({pattern})\s+(\d+).*?id=(\d+)")
+    _, max_number, _id = max(data, key=lambda x: int(x[1]))
+    if int(max_number) >= 2:
+        # 分享福卡
+        D.get(f"cmd=newAct&subtype=174&op=5&oppuin={qq}&card_id={_id}&confirm=1")
+        D.log(D.find(r"~<br /><br />(.*?)<br />")).append()
 
+
+def 生肖福卡_领取福卡():
     # 生肖福卡
     D.get("cmd=newAct&subtype=174")
     for _id in D.findall(r"task_id=(\d+)"):
@@ -2320,19 +2345,31 @@ def 生肖福卡():
         D.get(f"cmd=newAct&subtype=174&op=7&task_id={_id}")
         D.log(D.find(r"~<br /><br />(.*?)<br />")).append()
 
-    if D.week != 4:
+
+def 生肖福卡_合卡():
+    # 生肖福卡
+    D.get("cmd=newAct&subtype=174")
+    # 合卡结束日期
+    month, day = D.findall(r"合卡时间：.*?至(\d+)月(\d+)日")[0]
+    if D.month == int(month) and D.day == int(day):
         return
 
-    # 兑奖及抽奖
     # 合成周年福卡
     D.get("cmd=newAct&subtype=174&op=8")
     D.log(D.find(r"。<br /><br />(.*?)<br />")).append()
+
+
+def 生肖福卡_抽奖():
+    # 生肖福卡
+    D.get("cmd=newAct&subtype=174")
+    # 兑奖开始日期
+    month, day = D.findall(r"兑奖时间：(\d+)月(\d+)日")[0]
+    if not (D.month == int(month) and D.day >= int(day)):
+        return
+
     # 分斗豆
     D.get("cmd=newAct&subtype=174&op=9")
     D.log(D.find(r"。<br /><br />(.*?)<br />")).append()
-
-    # 合卡结束日期
-    month, day = D.findall(r"合卡时间：.*?至(\d+)月(\d+)日")[0]
 
     # 抽奖
     D.get("cmd=newAct&subtype=174&op=2")
@@ -2343,13 +2380,31 @@ def 生肖福卡():
             # 春/夏/秋/冬宵抽奖
             D.get(f"cmd=newAct&subtype=174&op=10&id={_id}&confirm=1")
             if "您还未合成周年福卡" in D.html:
-                if (D.month == int(month)) and (D.day > int(day)):
-                    # 合卡时间已结束
-                    # 继续抽奖
-                    D.get(f"cmd=newAct&subtype=174&op=10&id={_id}")
-                else:
-                    return
+                # 继续抽奖
+                D.get(f"cmd=newAct&subtype=174&op=10&id={_id}")
             D.log(D.find(r"幸运抽奖<br /><br />(.*?)<br />")).append()
+
+
+def 生肖福卡():
+    """
+    集卡：
+        好友赠卡：领取好友赠卡
+        分享福卡：向指定好友分享一次福卡（单类福卡数量至少为2）
+        领取福卡：领取
+    合卡：
+        合卡时间内每天一次合成周年福卡
+    抽奖：
+        兑奖时间内周四分斗豆、抽奖（未合成周年福卡则继续抽奖）
+    """
+    生肖福卡_好友赠卡()
+    生肖福卡_分享福卡()
+    生肖福卡_领取福卡()
+
+    if D.week != 4:
+        return
+
+    生肖福卡_合卡()
+    生肖福卡_抽奖()
 
 
 def 长安盛会():
@@ -2375,7 +2430,8 @@ def 长安盛会():
 
 def 深渊秘宝():
     """
-    三魂秘宝、七魄秘宝各免费抽奖一次
+    三魂秘宝：免费抽奖
+    七魄秘宝：免费抽奖
     """
     # 深渊秘宝
     D.get("cmd=newAct&subtype=175")
@@ -2391,9 +2447,7 @@ def 深渊秘宝():
 
 
 def 中秋礼盒():
-    """
-    领取
-    """
+    """领取"""
     # 中秋礼盒
     D.get("cmd=midautumngiftbag&sub=0")
     _ids = D.findall(r"amp;id=(\d+)")
@@ -2411,8 +2465,8 @@ def 中秋礼盒():
 
 def 双节签到():
     """
-    每天领取签到奖励
-    活动截止日的前一天领取奖励金
+    签到奖励：每天领取
+    奖励金：活动截止日的前一天领取
     """
     # 领取签到奖励
     D.get("cmd=newAct&subtype=144&op=1")
@@ -2461,9 +2515,7 @@ def 乐斗游记():
 
 
 def 斗境探秘():
-    """
-    领取每日探秘奖励、累计探秘奖励
-    """
+    """领取每日探秘奖励、累计探秘奖励"""
     # 斗境探秘
     D.get("cmd=newAct&subtype=177")
     # 领取每日探秘奖励
@@ -2485,7 +2537,8 @@ def 幸运金蛋():
 
 def 春联大赛():
     """
-    至多答题3次（字库中不存在春联则结束）、领取斗币3次
+    答题：每天至多3次（字库中不存在春联则结束）
+    斗币：每天领取3次
     """
     # 开始答题
     D.get("cmd=newAct&subtype=146&op=1")
@@ -2591,9 +2644,7 @@ def 春联大赛():
 
 
 def 新春拜年():
-    """
-    随机赠礼3个礼物
-    """
+    """随机赠礼3个礼物"""
     # 新春拜年
     D.get("cmd=newAct&subtype=147")
     if "op=1" in D.html:
@@ -2606,9 +2657,7 @@ def 新春拜年():
 
 
 def 喜从天降():
-    """
-    每天至多点燃烟花10次，活动时间20.00-22.00
-    """
+    """每天至多点燃烟花10次，活动时间20.00-22.00"""
     for _ in range(10):
         D.get("cmd=newAct&subtype=137&op=1")
         D.log(D.find()).append()
@@ -2682,8 +2731,8 @@ def 节日福利_斗神塔():
 
 def 节日福利():
     """
-    每天从高等级到低等级依次乐斗BOSS（自动使用活力药水）
-    周四斗神塔自动挑战（次数耗尽或到不了顶层结束）
+    历练：每天从高等级到低等级依次乐斗BOSS（自动使用活力药水）
+    斗神塔：周四自动挑战（次数耗尽或到不了顶层结束）
     """
     节日福利_历练()
     if D.week == 4:
@@ -2698,9 +2747,7 @@ def 预热礼包():
 
 
 def 五一礼包():
-    """
-    周四领取3次劳动节礼包
-    """
+    """周四领取3次劳动节礼包"""
     for _id in range(3):
         D.get(f"cmd=newAct&subtype=113&op=1&id={_id}")
         D.log(D.find(r"】<br /><br />(.*?)<")).append()
@@ -2730,9 +2777,7 @@ def 端午有礼():
 
 
 def 圣诞有礼():
-    """
-    周四领取点亮奖励和连线奖励
-    """
+    """周四领取点亮奖励和连线奖励"""
     # 圣诞有礼
     D.get("cmd=newAct&subtype=145")
     for _id in D.findall(r"task_id=(\d+)"):
@@ -2747,9 +2792,7 @@ def 圣诞有礼():
 
 
 def 新春礼包():
-    """
-    周四领取礼包
-    """
+    """周四领取礼包"""
     for _id in [280, 281, 282]:
         # 领取
         D.get(f"cmd=xinChunGift&subtype=2&giftid={_id}")
@@ -2757,10 +2800,12 @@ def 新春礼包():
 
 
 def 登录商店():
-    """
-    周四兑换
-    """
+    """周四兑换"""
     t: int = D.config["登录商店"]
+    if t is None:
+        D.log("你没有配置兑换物品id").append()
+        return
+
     for _ in range(5):
         # 兑换5次
         D.get(f"cmd=newAct&op=exchange&subtype=52&type={t}&times=5")
@@ -2772,9 +2817,7 @@ def 登录商店():
 
 
 def 盛世巡礼():
-    """
-    周四收下礼物
-    """
+    """周四收下礼物"""
     for s in range(1, 8):
         # 点击进入
         D.get(f"cmd=newAct&subtype=150&op=2&sceneId={s}")
@@ -2789,9 +2832,7 @@ def 盛世巡礼():
 
 
 def 新春登录礼():
-    """
-    至多领取7次
-    """
+    """至多领取7次"""
     # 新春登录礼
     D.get("cmd=newAct&subtype=99&op=0")
     day = D.findall(r"day=(\d+)")
@@ -2842,9 +2883,7 @@ def 年兽大作战():
 
 
 def 惊喜刮刮卡():
-    """
-    至多领取3次、点击刮卡20次
-    """
+    """至多领取3次、点击刮卡20次"""
     # 领取
     for _id in range(3):
         D.get(f"cmd=newAct&subtype=148&op=2&id={_id}")
@@ -2861,9 +2900,7 @@ def 惊喜刮刮卡():
 
 
 def 开心娃娃机():
-    """
-    免费抓取一次
-    """
+    """免费抓取一次"""
     # 开心娃娃机
     D.get("cmd=newAct&subtype=124&op=0")
     if "1/1" not in D.html:
@@ -2876,15 +2913,17 @@ def 开心娃娃机():
 
 
 def 好礼步步升():
-    """
-    每天领取一次
-    """
+    """每天领取一次"""
     D.get("cmd=newAct&subtype=43&op=get")
     D.log(D.find()).append()
 
 
 def 企鹅吉利兑_兑换():
     config: dict = D.config["企鹅吉利兑"]
+    if config is None:
+        D.log("你没有配置兑换物品").append()
+        return
+
     for name, number in config.items():
         count = 0
         _id = D.find(rf"{name}.*?id=(\d+)")
@@ -2901,9 +2940,7 @@ def 企鹅吉利兑_兑换():
 
 
 def 企鹅吉利兑():
-    """
-    每天领取、截止日前一天兑换材料
-    """
+    """每天领取、截止日前一天兑换材料"""
     # 企鹅吉利兑
     D.get("cmd=geelyexchange")
     if _ids := D.findall(r'id=(\d+)">领取</a>'):
@@ -2927,9 +2964,7 @@ def 乐斗大笨钟():
 
 
 def 乐斗激运牌():
-    """
-    每天领取激运牌两次、翻牌
-    """
+    """每天领取激运牌两次、翻牌"""
     for _id in [0, 1]:
         # 领取
         D.get(f"cmd=realgoods&op=getTaskReward&id={_id}")
@@ -2943,9 +2978,7 @@ def 乐斗激运牌():
 
 
 def 乐斗能量棒():
-    """
-    至多领取3次能量棒，获得的活力将乐斗历练BOSS
-    """
+    """至多领取3次能量棒，获得的活力将乐斗历练BOSS"""
     # 乐斗能量棒
     D.get("cmd=newAct&subtype=108&op=0")
     data = D.findall(r"id=(\d+)")
@@ -2982,9 +3015,7 @@ def 乐斗能量棒():
 
 
 def 乐斗回忆录():
-    """
-    周四领取回忆礼包、进阶礼包
-    """
+    """周四领取回忆礼包、进阶礼包"""
     for _id in range(1, 11):
         # 领取
         D.get(f"cmd=newAct&subtype=171&op=3&id={_id}")
@@ -2992,9 +3023,7 @@ def 乐斗回忆录():
 
 
 def 爱的同心结():
-    """
-    依次兑换礼包5、4、3、2、1
-    """
+    """依次兑换礼包5、4、3、2、1"""
     data = {
         4016: 20,
         4015: 16,
@@ -3024,6 +3053,10 @@ def 乐斗儿童节():
         return
 
     config: str = D.config["乐斗儿童节"]
+    if config in None:
+        D.log("你没有配置选择").append()
+        return
+
     t, s = D.findall(r"type=(\d+)&sub_type=(\d+)", config)[0]
     # 选择分类
     D.get(f"cmd=newAct&subtype=130&op=2&type={t}")
@@ -3033,9 +3066,7 @@ def 乐斗儿童节():
 
 
 def 周年生日祝福():
-    """
-    周四领取
-    """
+    """周四领取"""
     for day in range(1, 8):
         D.get(f"cmd=newAct&subtype=165&op=3&day={day}")
         D.log(D.find()).append()
@@ -3043,7 +3074,7 @@ def 周年生日祝福():
 
 def 重阳太白诗会():
     """
-    每天领取重阳礼包
+    重阳礼包：每天领取一次
     不支持赋诗奖赏礼包
     """
     D.get("cmd=newAct&subtype=168&op=2")
@@ -3051,9 +3082,7 @@ def 重阳太白诗会():
 
 
 def 五一预订礼包():
-    """
-    每天领取登录礼包
-    """
+    """每天领取登录礼包"""
     # 5.1预订礼包
     D.get("cmd=lokireservation")
     if _id := D.find(r"idx=(\d+)"):

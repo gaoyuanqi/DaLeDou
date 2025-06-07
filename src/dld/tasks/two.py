@@ -27,6 +27,7 @@ from .common import (
     c_帮派巡礼,
     c_深渊秘境,
     c_幸运金蛋,
+    c_客栈同福,
     c_乐斗大笨钟,
 )
 
@@ -45,9 +46,7 @@ def _run(d: DaLeDou, func_names: list):
 
 
 def run_two_args(d: DaLeDou, extra_args: list):
-    """
-    运行two模式携带的函数参数列表
-    """
+    """运行two模式携带的函数参数列表"""
     _run(d, extra_args)
     print("--" * 20)
     print(d.pushplus_content())
@@ -55,9 +54,7 @@ def run_two_args(d: DaLeDou, extra_args: list):
 
 
 def run_two_all(d: DaLeDou, title: str):
-    """
-    运行two模式所有任务
-    """
+    """运行two模式所有任务"""
     _run(d, d.func_names_two)
     print("--" * 20)
     d.pushplus_send(title)
@@ -92,9 +89,7 @@ def 深渊之潮():
 
 
 def 侠客岛():
-    """
-    侠客行至多领取3次任务奖励
-    """
+    """侠客行至多领取3次任务奖励"""
     # 侠客行
     D.get("cmd=knight_island&op=viewmissionindex")
     data = D.findall(r"getmissionreward&amp;pos=(\d+)")
@@ -109,12 +104,12 @@ def 侠客岛():
 
 
 def 背包():
-    """
-    背包物品使用
-    """
+    """背包物品使用"""
     config: list = D.config["背包"]
-    data = []
+    if config is None:
+        return
 
+    data = []
     # 背包
     D.get("cmd=store&store_type=0")
     page = int(D.find(r"第1/(\d+)"))
@@ -155,9 +150,7 @@ def 背包():
 
 
 def 镶嵌():
-    """
-    周四镶嵌魂珠升级（碎 -> 1 -> 2 -> 3 -> 4）
-    """
+    """周四镶嵌魂珠升级（碎 -> 1 -> 2 -> 3 -> 4）"""
 
     def get_p():
         for p_1 in range(4001, 4062, 10):
@@ -216,8 +209,10 @@ def 普通合成():
 
 def 符石分解():
     config: list[int] = D.config["神匠坊"]
-    data = []
+    if config is None:
+        return
 
+    data = []
     # 符石分解
     for p in range(1, 10):
         # 下一页
@@ -250,18 +245,14 @@ def 符石打造():
 
 
 def 神匠坊():
-    """
-    每月20号普通合成、符石分解（默认仅I类）、符石打造
-    """
+    """每月20号普通合成、符石分解（默认仅I类）、符石打造"""
     普通合成()
     符石分解()
     符石打造()
 
 
 def 每日宝箱():
-    """
-    每月20号打开所有的铜质、银质、金质宝箱
-    """
+    """每月20号打开所有的铜质、银质、金质宝箱"""
     counter = Counter()
     # 每日宝箱
     D.get("cmd=dailychest")
@@ -279,9 +270,7 @@ def 每日宝箱():
 
 
 def 商店():
-    """
-    每天查询商店积分
-    """
+    """每天查询商店积分"""
     urls = [
         "cmd=longdreamexchange",  # 江湖长梦
         "cmd=wlmz&op=view_exchange",  # 武林盟主
@@ -304,14 +293,16 @@ def 商店():
         D.log(D.find()).append()
 
 
+def 客栈同福():
+    c_客栈同福(D)
+
+
 def 幸运金蛋():
     c_幸运金蛋(D)
 
 
 def 新春拜年():
-    """
-    收取礼物
-    """
+    """收取礼物"""
     # 新春拜年
     D.get("cmd=newAct&subtype=147")
     if "op=3" not in D.html:
