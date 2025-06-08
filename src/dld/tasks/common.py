@@ -259,6 +259,8 @@ def c_客栈同福(D: DaLeDou):
     is_libation = False
     for _ in range(int(count)):
         for pattern in config:
+            # 客栈同福
+            D.get("cmd=newAct&subtype=154")
             if pattern not in D.html:
                 continue
             is_libation = True
