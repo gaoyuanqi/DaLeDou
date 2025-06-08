@@ -191,27 +191,36 @@ def c_侠士客栈(D: DaLeDou):
 
 
 def c_帮派巡礼(D: DaLeDou):
-    """深渊之潮-帮派巡礼"""
+    """每天领取巡游赠礼"""
     # 领取巡游赠礼
     D.get("cmd=abysstide&op=getfactiongift")
     D.log(D.find()).append()
 
 
 def c_深渊秘境(D: DaLeDou):
-    """深渊秘境至多通关5次"""
+    """
+    每天兑换副本，兑换次数详见配置文件
+    每天通关副本，副本次数有多少就通关多少次，副本详见配置文件
+    """
     config: dict = D.config["深渊之潮"]["深渊秘境"]
     _id: int = config["id"]
+    exchange_number: int = config["exchange_number"]
 
     if _id is None:
         D.log("你没有配置深渊秘境副本").append()
         return
 
-    if config["is_exchange"]:
-        # 兑换一次副本
+    for _ in range(exchange_number):
+        # 兑换
         D.get("cmd=abysstide&op=addaccess")
         D.log(D.find()).append()
+        if "无法继续兑换挑战次数" in D.html:
+            break
 
-    for _ in range(5):
+    # 深渊秘境
+    D.get("cmd=abysstide&op=viewallabyss")
+    count = D.find(r"副本次数：(\d+)")
+    for _ in range(int(count)):
         D.get(f"cmd=abysstide&op=enterabyss&id={_id}")
         if "开始挑战" not in D.html:
             # 暂无可用挑战次数

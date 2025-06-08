@@ -71,9 +71,9 @@ def get_exchange_config(config: list):
     for item in config:
         name: str = item["name"]
         _id: int = item["id"]
-        exchange_quantity: int = item["exchange_quantity"]
-        if exchange_quantity > 0:
-            yield name, _id, exchange_quantity
+        exchange_number: int = item["exchange_number"]
+        if exchange_number > 0:
+            yield name, _id, exchange_number
 
 
 def is_target_date_reached(
@@ -164,15 +164,15 @@ def 荣誉兑换():
     if config is None:
         return
 
-    for name, _id, exchange_quantity in get_exchange_config(config):
+    for name, _id, exchange_number in get_exchange_config(config):
         count = 0
-        for _ in range(exchange_quantity // 10):
+        for _ in range(exchange_number // 10):
             D.get(f"cmd=knightarena&op=exchange&id={_id}&times=10")
             D.log(D.find())
             if "成功" not in D.html:
                 break
             count += 10
-        for _ in range(exchange_quantity - count):
+        for _ in range(exchange_number - count):
             D.get(f"cmd=knightarena&op=exchange&id={_id}&times=1")
             D.log(D.find())
             if "成功" not in D.html:
@@ -768,15 +768,15 @@ def 门派邀请赛_商店兑换():
     if config is None:
         return
 
-    for name, _id, exchange_quantity in get_exchange_config(config):
+    for name, _id, exchange_number in get_exchange_config(config):
         count = 0
-        for _ in range(exchange_quantity // 10):
+        for _ in range(exchange_number // 10):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=10")
             D.log(D.find())
             if "成功" not in D.html:
                 break
             count += 10
-        for _ in range(exchange_quantity - count):
+        for _ in range(exchange_number - count):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=1")
             D.log(D.find())
             if "成功" not in D.html:
@@ -824,15 +824,15 @@ def 会武_商店兑换():
     if config is None:
         return
 
-    for name, _id, exchange_quantity in get_exchange_config(config):
+    for name, _id, exchange_number in get_exchange_config(config):
         count = 0
-        for _ in range(exchange_quantity // 10):
+        for _ in range(exchange_number // 10):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=10")
             D.log(D.find())
             if "成功" not in D.html:
                 break
             count += 10
-        for _ in range(exchange_quantity - count):
+        for _ in range(exchange_number - count):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=1")
             D.log(D.find())
             if "成功" not in D.html:
@@ -1267,10 +1267,10 @@ def 许愿帮铺():
     if config is None:
         return
 
-    for name, _id, exchange_quantity in get_exchange_config(config):
+    for name, _id, exchange_number in get_exchange_config(config):
         count = 0
         if "之书" in name:
-            quotient = exchange_quantity // 25
+            quotient = exchange_number // 25
         else:
             quotient = 0
         for _ in range(quotient):
@@ -1279,7 +1279,7 @@ def 许愿帮铺():
             if "成功" not in D.html:
                 break
             count += 25
-        for _ in range(exchange_quantity - count):
+        for _ in range(exchange_number - count):
             D.get(f"cmd=abysstide&op=wishexchange&id={_id}")
             D.log(D.find(), name)
             if "成功" not in D.html:
@@ -1290,14 +1290,10 @@ def 许愿帮铺():
 
 
 def 深渊之潮():
-    """
-    帮派巡礼：每天领取巡游赠礼
-    深渊秘境：每天至多通关5次，是否兑换次数详见配置文件
-    许愿帮铺：周四兑换，详见配置文件
-    """
+    """每月26号许愿帮铺兑换，详见配置文件"""
     c_帮派巡礼(D)
     c_深渊秘境(D)
-    if D.week == 4:
+    if D.day == 26:
         许愿帮铺()
 
 
@@ -1390,9 +1386,9 @@ def 遗迹商店():
         return
 
     for t, _list in config.items():
-        for name, _id, exchange_quantity in get_exchange_config(_list):
+        for name, _id, exchange_number in get_exchange_config(_list):
             count = 0
-            for _ in range(exchange_quantity // 10):
+            for _ in range(exchange_number // 10):
                 # 兑换十次
                 D.get(f"cmd=spacerelic&op=buy&type={t}&id={_id}&num=10")
                 D.log(
@@ -1402,7 +1398,7 @@ def 遗迹商店():
                 if "兑换成功" not in D.html:
                     break
                 count += 10
-            for _ in range(exchange_quantity - count):
+            for _ in range(exchange_number - count):
                 # 兑换一次
                 D.get(f"cmd=spacerelic&op=buy&type={t}&id={_id}&num=1")
                 D.log(
@@ -1559,25 +1555,22 @@ def 龙凰论武():
         D.log("已过报名期").append()
         return
 
-    config: int = D.config["龙凰之境"]["龙凰论武"]
-    for _ in range(config):
-        # 获取挑战次数
-        D.get("cmd=dragonphoenix&op=buypk")
-        D.log(D.find(r"/5</a><br /><br />(.*?)<")).append()
-        if "兑换所需论武券不足" in D.html:
-            break
-
     # 每日领奖
     D.get("cmd=dragonphoenix&op=gift")
     D.log(D.find(r"/5</a><br /><br />(.*?)<")).append()
 
-    for _ in range(7):
+    config: int = D.config["龙凰之境"]["龙凰论武"]
+    if config is None:
+        return
+    for _ in range(config):
         data = D.findall(r"uin=(\d+).*?idx=(\d+)")
         uin, _idx = random.choice(data)
         # 挑战
         D.get(f"cmd=dragonphoenix&op=pk&zone=1&uin={uin}&idx={_idx}")
         D.log(D.find(r"/5</a><br /><br />(.*?)<")).append()
         if "挑战次数不足" in D.html:
+            break
+        elif "冷却中" in D.html:
             break
 
 
@@ -1594,15 +1587,15 @@ def 龙凰云集():
     if config is None:
         return
 
-    for name, _id, exchange_quantity in get_exchange_config(config):
+    for name, _id, exchange_number in get_exchange_config(config):
         count = 0
-        for _ in range(exchange_quantity // 10):
+        for _ in range(exchange_number // 10):
             D.get(f"cmd=dragonphoenix&op=buy&id={_id}&num=10")
             D.log(D.find(r"<br /><br /><br />(.*?)<"), name)
             if "成功" not in D.html:
                 break
             count += 10
-        for _ in range(exchange_quantity - count):
+        for _ in range(exchange_number - count):
             D.get(f"cmd=dragonphoenix&op=buy&id={_id}&num=1")
             D.log(D.find(r"<br /><br /><br />(.*?)<"), name)
             if "成功" not in D.html:
@@ -1617,8 +1610,7 @@ def 龙凰之境():
     龙凰论武：
         报名：每月1~3号每天报名（报名还未完善，只是进入论武）
         每日领奖：每月4~25号每天一次
-        获取挑战次数：每月4~25号每天兑换，兑换次数详见配置文件
-        挑战：每月4~25号每天至多挑战7次（随机选择玩家）
+        挑战：每月4~25号每天随机挑战，挑战次数详见配置文件
     龙凰云集：
         领奖：每月27号领取所有
         商店兑换：每月27号兑换，兑换次数详见配置文件

@@ -2,19 +2,19 @@
 华山论剑:
   - name: 钻石
     id: 6857
-    exchange_quantity: 375
+    exchange_number: 375
   - name: 侠士修身录
     id: 6347
-    exchange_quantity: 100
+    exchange_number: 100
   - name: 侠士手记
     id: 6348
-    exchange_quantity: 80
+    exchange_number: 80
   - name: 重出江湖令
     id: 6349
-    exchange_quantity: 0
+    exchange_number: 0
   - name: 斗神符
     id: 3090
-    exchange_quantity: 0
+    exchange_number: 0
 
 # 选择矿洞副本
 矿洞: floor=1&mode=1 # 第一层（简单）
@@ -54,26 +54,26 @@
 门派邀请赛:
   - name: 炼气石
     id: 1246
-    exchange_quantity: 20
+    exchange_number: 20
   - name: 门派强化书
     id: 1247
-    exchange_quantity: 10
+    exchange_number: 10
   - name: 门派高香
     id: 1248
-    exchange_quantity: 0
+    exchange_number: 0
   - name: 门派引荐书
     id: 1250
-    exchange_quantity: 0
+    exchange_number: 0
 
 # 周五会武商店兑换
 # 周一~周三试炼场挑战次数不足时会自动兑换试炼书*1，所以不需添加
 会武:
   - name: 真黄金卷轴
     id: 1263
-    exchange_quantity: 20
+    exchange_number: 20
   - name: 修为丹
     id: 1264
-    exchange_quantity: 0
+    exchange_number: 0
 
 # 周六淘汰赛助威、周日排名赛助威
 问鼎天下:
@@ -170,49 +170,47 @@
     # id: 6 # 吞厄源头
     # id: 7 # 渊秘祭坛
     # id: 8 # 古帝遗迹
-    # 是否兑换一次挑战次数
-    is_exchange: false # 不兑换
-    # is_exchange: true # 兑换
-  许愿帮铺: # 周四兑换
+    exchange_number: 0 # 兑换副本次数，最多5次
+  许愿帮铺: # 每月26号兑换
     - name: 气魄之书
       id: 5
-      exchange_quantity: 200
+      exchange_number: 5
     - name: 力魄之书
       id: 6
-      exchange_quantity: 200
+      exchange_number: 5
     - name: 精魄之书
       id: 7
-      exchange_quantity: 200
+      exchange_number: 5
     - name: 英魄之书
       id: 8
-      exchange_quantity: 200
+      exchange_number: 5
     - name: 中枢之书
       id: 9
-      exchange_quantity: 200
+      exchange_number: 5
     - name: 天冲之书
       id: 10
-      exchange_quantity: 200
+      exchange_number: 5
     - name: 灵慧之书
       id: 11
-      exchange_quantity: 200
+      exchange_number: 5
     - name: 佣兵天赋丹
       id: 12
-      exchange_quantity: 0
+      exchange_number: 0
     - name: 许愿卡
       id: 13
-      exchange_quantity: 0
+      exchange_number: 0
     - name: 五星许愿卡碎片
       id: 14
-      exchange_quantity: 0
+      exchange_number: 0
     - name: 豆油队长碎片
       id: 15
-      exchange_quantity: 88
+      exchange_number: 0
     - name: 定海制作书
       id: 16
-      exchange_quantity: 1
+      exchange_number: 1
 
 时空遗迹:
-  异兽洞窟: # 优先扫荡否则挑战
+  异兽洞窟: # 依次优先扫荡否则挑战
     - 5 # 异兽母巢
     - 4 # 异兽元帅
     - 3 # 异兽将领
@@ -222,45 +220,45 @@
     1: # 特惠区
       - name: 日引石
         id: 1
-        exchange_quantity: 100
+        exchange_number: 100
       - name: 月引石
         id: 2
-        exchange_quantity: 100
+        exchange_number: 100
       - name: 星引石
         id: 3
-        exchange_quantity: 100
+        exchange_number: 100
       - name: 舆图
         id: 4
-        exchange_quantity: 40
+        exchange_number: 40
     2: # 售卖区
       - name: 日引石
         id: 5
-        exchange_quantity: 50
+        exchange_number: 50
       - name: 月引石
         id: 6
-        exchange_quantity: 50
+        exchange_number: 50
       - name: 星引石
         id: 7
-        exchange_quantity: 50
+        exchange_number: 50
       - name: 舆图
         id: 8
-        exchange_quantity: 20
+        exchange_number: 20
 
 龙凰之境:
-  龙凰论武: 0 # 获取挑战次数，最多5次
+  龙凰论武: 0 # 随机挑战玩家次数，由于冷却过长，最多1次
   龙凰云集: # 每月27号兑换
     - name: 论武券
       id: 1
-      exchange_quantity: 0
+      exchange_number: 0
     - name: 龙玉
       id: 2
-      exchange_quantity: 100
+      exchange_number: 100
     - name: 凰髓
       id: 3
-      exchange_quantity: 100
+      exchange_number: 100
     - name: 凰火
       id: 4
-      exchange_quantity: 16
+      exchange_number: 16
 
 # 帮派守护神供奉，每个物品最多供奉5次
 我的帮派:
