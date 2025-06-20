@@ -7,6 +7,7 @@
 """
 
 import time
+from datetime import datetime
 
 from ..core.daledou import DaLeDou
 
@@ -24,6 +25,7 @@ _FUNC_NAMES = [
     "背包",
     "专精",
     "掠夺",
+    "江湖长梦",
 ]
 
 
@@ -1361,23 +1363,30 @@ def 奥义():
 class XianWuXiuZhen:
     """仙武修真宝物自动强化"""
 
-    def __init__(self, fail_value: int):
-        self.fail_value = fail_value
+    def __init__(self):
+        self.问道()
 
         # 获取残片数量
         self.backpack_num = self.get_backpack_num()
         self.data = self.get_data()
 
-    def get_fail_value(self, consume_name, level) -> int:
+    def 问道(self):
+        """问道并一键炼化制作书"""
+
+    def get_fail_value(self, consume_name: str, now_level: int) -> int:
         """返回史诗、传说、神话失败祝福值"""
         data = {
-            "史诗残片": 6,
-            "传说残片": 8,
-            "神话残片": 10,
+            "史诗残片": "史诗级法宝",
+            "传说残片": "传说级法宝",
+            "神话残片": "神话级法宝",
         }
-        # level前（含）失败祝福值
-        if level <= data[consume_name]:
-            return self.fail_value
+        # 祝福合集宝库
+        D.get("cmd=newAct&subtype=143")
+        if "=仙武修真=" not in D.html:
+            return 2
+        level, fail_value = D.findall(rf"{data[consume_name]}(\d+)级.*?(\d+)点")[0]
+        if now_level <= int(level):
+            return int(fail_value)
         return 2
 
     def get_backpack_num(self) -> dict:
@@ -1391,6 +1400,11 @@ class XianWuXiuZhen:
     def get_data(self) -> dict:
         """获取仙武修真宝物数据"""
         data = {}
+        max_level = {
+            "史诗": 9,
+            "传说": 12,
+            "神话": 15,
+        }
 
         # 宝物
         D.get("cmd=immortals&op=viewtreasure")
@@ -1402,6 +1416,9 @@ class XianWuXiuZhen:
             name = D.find(r'id">(.*?)&nbsp')
             # 当前等级
             level = int(D.find(r"\+(\d+)"))
+            if level == max_level[name[:2]]:
+                continue
+
             # 材料消耗名称
             consume_name = D.find(r"消耗：(.*?)\*")
             # 材料消耗数量
@@ -1450,8 +1467,8 @@ class XianWuXiuZhen:
 
 def 仙武修真():
     """
-    仙武修真宝物自动强化
-    升级之前消耗问道石并一键炼化制作书
+    问道并一键炼化制作书
+    宝物自动强化
     """
     i = Input()
 
@@ -1469,10 +1486,7 @@ def 仙武修真():
             D.log(D.find(r"帮助</a><br />(.*?)<"))
             break
 
-    fail_value = i.get_number("输入失败祝福值：")
-    if fail_value is None:
-        return
-    i.select_upgrade(XianWuXiuZhen, fail_value)
+    i.select_upgrade(XianWuXiuZhen)
 
 
 class YongBing:
@@ -1916,3 +1930,496 @@ class 掠夺:
         if "你已经没有足够的复活次数" in D.html:
             return False
         return True
+
+
+def 柒承的忙碌日常(name: str, number: int, ins_id: int):
+    """最高550金币"""
+    for i in range(number):
+        # 开启副本
+        D.get(f"cmd=jianghudream&op=beginInstance&ins_id={ins_id}")
+        if "帮助" in D.html:
+            # 您还未编辑副本队伍，无法开启副本
+            D.log(D.find(), name).append()
+            return
+
+        is_defeat = False
+        print("--" * 20)
+        count = i + 1
+        print(f"第 {count} 次（余 {number - count}）")
+        print("--" * 20)
+
+        for _ in range(8):
+            if "进入下一天" in D.html:
+                # 进入下一天
+                D.get("cmd=jianghudream&op=goNextDay")
+            else:
+                D.log("请手动通关剩余天数后再使用脚本", name)
+                return
+
+            if _id := D.find(r'event_id=(\d+)">战斗'):
+                # 战斗
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                # FIGHT!
+                D.get("cmd=jianghudream&op=doPveFight")
+                D.log(D.find(r"<p>(.*?)<br />"), name)
+                if "战败" in D.html:
+                    is_defeat = True
+                    break
+            elif _id := D.find(r'event_id=(\d+)">奇遇'):
+                # 奇遇
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+                # 视而不见
+                D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=2")
+                D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+            elif _id := D.find(r'event_id=(\d+)">商店'):
+                # 商店
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+
+        # 结束回忆
+        D.get("cmd=jianghudream&op=endInstance")
+        D.log(D.find(), name).append()
+
+        if is_defeat:
+            break
+
+    # 领取首通奖励
+    D.get(f"cmd=jianghudream&op=getFirstReward&ins_id={ins_id}")
+    D.log(D.find(), name).append()
+
+
+def 群英拭剑谁为峰(name: str, number: int, ins_id: int):
+    """最高550金币"""
+    for i in range(number):
+        # 开启副本
+        D.get(f"cmd=jianghudream&op=beginInstance&ins_id={ins_id}")
+        if "帮助" in D.html:
+            # 您还未编辑副本队伍，无法开启副本
+            D.log(D.find(), name).append()
+            return
+
+        is_defeat = False
+        print("--" * 20)
+        count = i + 1
+        print(f"第 {count} 次（余 {number - count}）")
+        print("--" * 20)
+
+        for _ in range(8):
+            if "进入下一天" in D.html:
+                # 进入下一天
+                D.get("cmd=jianghudream&op=goNextDay")
+            else:
+                D.log("请手动通关剩余天数后再使用脚本", name)
+                return
+
+            if _id := D.find(r'event_id=(\d+)">战斗\(等级2\)'):
+                # 战斗
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                # FIGHT!
+                D.get("cmd=jianghudream&op=doPveFight")
+                D.log(D.find(r"<p>(.*?)<br />"), name)
+                if "战败" in D.html:
+                    is_defeat = True
+                    break
+
+        # 结束回忆
+        D.get("cmd=jianghudream&op=endInstance")
+        D.log(D.find(), name).append()
+
+        if is_defeat:
+            break
+
+    # 领取首通奖励
+    D.get(f"cmd=jianghudream&op=getFirstReward&ins_id={ins_id}")
+    D.log(D.find(), name).append()
+
+
+def 时空守护者(name: str, number: int, ins_id: int):
+    """最高450金币"""
+    for i in range(number):
+        # 开启副本
+        D.get(f"cmd=jianghudream&op=beginInstance&ins_id={ins_id}")
+        if "帮助" in D.html:
+            # 您还未编辑副本队伍，无法开启副本
+            D.log(D.find(), name).append()
+            return
+
+        is_defeat = False
+        print("--" * 20)
+        count = i + 1
+        print(f"第 {count} 次（余 {number - count}）")
+        print("--" * 20)
+
+        for day in range(9):
+            if "进入下一天" in D.html:
+                # 进入下一天
+                D.get("cmd=jianghudream&op=goNextDay")
+                day += 1
+            else:
+                D.log("请手动通关剩余天数后再使用脚本", name)
+                return
+
+            if _id := D.find(r'event_id=(\d+)">战斗\(等级2\)'):
+                # 战斗
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                # FIGHT!
+                D.get("cmd=jianghudream&op=doPveFight")
+                D.log(D.find(r"<p>(.*?)<br />"), name)
+                if "战败" in D.html:
+                    is_defeat = True
+                    break
+            elif _ids := D.findall(r'event_id=(\d+)">战斗\(等级1\)'):
+                if day == 2 or day == 4:
+                    _id = _ids[-1]
+                else:
+                    _id = _ids[0]
+                # 战斗
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                # FIGHT!
+                D.get("cmd=jianghudream&op=doPveFight")
+                D.log(D.find(r"<p>(.*?)<br />"), name)
+                if "战败" in D.html:
+                    is_defeat = True
+                    break
+            elif _ids := D.findall(r'event_id=(\d+)">奇遇\(等级2\)'):
+                if day == 5:
+                    _id = _ids[-1]
+                else:
+                    _id = _ids[0]
+                # 奇遇
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+                if "上前询问" in D.html:
+                    # 上前询问
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=1")
+                    D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+                    # 一口答应
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=1")
+                elif "解释身份" in D.html:
+                    # 解释身份
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=2")
+                    D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+                    # 题诗一首
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=1")
+                elif "原地思考" in D.html:
+                    # 原地思考
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=2")
+                    D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+                    # 默默低语
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=3")
+                elif "放她回去" in D.html:
+                    # 放她回去
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=1")
+                D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+            elif _id := D.find(r'event_id=(\d+)">奇遇\(等级1\)'):
+                # 奇遇
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+                if "转一次" in D.html:
+                    # 转一次
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=3")
+                elif "漩涡1" in D.html:
+                    # 漩涡1
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=1")
+                D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+            elif _id := D.find(r'event_id=(\d+)">商店'):
+                # 商店
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+
+        # 结束回忆
+        D.get("cmd=jianghudream&op=endInstance")
+        D.log(D.find(), name).append()
+
+        if is_defeat:
+            break
+
+    # 领取首通奖励
+    D.get(f"cmd=jianghudream&op=getFirstReward&ins_id={ins_id}")
+    D.log(D.find(), name).append()
+
+
+def 倚天屠龙归我心(name: str, number: int, ins_id: int):
+    """最高558金币"""
+    for i in range(number):
+        # 开启副本
+        D.get(f"cmd=jianghudream&op=beginInstance&ins_id={ins_id}")
+        if "帮助" in D.html:
+            # 您还未编辑副本队伍，无法开启副本
+            D.log(D.find(), name).append()
+            return
+
+        is_defeat = False
+        print("--" * 20)
+        count = i + 1
+        print(f"第 {count} 次（余 {number - count}）")
+        print("--" * 20)
+
+        for day in range(10):
+            if "进入下一天" in D.html:
+                # 进入下一天
+                D.get("cmd=jianghudream&op=goNextDay")
+                day += 1
+            else:
+                D.log("请手动通关剩余天数后再使用脚本", name)
+                return
+
+            if _id := D.find(r'event_id=(\d+)">战斗\(等级2\)'):
+                # 战斗
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                # FIGHT!
+                D.get("cmd=jianghudream&op=doPveFight")
+                D.log(D.find(r"<p>(.*?)<br />"), name)
+                if "战败" in D.html:
+                    is_defeat = True
+                    break
+            elif _id := D.find(r'event_id=(\d+)">战斗\(等级1\)'):
+                # 战斗
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                # FIGHT!
+                D.get("cmd=jianghudream&op=doPveFight")
+                D.log(D.find(r"<p>(.*?)<br />"), name)
+                if "战败" in D.html:
+                    is_defeat = True
+                    break
+            elif _id := D.find(r'event_id=(\d+)">奇遇\(等级2\)'):
+                # 奇遇
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+                if day in [1, 3, 7]:
+                    # 前辈、开始回忆、狠心离去
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=1")
+                elif day in [6, 8]:
+                    # 昏昏沉沉、独自神伤
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=3")
+                D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+            elif _id := D.find(r'event_id=(\d+)">商店'):
+                # 商店
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+
+        # 结束回忆
+        D.get("cmd=jianghudream&op=endInstance")
+        D.log(D.find(), name).append()
+
+        if is_defeat:
+            break
+
+    # 领取首通奖励
+    D.get(f"cmd=jianghudream&op=getFirstReward&ins_id={ins_id}")
+    D.log(D.find(), name).append()
+
+
+def 神雕侠侣(name: str, number: int, ins_id: int):
+    """最高500金币"""
+    for i in range(number):
+        # 开启副本
+        D.get(f"cmd=jianghudream&op=beginInstance&ins_id={ins_id}")
+        if "帮助" in D.html:
+            # 您还未编辑副本队伍，无法开启副本
+            D.log(D.find(), name).append()
+            return
+
+        is_defeat = False
+        print("--" * 20)
+        count = i + 1
+        print(f"第 {count} 次（余 {number - count}）")
+        print("--" * 20)
+
+        for _ in range(8):
+            if "进入下一天" in D.html:
+                # 进入下一天
+                D.get("cmd=jianghudream&op=goNextDay")
+            else:
+                D.log("请手动通关剩余天数后再使用脚本", name)
+                return
+
+            if _id := D.find(r'event_id=(\d+)">战斗\(等级2\)'):
+                # 战斗
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                # FIGHT!
+                D.get("cmd=jianghudream&op=doPveFight")
+                D.log(D.find(r"<p>(.*?)<br />"), name)
+                if "战败" in D.html:
+                    is_defeat = True
+                    break
+            elif _id := D.find(r'event_id=(\d+)">奇遇\(等级2\)'):
+                # 奇遇
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+                # 笼络侠客
+                D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=3")
+                D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+            elif _id := D.find(r'event_id=(\d+)">商店'):
+                # 商店
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+
+        # 结束回忆
+        D.get("cmd=jianghudream&op=endInstance")
+        D.log(D.find(), name).append()
+
+        if is_defeat:
+            break
+
+    # 领取首通奖励
+    D.get(f"cmd=jianghudream&op=getFirstReward&ins_id={ins_id}")
+    D.log(D.find(), name).append()
+
+
+def 雪山藏魂(name: str, number: int, ins_id: int):
+    """最高490金币"""
+    for i in range(number):
+        # 开启副本
+        D.get(f"cmd=jianghudream&op=beginInstance&ins_id={ins_id}")
+        if "帮助" in D.html:
+            # 您还未编辑副本队伍，无法开启副本
+            D.log(D.find(), name).append()
+            return
+
+        is_defeat = False
+        print("--" * 20)
+        count = i + 1
+        print(f"第 {count} 次（余 {number - count}）")
+        print("--" * 20)
+
+        for day in range(8):
+            if "进入下一天" in D.html:
+                # 进入下一天
+                D.get("cmd=jianghudream&op=goNextDay")
+                day += 1
+            else:
+                D.log("请手动通关剩余天数后再使用脚本", name)
+                return
+
+            if day == 4:
+                is_conversation = False
+                if _id := D.find(r'event_id=(\d+)">奇遇\(等级2\)'):
+                    # 奇遇
+                    D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                    D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+                    # 尝试交谈（获得银狐玩偶）
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=2")
+                    D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+                    is_conversation = True
+                    # 询问大侠
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=2")
+                    continue
+
+            if _ids := D.findall(r'event_id=(\d+)">战斗\(等级2\)'):
+                if day in [2, 5]:
+                    _id = _ids[-1]
+                else:
+                    _id = _ids[0]
+                # 战斗
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                # FIGHT!
+                D.get("cmd=jianghudream&op=doPveFight")
+                D.log(D.find(r"<p>(.*?)<br />"), name)
+                if "战败" in D.html:
+                    is_defeat = True
+                    break
+            elif _id := D.find(r'event_id=(\d+)">奇遇\(等级2\)'):
+                # 奇遇
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+                D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+                if day == 1:
+                    # 捉迷藏
+                    D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=1")
+                elif day == 6:
+                    if is_conversation:
+                        # 飞书（需银狐玩偶）
+                        D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=1")
+                    else:
+                        # 刀剑归真
+                        D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=2")
+                D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"), name)
+            elif _id := D.find(r'event_id=(\d+)">商店'):
+                # 商店
+                D.get(f"cmd=jianghudream&op=chooseEvent&event_id={_id}")
+
+        # 结束回忆
+        D.get("cmd=jianghudream&op=endInstance")
+        D.log(D.find(), name).append()
+
+        if is_defeat:
+            break
+
+    # 领取首通奖励
+    D.get(f"cmd=jianghudream&op=getFirstReward&ins_id={ins_id}")
+    D.log(D.find(), name).append()
+
+
+def 江湖长梦():
+    """江湖长梦副本挑战次数即香炉数量，战败则提前结束"""
+    base_data = {
+        "柒承的忙碌日常": {
+            "material_name": "追忆香炉",
+            "material_id": 6477,
+            "ins_id": 1,
+        },
+        "群英拭剑谁为峰": {
+            "material_name": "拭剑香炉",
+            "material_id": 6940,
+            "ins_id": 32,
+        },
+        "时空守护者": {
+            "material_name": "时空香炉",
+            "material_id": 6532,
+            "ins_id": 47,
+        },
+        "倚天屠龙归我心": {
+            "material_name": "九阳香炉",
+            "material_id": 6904,
+            "ins_id": 48,
+        },
+        "神雕侠侣": {
+            "material_name": "盛世香炉",
+            "material_id": 6476,
+            "ins_id": 49,
+        },
+        "雪山藏魂": {
+            "material_name": "雪山香炉",
+            "material_id": 8121,
+            "ins_id": 50,
+        },
+    }
+
+    i = Input()
+    print("--" * 20)
+    data = {}
+    for k, v in base_data.items():
+        material_name = v["material_name"]
+        material_id = v["material_id"]
+        ins_id = v["ins_id"]
+
+        number = get_backpack_number(material_id)
+        if number == 0:
+            print(f"{k}（{material_name}不足）")
+            continue
+
+        D.get(f"cmd=jianghudream&op=showCopyInfo&id={ins_id}")
+        if "常规副本" in D.html:
+            data[k] = v
+            data[k]["number"] = number
+            continue
+
+        year = int(D.find(r"-(\d+)年"))
+        month = int(D.find(r"-\d+年(\d+)月"))
+        day = int(D.find(r"-\d+年\d+月(\d+)日"))
+        end_time = datetime(2000 + year, month, day, 6, 0)
+        current_time = datetime.now()
+        if current_time < end_time:
+            data[k] = v
+            data[k]["number"] = number
+        else:
+            print(f"{k}（未开启）")
+
+    mission_name = i.select_mission(list(data), "选择任务名称：")
+    if mission_name is None:
+        return
+
+    material_name = data[mission_name]["material_name"]
+    ins_id = data[mission_name]["ins_id"]
+    number = data[mission_name]["number"]
+    print("--" * 20)
+    print(f"{material_name}数量：{number}")
+
+    globals()[mission_name](mission_name, number, ins_id)

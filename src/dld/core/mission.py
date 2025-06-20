@@ -74,7 +74,6 @@ class MissionPlanner:
                 "每日奖励": True,
                 "领取徒弟经验": True,
                 "今日活跃度": True,
-                "江湖长梦": True,
                 "仙武修真": True,
                 "乐斗黄历": True,
                 "器魂附魔": True,

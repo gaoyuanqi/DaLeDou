@@ -1452,12 +1452,12 @@ def 悬赏任务():
 def 遗迹征伐():
     # 遗迹征伐
     D.get("cmd=spacerelic&op=relicindex")
-    year = D.find(r"(\d+)年")
-    month = D.find(r"(\d+)月")
-    day = D.find(r"(\d+)日")
+    year = int(D.find(r"(\d+)年"))
+    month = int(D.find(r"(\d+)月"))
+    day = int(D.find(r"(\d+)日"))
 
     # 判断当前日期是否到达结束日期的前一天
-    if is_target_date_reached(1, (int(year), int(month), int(day))):
+    if is_target_date_reached(1, (year, month, day)):
         # 悬赏任务-登录奖励
         D.get("cmd=spacerelic&op=task&type=1&id=1")
         D.log(D.find(r"赛季任务</a><br /><br />(.*?)<"), "时空遗迹-悬赏任务").append()
@@ -1469,7 +1469,7 @@ def 遗迹征伐():
         return
 
     # 判断当前日期是否到达第八周
-    if is_target_date_reached(7, (int(year), int(month), int(day))):
+    if is_target_date_reached(7, (year, month, day)):
         D.log("当前处于休赛期，结束前一天领取赛季奖励和悬赏商店兑换").append()
         return
 
@@ -1534,7 +1534,8 @@ def 世界树():
     _id = D.find(r"weapon_id=(\d+)")
     # 免费温养
     D.get(f"cmd=worldtree&op=dostrengh&times=1&weapon_id={_id}")
-    D.log("免费温养：" + D.find(r"规则</a><br />(.*?)<br />")).append()
+    D.log(D.find(r"规则</a><br />(.*?)<br />")).append()
+    D.log("当前进度：" + D.find(r"当前进度:(.*?)<")).append()
 
 
 def 龙凰论武():
@@ -1555,13 +1556,7 @@ def 龙凰论武():
         D.log("已过报名期").append()
         return
 
-    # 每日领奖
-    D.get("cmd=dragonphoenix&op=gift")
-    D.log(D.find(r"/5</a><br /><br />(.*?)<")).append()
-
     config: int = D.config["龙凰之境"]["龙凰论武"]
-    if config is None:
-        return
     for _ in range(config):
         data = D.findall(r"uin=(\d+).*?idx=(\d+)")
         uin, _idx = random.choice(data)
@@ -1572,6 +1567,10 @@ def 龙凰论武():
             break
         elif "冷却中" in D.html:
             break
+
+    # 每日领奖
+    D.get("cmd=dragonphoenix&op=gift")
+    D.log(D.find(r"/5</a><br /><br />(.*?)<")).append()
 
 
 def 龙凰云集():
@@ -1609,8 +1608,8 @@ def 龙凰之境():
     """
     龙凰论武：
         报名：每月1~3号每天报名（报名还未完善，只是进入论武）
-        每日领奖：每月4~25号每天一次
         挑战：每月4~25号每天随机挑战，挑战次数详见配置文件
+        每日领奖：每月4~25号每天一次
     龙凰云集：
         领奖：每月27号领取所有
         商店兑换：每月27号兑换，兑换次数详见配置文件
@@ -1923,59 +1922,6 @@ def 今日活跃度():
         D.log(D.find()).append()
 
 
-def 柒承的忙碌日常(count):
-    p = "cmd=jianghudream&op=chooseEvent&event_id="
-    for _ in range(count):
-        # 开启副本
-        D.get("cmd=jianghudream&op=beginInstance&ins_id=1")
-        if "帮助" in D.html:
-            # 开启副本所需追忆香炉不足
-            # 您还未编辑副本队伍，无法开启副本
-            D.log(D.find()).append()
-            break
-
-        for _ in range(8):
-            if "进入下一天" in D.html:
-                # 进入下一天
-                D.get("cmd=jianghudream&op=goNextDay")
-                result_1 = D.find(r'event_id=(\d+)">战斗')
-                result_2 = D.find(r'event_id=(\d+)">奇遇')
-                result_3 = D.find(r'event_id=(\d+)">商店')
-            if result_1:
-                # 战斗
-                D.get(f"{p}{result_1}")
-                # FIGHT!
-                D.get("cmd=jianghudream&op=doPveFight")
-                D.log(D.find(r"<p>(.*?)<br />"))
-                if "战败" in D.html:
-                    break
-            elif result_2:
-                # 奇遇
-                D.get(f"{p}{result_2}")
-                # 视而不见
-                D.get("cmd=jianghudream&op=chooseAdventure&adventure_id=2")
-                D.log(D.find(r"获得金币：\d+<br />(.*?)<br />"))
-            elif result_3:
-                # 商店
-                D.get(f"{p}{result_3}")
-
-        # 结束回忆
-        D.get("cmd=jianghudream&op=endInstance")
-        D.log(D.find()).append()
-
-
-def 江湖长梦():
-    """周四挑战柒承的忙碌日常"""
-    config: dict = D.config["江湖长梦"]
-    count: int = config["柒承的忙碌日常"]
-
-    if count is None:
-        D.log("你没有配置柒承的忙碌日常").append()
-        return
-
-    柒承的忙碌日常(count)
-
-
 def 仙武修真():
     """每天领取3次任务、长留山至多挑战5次"""
     for task_id in range(1, 4):
@@ -2146,10 +2092,10 @@ def 万圣节():
     # 万圣节
     D.get("cmd=hallowmas")
     year = D.year
-    month = D.find(r"~(\d+)月")
-    day = D.find(r"~\d+月(\d+)日")
+    month = int(D.find(r"~(\d+)月"))
+    day = int(D.find(r"~\d+月(\d+)日"))
     # 判断当前日期是否到达结束日期的前一天
-    if not is_target_date_reached(1, (int(year), int(month), int(day))):
+    if not is_target_date_reached(1, (year, month, day)):
         return
 
     number = int(D.find(r"南瓜灯：(\d+)个"))
@@ -2268,15 +2214,20 @@ def 周周礼包():
 
 
 def 登录有礼():
-    """领取一次登录奖励"""
+    """
+    登录奖励：每天领取一次
+    额外奖励：每天领取一次
+    """
     # 登录有礼
     D.get("cmd=newAct&subtype=56")
-    if g := D.find(r"gift_index=(\d+)"):
+    if g := D.find(r"gift_type=1.*?gift_index=(\d+)"):
         # 领取
         D.get(f"cmd=newAct&subtype=56&op=draw&gift_type=1&gift_index={g}")
         D.log(D.find()).append()
-    else:
-        D.log("没有礼包领取").append()
+    if g := D.find(r"gift_type=2.*?gift_index=(\d+)"):
+        # 领取
+        D.get(f"cmd=newAct&subtype=56&op=draw&gift_type=2&gift_index={g}")
+        D.log(D.find()).append()
 
 
 def 活跃礼包():
@@ -2911,17 +2862,16 @@ def 好礼步步升():
 
 
 def 企鹅吉利兑_兑换():
-    config: dict = D.config["企鹅吉利兑"]
+    config: list[dict] = D.config["企鹅吉利兑"]
     if config is None:
         D.log("你没有配置兑换物品").append()
         return
 
-    for name, number in config.items():
+    for name, _id, exchange_number in get_exchange_config(config):
         count = 0
-        _id = D.find(rf"{name}.*?id=(\d+)")
-        for _ in range(number):
+        for _ in range(exchange_number):
             D.get(f"cmd=geelyexchange&op=ExchangeProps&id={_id}")
-            D.log(D.find(r"】<br /><br />(.*?)<br />"))
+            D.log(D.find(r"】<br /><br />(.*?)<br />"), name)
             if "你的精魄不足，快去完成任务吧~" in D.html:
                 break
             elif "该物品已达兑换上限~" in D.html:
@@ -2932,7 +2882,10 @@ def 企鹅吉利兑_兑换():
 
 
 def 企鹅吉利兑():
-    """每天领取、截止日前一天兑换材料"""
+    """
+    领取：每天领取
+    兑换：截止日前一天兑换材料，详见配置文件
+    """
     # 企鹅吉利兑
     D.get("cmd=geelyexchange")
     if _ids := D.findall(r'id=(\d+)">领取</a>'):
@@ -2944,10 +2897,10 @@ def 企鹅吉利兑():
         D.log("没有礼包领取").append()
 
     year = D.year
-    month = D.find(r"至(\d+)月")
-    day = D.find(r"至\d+月(\d+)日")
+    month = int(D.find(r"至(\d+)月"))
+    day = int(D.find(r"至\d+月(\d+)日"))
     # 判断当前日期是否到达结束日期的前一天
-    if is_target_date_reached(1, (int(year), int(month), int(day))):
+    if is_target_date_reached(1, (year, month, day)):
         企鹅吉利兑_兑换()
 
 
