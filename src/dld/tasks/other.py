@@ -1364,14 +1364,9 @@ class XianWuXiuZhen:
     """仙武修真宝物自动强化"""
 
     def __init__(self):
-        self.问道()
-
         # 获取残片数量
         self.backpack_num = self.get_backpack_num()
         self.data = self.get_data()
-
-    def 问道(self):
-        """问道并一键炼化制作书"""
 
     def get_fail_value(self, consume_name: str, now_level: int) -> int:
         """返回史诗、传说、神话失败祝福值"""
