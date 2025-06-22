@@ -2,13 +2,13 @@
 华山论剑:
   - name: 钻石
     id: 6857
-    exchange_number: 375
+    exchange_number: 100
   - name: 侠士修身录
     id: 6347
-    exchange_number: 100
+    exchange_number: 0
   - name: 侠士手记
     id: 6348
-    exchange_number: 80
+    exchange_number: 0
   - name: 重出江湖令
     id: 6349
     exchange_number: 0
@@ -50,23 +50,24 @@
   - 6194 # 玉龙雪山 赵敏碎片
 
 # 周一、周二门派邀请赛商店兑换
-# 周三~周日自动兑换门派战书*5，所以不需添加
 门派邀请赛:
   - name: 炼气石
     id: 1246
-    exchange_number: 20
+    exchange_number: 10
   - name: 门派强化书
     id: 1247
-    exchange_number: 10
+    exchange_number: 0
   - name: 门派高香
     id: 1248
+    exchange_number: 0
+  - name: 门派战书
+    id: 1249
     exchange_number: 0
   - name: 门派引荐书
     id: 1250
     exchange_number: 0
 
 # 周五会武商店兑换
-# 周一~周三试炼场挑战次数不足时会自动兑换试炼书*1，所以不需添加
 会武:
   - name: 真黄金卷轴
     id: 1263
@@ -74,6 +75,9 @@
   - name: 修为丹
     id: 1264
     exchange_number: 0
+  - name: 试炼书
+    id: 1265
+    exchange_number: 3
 
 # 周六淘汰赛助威、周日排名赛助威
 问鼎天下:
@@ -89,7 +93,7 @@
     - 体力 # 匹配真体力、大体力、小体力等含有体力的物品
     - 经验 # 匹配经验药水、经验木筒等含有经验的物品
     - 悟性丹\*20 # 匹配悟性丹*20
-    - 百炼钢 # 匹配百炼钢
+    # - 百炼钢 # 匹配百炼钢
     # - 凤凰羽毛 # 匹配凤凰羽毛
   兑换商店:
     # - 破坏·银光V碎片 # 武器暴击伤害50.0%，全武器伤害15，该回合伤害提高20.0%
@@ -170,25 +174,25 @@
   许愿帮铺: # 每月26号兑换
     - name: 气魄之书
       id: 5
-      exchange_number: 5
+      exchange_number: 0
     - name: 力魄之书
       id: 6
-      exchange_number: 5
+      exchange_number: 0
     - name: 精魄之书
       id: 7
-      exchange_number: 5
+      exchange_number: 0
     - name: 英魄之书
       id: 8
-      exchange_number: 5
+      exchange_number: 0
     - name: 中枢之书
       id: 9
-      exchange_number: 5
+      exchange_number: 0
     - name: 天冲之书
       id: 10
-      exchange_number: 5
+      exchange_number: 0
     - name: 灵慧之书
       id: 11
-      exchange_number: 5
+      exchange_number: 0
     - name: 佣兵天赋丹
       id: 12
       exchange_number: 0
@@ -336,9 +340,8 @@
 
 # 每天出现指定字符时献酒
 客栈同福:
-  - 王处一碎片
   - 王重阳碎片
-  - 林朝英碎片
+  - 王处一碎片
 
 # 福卡分享好友QQ（比如自己小号），默认不分享
 # 分享会获得一次领取福卡的机会

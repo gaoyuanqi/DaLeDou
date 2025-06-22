@@ -709,7 +709,7 @@ def 画卷迷踪():
 def 门派():
     """
     万年寺：每天点燃普通香炉、点燃高香香炉
-    八叶堂：每天一次进入木桩训练、两次进入同门切磋（一次免费一次消耗门派战书）
+    八叶堂：每天一次进入木桩训练、一次进入同门切磋
     五花堂：每天至多完成任务3次
     """
     # 点燃普通香炉、点燃高香香炉
@@ -717,8 +717,8 @@ def 门派():
         D.get(f"cmd=sect&op={op}")
         D.log(D.find(r"修行。<br />(.*?)<br />")).append()
 
-    # 进入木桩训练、进入同门切磋、进入同门切磋
-    for op in ["trainingwithnpc", "trainingwithmember", "trainingwithmember"]:
+    # 进入木桩训练、进入同门切磋
+    for op in ["trainingwithnpc", "trainingwithmember"]:
         D.get(f"cmd=sect&op={op}")
         D.log(D.find()).append()
 
@@ -788,8 +788,10 @@ def 门派邀请赛_商店兑换():
 
 def 门派邀请赛():
     """
-    周一、二报名、领取奖励、商店兑换
-    周三~周日至多开始挑战10次（自动兑换门派战书*5）
+    报名：周一、周二报名
+    领取奖励：周一、周二领取
+    商店兑换：周一、周二兑换
+    开始挑战：周三~周日每天至多10次
     """
     if D.week in [1, 2]:
         # 组队报名
@@ -801,13 +803,6 @@ def 门派邀请赛():
 
         门派邀请赛_商店兑换()
         return
-
-    for _ in range(5):
-        # 兑换门派战书*1
-        D.get("cmd=exchange&subtype=2&type=1249&times=1")
-        D.log(D.find()).append()
-        if "成功" not in D.html:
-            break
 
     for _ in range(10):
         # 开始挑战
@@ -844,10 +839,10 @@ def 会武_商店兑换():
 
 def 会武():
     """
-    周一、二、三初、中、高级试炼场挑战（自动兑换试炼书*1）
-    周四助威丐帮
-    周五商店兑换
-    周六、日领奖
+    初、中、高级试炼场：周一、周二、周三挑战
+    助威：周四助威丐帮
+    商店兑换：周五兑换
+    领奖：周六、日
     """
     if D.week in [1, 2, 3]:
         for _ in range(21):
@@ -860,11 +855,7 @@ def 会武():
             if "你已达今日挑战上限" in D.html:
                 break
             elif "你的试炼书不足" in D.html:
-                # 兑换试炼书
-                D.get("cmd=exchange&subtype=2&type=1265&times=1")
-                D.log(D.find())
-                if "兑换成功" not in D.html:
-                    break
+                break
     elif D.week == 4:
         # 冠军助威 丐帮
         D.get("cmd=sectmelee&op=cheer&sect=1003")
@@ -925,7 +916,7 @@ def 梦想之旅():
 
 
 def 问鼎天下_商店兑换():
-    """仅兑换碎片（需神魔录古阵篇可以升一级且碎片拥有数量少于突破需要数量）"""
+    """仅兑换宝物碎片（仅当神魔录古阵篇中的宝物可升级且碎片数量不足时兑换）"""
 
     def get_number():
         """获取背包物品数量"""
