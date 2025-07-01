@@ -26,6 +26,7 @@ from .common import (
     c_侠士客栈,
     c_帮派巡礼,
     c_深渊秘境,
+    c_龙凰论武,
     c_幸运金蛋,
     c_客栈同福,
     c_乐斗大笨钟,
@@ -89,7 +90,7 @@ def 深渊之潮():
 
 
 def 侠客岛():
-    """侠客行至多领取3次任务奖励"""
+    """侠客行最多领取3次任务奖励"""
     # 侠客行
     D.get("cmd=knight_island&op=viewmissionindex")
     data = D.findall(r"getmissionreward&amp;pos=(\d+)")
@@ -101,6 +102,10 @@ def 侠客岛():
         # 领取
         D.get(f"cmd=knight_island&op=getmissionreward&pos={p}")
         D.log(D.find(r"斗豆）<br />(.*?)<br />")).append()
+
+
+def 龙凰之境():
+    c_龙凰论武(D)
 
 
 def 背包():

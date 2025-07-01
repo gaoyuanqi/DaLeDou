@@ -2,6 +2,8 @@
 本模块抽离了 one.py 和 two.py 两个模块的公共任务函数
 """
 
+import random
+
 from ..core.daledou import DaLeDou
 
 
@@ -98,96 +100,116 @@ def c_帮派商会(D: DaLeDou):
 
 
 def c_任务派遣中心(D: DaLeDou):
-    """至多领取奖励、接受任务3次"""
+    """
+    领取奖励：每天最多3次
+    接受：每天最多3次；优先S、A级，如果S、A已尝试且没有免费刷新次数则选择B级
+    """
+    base_name = "任务派遣中心"
     # 任务派遣中心
     D.get("cmd=missionassign&subtype=0")
-    for _id in D.findall(r'mission_id=(.*?)">查看'):
+    for _id in D.findall(r'0时0分.*?mission_id=(.*?)">查看'):
+        # 查看
+        D.get(f"cmd=missionassign&subtype=1&mission_id={_id}")
+        mission_name = f"{base_name}-{D.find(r'任务名称：(.*?)<')}"
         # 领取奖励
         D.get(f"cmd=missionassign&subtype=5&mission_id={_id}")
-        D.log(D.find(r"\[任务派遣中心\](.*?)<br />")).append()
+        D.log(D.find(r"\[任务派遣中心\](.*?)<br />"), mission_name).append()
 
-    # 接受任务
-    missions_dict = {
-        "少女天团": "2",
-        "闺蜜情深": "17",
-        "男女搭配": "9",
-        "鼓舞士气": "5",
-        "仙人降临": "6",
-        "雇佣军团": "11",
-        "调整状态": "12",
-        "防御工事": "10",
-        "护送长老": "1",
-        "坚持不懈": "4",
-        "降妖除魔": "3",
-        "深山隐士": "7",
-        "抓捕小偷": "8",
-        "小队巡逻": "13",
-        "武艺切磋": "14",
-        "哥俩好啊": "15",
-        "协助村长": "16",
-        "打扫房间": "18",
-        "货物运送": "19",
-        "消除虫害": "20",
-        "帮助邻居": "21",
-        "上山挑水": "22",
-        "房屋维修": "23",
-        "清理蟑螂": "24",
-        "收割作物": "25",
-        "炊烟袅袅": "26",
-        "湖边垂钓": "27",
-        "勤劳园丁": "29",
-    }
-    # 任务派遣中心
-    D.get("cmd=missionassign&subtype=0")
-    for _ in range(3):
-        mission_id = D.findall(r'mission_id=(\d+)">接受')
-        for _, _id in missions_dict.items():
-            if _id in mission_id:
-                # 快速委派
-                D.get(f"cmd=missionassign&subtype=7&mission_id={_id}")
-                # 开始任务
-                D.get(f"cmd=missionassign&subtype=8&mission_id={_id}")
-                if "任务数已达上限" in D.html:
-                    break
+    fail_ids = []
+    is_maximums = False
+    is_no_free_refresh = False
+    for _ in range(5):
         # 任务派遣中心
         D.get("cmd=missionassign&subtype=0")
-        if "今日已领取了全部任务哦" in D.html:
+        S_ids = D.findall(r'-S&nbsp;所需时间.*?_id=(\d+)">接受')
+        A_ids = D.findall(r'-A&nbsp;所需时间.*?_id=(\d+)">接受')
+        B_ids = D.findall(r'-B&nbsp;所需时间.*?_id=(\d+)">接受')
+
+        _ids = S_ids + A_ids
+
+        if is_no_free_refresh:
+            _ids = B_ids
+            if set(_ids).issubset(fail_ids):
+                break
+
+        for _id in _ids:
+            # 接受
+            D.get(f"cmd=missionassign&subtype=2&mission_id={_id}")
+            mission_name = f"{base_name}-{D.find(r'任务名称：(.*?)<')}"
+
+            # 快速委派
+            D.get(f"cmd=missionassign&subtype=7&mission_id={_id}")
+            if "设置佣兵成功" not in D.html:
+                D.log(D.find(r"】<br /><br />(.*?)<"), mission_name)
+                fail_ids.append(_id)
+                continue
+            D.log(D.find(r"】</p>(.*?)<"), mission_name)
+
+            # 开始任务
+            D.get(f"cmd=missionassign&subtype=8&mission_id={_id}")
+            if "当前可执行任务数已达上限" in D.html:
+                D.log(D.find(r"】<br /><br />(.*?)<"), mission_name)
+                is_maximums = True
+                break
+            D.log(D.find(r"】</p>(.*?)<"), mission_name)
+
+            if D.html.count("查看") == 3 or "今天已领取了全部任务" in D.html:
+                is_maximums = True
+                break
+
+        if is_maximums:
             break
-        elif D.html.count("查看") == 3:
-            break
-        elif "50斗豆" not in D.html:
+
+        if is_no_free_refresh:
+            continue
+
+        # 任务派遣中心
+        D.get("cmd=missionassign&subtype=0")
+        if "本次消耗：0斗豆" in D.html:
             # 刷新任务
             D.get("cmd=missionassign&subtype=3")
+            D.log("免费刷新成功", "任务派遣中心-刷新任务")
+        else:
+            is_no_free_refresh = True
+            D.log("没有免费刷新次数了", "任务派遣中心-刷新任务")
 
     # 任务派遣中心
     D.get("cmd=missionassign&subtype=0")
     for info in D.findall(r"<br />(.*?)&nbsp;<a.*?查看"):
-        D.log(info).append()
+        D.log(info, "任务派遣中心-当前任务").append()
 
 
 def c_侠士客栈(D: DaLeDou):
-    """领取奖励3次、客栈奇遇"""
+    """
+    领取奖励：每天3次
+    客栈奇遇：
+        前来捣乱的xx：与TA理论
+        黑市商人：物品交换，详见配置文件
+    """
     # 侠士客栈
     D.get("cmd=warriorinn")
-    if t := D.find(r"type=(\d+).*?领取奖励</a>"):
-        for n in range(1, 4):
-            # 领取奖励
-            D.get(f"cmd=warriorinn&op=getlobbyreward&type={t}&num={n}")
-            D.log(D.find(r"侠士客栈<br />(.*?)<br />")).append()
+    for t, n in D.findall(r"type=(\d+)&amp;num=(\d+)"):
+        # 领取奖励
+        D.get(f"cmd=warriorinn&op=getlobbyreward&type={t}&num={n}")
+        D.log(D.find(r"侠士客栈<br />(.*?)<br />")).append()
 
-    # 奇遇
-    for p in D.findall(r"pos=(\d+)"):
-        D.get(f"cmd=warriorinn&op=showAdventure&pos={p}")
-        if "前来捣乱的" in D.html:
-            # 前来捣乱的xx -> 与TA理论 -> 确认
-            D.get(f"cmd=warriorinn&op=exceptadventure&pos={p}")
-            if "战斗" in D.html:
-                D.log(D.find(r"侠士客栈<br />(.*?) ，")).append()
-                continue
-            D.log(D.find(r"侠士客栈<br />(.*?)<br />")).append()
-        else:
-            # 黑市商人、老乞丐 -> 你去别人家问问吧、拯救世界的任务还是交给别人把 -> 确认
-            D.get(f"cmd=warriorinn&op=rejectadventure&pos={p}")
+    for p in D.findall(r'pos=(\d+)">前来捣乱的'):
+        # 与TA理论
+        D.get(f"cmd=warriorinn&op=exceptadventure&pos={p}")
+        D.log(D.find(r"侠士客栈<br />(.*?)<")).append()
+
+    config: list[str] = D.config["侠士客栈"]
+    if config is None:
+        return
+    for p in D.findall(r'pos=(\d+)">黑市商人'):
+        # 与TA交换
+        D.get(f"cmd=warriorinn&op=confirmadventure&pos={p}&type=0")
+        for text in config:
+            if text in D.html:
+                D.log(D.find(r"物品交换<br /><br />(.*?)<br />")).append()
+                # 确认
+                D.get(f"cmd=warriorinn&op=exceptadventure&pos={p}")
+                D.log(D.find(r"侠士客栈<br />(.*?)<br />")).append()
 
 
 def c_帮派巡礼(D: DaLeDou):
@@ -238,6 +260,30 @@ def c_深渊秘境(D: DaLeDou):
         # 退出副本
         D.get("cmd=abysstide&op=endabyss")
         D.log(D.find()).append()
+
+
+def c_龙凰论武(D: DaLeDou):
+    """每月4~25号每天随机挑战，挑战次数详见配置文件"""
+    # 龙凰之境
+    D.get("cmd=dragonphoenix&op=lunwu")
+    if "已报名" in D.html:
+        D.log("系统已随机报名，次日才能挑战").append()
+        return
+    elif "论武榜" not in D.html:
+        D.log("进入论武异常，无法挑战").append()
+        return
+
+    challenge_number: int = D.config["龙凰之境"]["龙凰论武"]["challenge_number"]
+    for _ in range(challenge_number):
+        data = D.findall(r"uin=(\d+).*?idx=(\d+)")
+        uin, _idx = random.choice(data)
+        # 挑战
+        D.get(f"cmd=dragonphoenix&op=pk&zone=1&uin={uin}&idx={_idx}")
+        D.log(D.find(r"/5</a><br /><br />(.*?)<")).append()
+        if "挑战次数不足" in D.html:
+            break
+        elif "冷却中" in D.html:
+            break
 
 
 def c_客栈同福(D: DaLeDou):
