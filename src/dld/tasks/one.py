@@ -1562,7 +1562,7 @@ def 龙凰论武():
         c_龙凰论武(D)
         # 每日领奖
         D.get("cmd=dragonphoenix&op=gift")
-        D.log(D.find(r"/5</a><br /><br />(.*?)<")).append()
+        D.log(D.find(r"/\d+</a><br /><br />(.*?)<")).append()
     elif D.day == 27:
         # 排行奖励
         D.get("cmd=dragonphoenix&op=rankreward")

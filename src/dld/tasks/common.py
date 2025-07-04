@@ -279,7 +279,7 @@ def c_龙凰论武(D: DaLeDou):
         uin, _idx = random.choice(data)
         # 挑战
         D.get(f"cmd=dragonphoenix&op=pk&zone=1&uin={uin}&idx={_idx}")
-        D.log(D.find(r"/5</a><br /><br />(.*?)<")).append()
+        D.log(D.find(r"/\d+</a><br /><br />(.*?)<")).append()
         if "挑战次数不足" in D.html:
             break
         elif "冷却中" in D.html:
