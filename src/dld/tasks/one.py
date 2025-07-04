@@ -1553,21 +1553,20 @@ def 世界树():
 
 
 def 龙凰论武():
-    if D.day > 25:
-        return
-
     if D.day == 1:
         zone: int = D.config["龙凰之境"]["龙凰论武"]["zone"]
         # 报名
         D.get(f"cmd=dragonphoenix&op=sign&zone={zone}")
         D.log(D.find()).append()
-        return
-
-    c_龙凰论武(D)
-
-    # 每日领奖
-    D.get("cmd=dragonphoenix&op=gift")
-    D.log(D.find(r"/5</a><br /><br />(.*?)<")).append()
+    elif 4 <= D.day <= 25:
+        c_龙凰论武(D)
+        # 每日领奖
+        D.get("cmd=dragonphoenix&op=gift")
+        D.log(D.find(r"/5</a><br /><br />(.*?)<")).append()
+    elif D.day == 27:
+        # 排行奖励
+        D.get("cmd=dragonphoenix&op=rankreward")
+        D.log(D.find(r"<br /><br /><br />(.*?)<")).append()
 
 
 def 龙凰云集():
@@ -1619,6 +1618,7 @@ def 龙凰之境():
         报名：每月1号报名，选择赛区详见配置文件
         挑战：每月4~25号每天随机挑战，挑战次数详见配置文件
         每日领奖：每月4~25号每天一次
+        排行奖励：每月27号领取
     龙凰云集：
         领奖：每月27号领取赛季论武次数奖励
         商店兑换：每月27号兑换，兑换次数详见配置文件
