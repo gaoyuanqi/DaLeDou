@@ -20,7 +20,6 @@ from collections import Counter
 from ..core.daledou import DaLeDou
 from .common import (
     c_邪神秘宝,
-    c_问鼎天下,
     c_帮派商会,
     c_任务派遣中心,
     c_侠士客栈,
@@ -66,10 +65,6 @@ def run_two_all(d: DaLeDou, title: str):
 
 def 邪神秘宝():
     c_邪神秘宝(D)
-
-
-def 问鼎天下():
-    c_问鼎天下(D)
 
 
 def 帮派商会():

@@ -23,7 +23,6 @@ from datetime import datetime, timedelta
 from ..core.daledou import DaLeDou
 from .common import (
     c_邪神秘宝,
-    c_问鼎天下,
     c_帮派商会,
     c_任务派遣中心,
     c_侠士客栈,
@@ -72,9 +71,9 @@ def get_exchange_config(config: list):
     for item in config:
         name: str = item["name"]
         _id: int = item["id"]
-        exchange_number: int = item["exchange_number"]
-        if exchange_number > 0:
-            yield name, _id, exchange_number
+        exchange_quantity: int = item["exchange_quantity"]
+        if exchange_quantity > 0:
+            yield name, _id, exchange_quantity
 
 
 def is_target_date_reached(
@@ -165,15 +164,15 @@ def 荣誉兑换():
     if config is None:
         return
 
-    for name, _id, exchange_number in get_exchange_config(config):
+    for name, _id, exchange_quantity in get_exchange_config(config):
         count = 0
-        for _ in range(exchange_number // 10):
+        for _ in range(exchange_quantity // 10):
             D.get(f"cmd=knightarena&op=exchange&id={_id}&times=10")
             D.log(D.find())
             if "成功" not in D.html:
                 break
             count += 10
-        for _ in range(exchange_number - count):
+        for _ in range(exchange_quantity - count):
             D.get(f"cmd=knightarena&op=exchange&id={_id}&times=1")
             D.log(D.find())
             if "成功" not in D.html:
@@ -790,15 +789,15 @@ def 门派邀请赛_商店兑换():
     if config is None:
         return
 
-    for name, _id, exchange_number in get_exchange_config(config):
+    for name, _id, exchange_quantity in get_exchange_config(config):
         count = 0
-        for _ in range(exchange_number // 10):
+        for _ in range(exchange_quantity // 10):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=10")
             D.log(D.find())
             if "成功" not in D.html:
                 break
             count += 10
-        for _ in range(exchange_number - count):
+        for _ in range(exchange_quantity - count):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=1")
             D.log(D.find())
             if "成功" not in D.html:
@@ -841,15 +840,15 @@ def 会武_商店兑换():
     if config is None:
         return
 
-    for name, _id, exchange_number in get_exchange_config(config):
+    for name, _id, exchange_quantity in get_exchange_config(config):
         count = 0
-        for _ in range(exchange_number // 10):
+        for _ in range(exchange_quantity // 10):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=10")
             D.log(D.find())
             if "成功" not in D.html:
                 break
             count += 10
-        for _ in range(exchange_number - count):
+        for _ in range(exchange_quantity - count):
             D.get(f"cmd=exchange&subtype=2&type={_id}&times=1")
             D.log(D.find())
             if "成功" not in D.html:
@@ -937,8 +936,6 @@ def 梦想之旅():
 
 
 def 问鼎天下_商店兑换():
-    """仅兑换宝物碎片（仅当神魔录古阵篇中的宝物可升级且碎片数量不足时兑换）"""
-
     def get_number():
         """获取背包物品数量"""
         # 背包物品详情
@@ -947,7 +944,7 @@ def 问鼎天下_商店兑换():
             number = 0
         else:
             number = D.find(r"数量：(\d+)")
-            D.log(number, f"{name}背包数量")
+            D.log(number, f"{name}-拥有数量")
         return int(number)
 
     def exchange():
@@ -1000,15 +997,15 @@ def 问鼎天下_商店兑换():
         D.get(f"cmd=ancient_gods&op=4&id={_id}")
         # 当前等级
         now_level = D.find(r"等级：(\d+)")
-        D.log(now_level, f"{_name}当前等级")
+        D.log(now_level, f"{_name}-当前等级")
         # 最高等级
         max_level = D.find(r"最高提升至(\d+)")
-        D.log(max_level, f"{_name}最高等级")
+        D.log(max_level, f"{_name}-最高等级")
         if now_level == max_level:
             continue
         # 碎片消耗数量
         consume_number = int(D.find(r"碎片\*(\d+)"))
-        D.log(consume_number, f"{_name}碎片消耗数量")
+        D.log(consume_number, f"{_name}碎片-消耗数量")
         if consume_number > possess_number:
             exchange()
 
@@ -1016,14 +1013,18 @@ def 问鼎天下_商店兑换():
 def 问鼎天下():
     """
     领取奖励：周一领取
-    领取帮资：周一~周五有就领取
-    放弃资源点：周一~周五有就放弃
-    东海：周一~周五攻占倒数第一个
+    商店兑换：周一仅兑换碎片（仅当神魔录古阵篇中的宝物可升级且碎片数量不足时兑换）
+    领取帮资：周一~周五领取
+    攻占：周一~周五每天攻占1级最多4次（占领成功则放弃），3级必定攻占一次，详见配置文件
     淘汰赛：周六助威，详见配置文件
     排名赛：周日助威，详见配置文件
-    商店兑换：周六周日兑换
     """
-    if D.week == 6:
+    if D.week == 1:
+        # 领取奖励
+        D.get("cmd=tbattle&op=drawreward")
+        D.log(D.find()).append()
+        问鼎天下_商店兑换()
+    elif D.week == 6:
         # 淘汰赛助威
         _id = D.config["问鼎天下"]["淘汰赛"]
         if _id is None:
@@ -1031,6 +1032,7 @@ def 问鼎天下():
             return
         D.get(f"cmd=tbattle&op=cheerregionbattle&id={_id}")
         D.log(D.find()).append()
+        return
     elif D.week == 7:
         # 排名赛助威
         _id = D.config["问鼎天下"]["排名赛"]
@@ -1039,17 +1041,53 @@ def 问鼎天下():
             return
         D.get(f"cmd=tbattle&op=cheerchampionbattle&id={_id}")
         D.log(D.find()).append()
-
-    if D.week in [6, 7]:
-        问鼎天下_商店兑换()
         return
 
-    if D.week == 1:
-        # 领取奖励
-        D.get("cmd=tbattle&op=drawreward")
+    # 问鼎天下
+    D.get("cmd=tbattle")
+    if "放弃" in D.html:
+        D.log("已有占领资源点，本任务结束").append()
+        return
+
+    if "你占领的领地已经枯竭" in D.html:
+        # 领取
+        D.get("cmd=tbattle&op=drawreleasereward")
         D.log(D.find()).append()
 
-    c_问鼎天下(D)
+    remaining_occupy_count = int(D.find(r"剩余抢占次数：(\d+)"))
+    if remaining_occupy_count == 0:
+        D.log("没有抢占次数了").append()
+        return
+
+    region: int = D.config["问鼎天下"]["region"]
+    level1_occupy_count: int = D.config["问鼎天下"]["level1_occupy_count"]
+    if level1_occupy_count >= remaining_occupy_count:
+        level1_occupy_count = max(0, remaining_occupy_count - 1)
+
+    # 区域
+    D.get(f"cmd=tbattle&op=showregion&region={region}")
+    for _id in D.findall(r"id=(\d+).*?攻占</a>")[:4]:
+        while level1_occupy_count:
+            # 攻占1级资源点
+            D.get(f"cmd=tbattle&op=occupy&id={_id}&region={region}")
+            D.log(D.find()).append()
+            if "你主动与" in D.html:
+                level1_occupy_count -= 1
+                if "放弃" in D.html:
+                    # 放弃
+                    D.get("cmd=tbattle&op=abandon")
+                    D.log(D.find()).append()
+            else:
+                break
+        if level1_occupy_count == 0:
+            break
+
+    # 区域
+    D.get(f"cmd=tbattle&op=showregion&region={region}")
+    # 攻占3级资源点最后一个
+    _id = D.findall(r"id=(\d+).*?攻占</a>")[-1]
+    D.get(f"cmd=tbattle&op=occupy&id={_id}&region=1")
+    D.log(D.find()).append()
 
 
 def 帮派商会():
@@ -1281,10 +1319,10 @@ def 许愿帮铺():
     if config is None:
         return
 
-    for name, _id, exchange_number in get_exchange_config(config):
+    for name, _id, exchange_quantity in get_exchange_config(config):
         count = 0
         if "之书" in name:
-            quotient = exchange_number // 25
+            quotient = exchange_quantity // 25
         else:
             quotient = 0
         for _ in range(quotient):
@@ -1293,7 +1331,7 @@ def 许愿帮铺():
             if "成功" not in D.html:
                 break
             count += 25
-        for _ in range(exchange_number - count):
+        for _ in range(exchange_quantity - count):
             D.get(f"cmd=abysstide&op=wishexchange&id={_id}")
             D.log(D.find(), name)
             if "成功" not in D.html:
@@ -1400,9 +1438,9 @@ def 遗迹商店():
         return
 
     for t, _list in config.items():
-        for name, _id, exchange_number in get_exchange_config(_list):
+        for name, _id, exchange_quantity in get_exchange_config(_list):
             count = 0
-            for _ in range(exchange_number // 10):
+            for _ in range(exchange_quantity // 10):
                 # 兑换十次
                 D.get(f"cmd=spacerelic&op=buy&type={t}&id={_id}&num=10")
                 D.log(
@@ -1412,7 +1450,7 @@ def 遗迹商店():
                 if "兑换成功" not in D.html:
                     break
                 count += 10
-            for _ in range(exchange_number - count):
+            for _ in range(exchange_quantity - count):
                 # 兑换一次
                 D.get(f"cmd=spacerelic&op=buy&type={t}&id={_id}&num=1")
                 D.log(
@@ -1586,15 +1624,15 @@ def 龙凰云集():
     if config is None:
         return
 
-    for name, _id, exchange_number in get_exchange_config(config):
+    for name, _id, exchange_quantity in get_exchange_config(config):
         count = 0
-        for _ in range(exchange_number // 10):
+        for _ in range(exchange_quantity // 10):
             D.get(f"cmd=dragonphoenix&op=buy&id={_id}&num=10")
             D.log(D.find(r"<br /><br /><br />(.*?)<"), name)
             if "成功" not in D.html:
                 break
             count += 10
-        for _ in range(exchange_number - count):
+        for _ in range(exchange_quantity - count):
             D.get(f"cmd=dragonphoenix&op=buy&id={_id}&num=1")
             D.log(D.find(r"<br /><br /><br />(.*?)<"), name)
             if "成功" not in D.html:
@@ -2882,9 +2920,9 @@ def 企鹅吉利兑_兑换():
         D.log("你没有配置兑换物品").append()
         return
 
-    for name, _id, exchange_number in get_exchange_config(config):
+    for name, _id, exchange_quantity in get_exchange_config(config):
         count = 0
-        for _ in range(exchange_number):
+        for _ in range(exchange_quantity):
             D.get(f"cmd=geelyexchange&op=ExchangeProps&id={_id}")
             D.log(D.find(r"】<br /><br />(.*?)<br />"), name)
             if "你的精魄不足，快去完成任务吧~" in D.html:

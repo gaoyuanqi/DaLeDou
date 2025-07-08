@@ -130,7 +130,6 @@ class MissionPlanner:
         }
         two_missions = {
             "邪神秘宝": True,
-            "问鼎天下": week not in {6, 7},
             "帮派商会": True,
             "任务派遣中心": True,
             "侠士客栈": True,

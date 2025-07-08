@@ -15,26 +15,6 @@ def c_邪神秘宝(D: DaLeDou):
         D.log(D.find(r"】</p>(.*?)<br />")).append()
 
 
-def c_问鼎天下(D: DaLeDou):
-    # 问鼎天下
-    D.get("cmd=tbattle")
-    if "你占领的领地已经枯竭" in D.html:
-        # 领取
-        D.get("cmd=tbattle&op=drawreleasereward")
-        D.log(D.find()).append()
-    elif "放弃" in D.html:
-        # 放弃
-        D.get("cmd=tbattle&op=abandon")
-        D.log(D.find()).append()
-
-    # 1东海 2南荒 3西泽 4北寒
-    D.get("cmd=tbattle&op=showregion&region=1")
-    # 攻占 倒数第一个
-    if _ids := D.findall(r"id=(\d+).*?攻占</a>"):
-        D.get(f"cmd=tbattle&op=occupy&id={_ids[-1]}&region=1")
-        D.log(D.find()).append()
-
-
 def 帮派宝库(D: DaLeDou):
     # 帮派宝库
     D.get("cmd=fac_corp&op=0")
@@ -170,8 +150,8 @@ def c_任务派遣中心(D: DaLeDou):
             D.get("cmd=missionassign&subtype=3")
             D.log("免费刷新成功", "任务派遣中心-刷新任务")
         else:
-            is_no_free_refresh = True
             D.log("没有免费刷新次数了", "任务派遣中心-刷新任务")
+            is_no_free_refresh = True
 
     # 任务派遣中心
     D.get("cmd=missionassign&subtype=0")
@@ -226,13 +206,13 @@ def c_深渊秘境(D: DaLeDou):
     """
     config: dict = D.config["深渊之潮"]["深渊秘境"]
     _id: int = config["id"]
-    exchange_number: int = config["exchange_number"]
+    exchange_count: int = config["exchange_count"]
 
     if _id is None:
         D.log("你没有配置深渊秘境副本").append()
         return
 
-    for _ in range(exchange_number):
+    for _ in range(exchange_count):
         # 兑换
         D.get("cmd=abysstide&op=addaccess")
         D.log(D.find()).append()
@@ -273,8 +253,8 @@ def c_龙凰论武(D: DaLeDou):
         D.log("进入论武异常，无法挑战").append()
         return
 
-    challenge_number: int = D.config["龙凰之境"]["龙凰论武"]["challenge_number"]
-    for _ in range(challenge_number):
+    challenge_count: int = D.config["龙凰之境"]["龙凰论武"]["challenge_count"]
+    for _ in range(challenge_count):
         data = D.findall(r"uin=(\d+).*?idx=(\d+)")
         uin, _idx = random.choice(data)
         # 挑战

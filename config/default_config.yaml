@@ -2,19 +2,19 @@
 华山论剑:
   - name: 钻石
     id: 6857
-    exchange_number: 100
+    exchange_quantity: 100
   - name: 侠士修身录
     id: 6347
-    exchange_number: 0
+    exchange_quantity: 0
   - name: 侠士手记
     id: 6348
-    exchange_number: 0
+    exchange_quantity: 0
   - name: 重出江湖令
     id: 6349
-    exchange_number: 0
+    exchange_quantity: 0
   - name: 斗神符
     id: 3090
-    exchange_number: 0
+    exchange_quantity: 0
 
 # 巅峰之战进行中: 0 # 随机加入
 # 巅峰之战进行中: 1 # 报名南派
@@ -57,38 +57,46 @@
 门派邀请赛:
   - name: 炼气石
     id: 1246
-    exchange_number: 20
+    exchange_quantity: 20
   - name: 门派强化书
     id: 1247
-    exchange_number: 0
+    exchange_quantity: 0
   - name: 门派高香
     id: 1248
-    exchange_number: 0
+    exchange_quantity: 0
   - name: 门派战书
     id: 1249
-    exchange_number: 0
+    exchange_quantity: 0
   - name: 门派引荐书
     id: 1250
-    exchange_number: 0
+    exchange_quantity: 0
 
 # 周四会武商店兑换
 会武:
   - name: 真黄金卷轴
     id: 1263
-    exchange_number: 20
+    exchange_quantity: 20
   - name: 修为丹
     id: 1264
-    exchange_number: 0
+    exchange_quantity: 0
   - name: 试炼书
     id: 1265
-    exchange_number: 3
+    exchange_quantity: 3
 
-# 周六淘汰赛助威、周日排名赛助威
 问鼎天下:
-  # 神阁☆圣域：82494
+  region: 1 # 攻占东海
+  # region: 2 # 攻占南荒
+  # region: 3 # 攻占西泽
+  # region: 4 # 攻占北寒
+
+  # 每天总次数5（3次免费+2次付费）
+  # 积分最大化是打4次1级失败+打1次3级成功：30*4+150=270
+  level1_occupy_count: 2 # 攻占1级资源点次数，最多4次，3级资源点必攻占一次
+
   # 傲龙づ族℃：96690
-  淘汰赛: 96690
-  排名赛: 96690
+  # 神阁☆圣域：82494
+  淘汰赛: 96690 # 周六助威
+  排名赛: 96690 # 周日助威
 
 # 选择交易及兑换物品
 # 物品支持全字、部分名称及正则匹配（注意使用 \ 转义字符）
@@ -96,7 +104,7 @@
   交易会所:
     - 体力 # 匹配真体力、大体力、小体力等含有体力的物品
     - 经验 # 匹配经验药水、经验木筒等含有经验的物品
-    - 悟性丹\*20 # 匹配悟性丹*20
+    # - 悟性丹\*20 # 匹配悟性丹*20
     # - 百炼钢 # 匹配百炼钢
     # - 凤凰羽毛 # 匹配凤凰羽毛
   兑换商店:
@@ -166,11 +174,13 @@
 # 黑市商人物品交换配置
 # 点击 "与TA交换"，按照 "消耗xx换取xx" 格式填入
 侠士客栈:
-  # - 消耗斗灵石-空*66换取万能碎片*1
+  # - 消耗斗灵石-空*66换取V级万能碎片*1
+  # - 消耗斗神符*1换取淬火结晶*1
   # - 消耗门派强化书*2换取斗灵石-空*5
   # - 消耗还魂丹*30换取百炼钢*1
   # - 消耗挑战书*2换取玄铁令*1
   # - 消耗黄金卷轴*3换取斗神符*1
+  # - 消耗无字天书*1换取易经八卦*1
 
 深渊之潮:
   深渊秘境:
@@ -183,44 +193,44 @@
     # id: 6 # 吞厄源头
     # id: 7 # 渊秘祭坛
     # id: 8 # 古帝遗迹
-    exchange_number: 0 # 第一、二轮兑换副本次数
+    exchange_count: 0 # 第一、二轮兑换副本次数
   许愿帮铺: # 每月26号兑换
     - name: 气魄之书
       id: 5
-      exchange_number: 0
+      exchange_quantity: 0
     - name: 力魄之书
       id: 6
-      exchange_number: 0
+      exchange_quantity: 0
     - name: 精魄之书
       id: 7
-      exchange_number: 0
+      exchange_quantity: 0
     - name: 英魄之书
       id: 8
-      exchange_number: 0
+      exchange_quantity: 0
     - name: 中枢之书
       id: 9
-      exchange_number: 0
+      exchange_quantity: 0
     - name: 天冲之书
       id: 10
-      exchange_number: 0
+      exchange_quantity: 0
     - name: 灵慧之书
       id: 11
-      exchange_number: 0
+      exchange_quantity: 0
     - name: 佣兵天赋丹
       id: 12
-      exchange_number: 0
+      exchange_quantity: 0
     - name: 许愿卡
       id: 13
-      exchange_number: 0
+      exchange_quantity: 0
     - name: 五星许愿卡碎片
       id: 14
-      exchange_number: 0
+      exchange_quantity: 0
     - name: 豆油队长碎片
       id: 15
-      exchange_number: 0
+      exchange_quantity: 0
     - name: 定海制作书
       id: 16
-      exchange_number: 1
+      exchange_quantity: 1
 
 时空遗迹:
   异兽洞窟: # 依次优先扫荡否则挑战
@@ -233,48 +243,48 @@
     1: # 特惠区
       - name: 日引石
         id: 1
-        exchange_number: 100
+        exchange_quantity: 100
       - name: 月引石
         id: 2
-        exchange_number: 100
+        exchange_quantity: 100
       - name: 星引石
         id: 3
-        exchange_number: 100
+        exchange_quantity: 100
       - name: 舆图
         id: 4
-        exchange_number: 40
+        exchange_quantity: 40
     2: # 售卖区
       - name: 日引石
         id: 5
-        exchange_number: 50
+        exchange_quantity: 50
       - name: 月引石
         id: 6
-        exchange_number: 50
+        exchange_quantity: 50
       - name: 星引石
         id: 7
-        exchange_number: 50
+        exchange_quantity: 50
       - name: 舆图
         id: 8
-        exchange_number: 20
+        exchange_quantity: 20
 
 龙凰之境:
   龙凰论武:
     zone: 1 # 报名龙渊赛区
     # zone: 2 # 报名凰极赛区
-    challenge_number: 1 # 第一、二轮随机挑战玩家次数
+    challenge_count: 1 # 第一、二轮随机挑战玩家次数
   龙凰云集: # 每月27号兑换
     - name: 论武券
       id: 1
-      exchange_number: 0
+      exchange_quantity: 0
     - name: 龙玉
       id: 2
-      exchange_number: 0
+      exchange_quantity: 0
     - name: 凰髓
       id: 3
-      exchange_number: 0
+      exchange_quantity: 0
     - name: 凰火
       id: 4
-      exchange_number: 0
+      exchange_quantity: 0
 
 # 帮派守护神供奉，每个物品最多供奉5次
 我的帮派:
@@ -359,9 +369,8 @@
   - 王重阳碎片
   - 王处一碎片
 
-# 福卡分享好友QQ（比如自己小号），默认不分享
-# 分享会获得一次领取福卡的机会
-生肖福卡: null
+# 将一个福卡分享给小号QQ，默认不分享
+生肖福卡: 
 
 # 选择周四兑换的物品
 # 登录商店: 1221 # 中体力*1
@@ -381,16 +390,16 @@
 企鹅吉利兑:
   - name: V级万能碎片
     id: 5
-    exchange_number: 25
+    exchange_quantity: 25
   - name: 熔炼乌金
     id: 6
-    exchange_number: 100
+    exchange_quantity: 100
   - name: 玄铁令
     id: 7
-    exchange_number: 20
+    exchange_quantity: 20
   - name: 挑战书
     id: 8
-    exchange_number: 30
+    exchange_quantity: 30
 
 # 周四选择礼包奖励
 乐斗儿童节: type=1&sub_type=0 # 神兵
