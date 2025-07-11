@@ -1350,47 +1350,57 @@ def 深渊之潮():
 
 
 def 侠客岛():
-    """侠客行最多接受任务3次（免费次数为0时不再刷新）"""
-    count = "4"
-    mission_success = False
+    """侠客行每天最多接受3次，免费次数最多刷新4次"""
+    is_accepted = False
+    fail_missions = set()
+
     # 侠客行
     D.get("cmd=knight_island&op=viewmissionindex")
-    for _ in range(4):
-        view_mission_detail_pos = D.findall(r"viewmissiondetail&amp;pos=(\d+)")
-        if not view_mission_detail_pos:
+    free_refresh_count = int(D.find(r"免费刷新剩余：(\d+)"))
+
+    for _ in range(5):
+        is_refresh = False
+
+        # 侠客行
+        D.get("cmd=knight_island&op=viewmissionindex")
+        pos = D.findall(r"viewmissiondetail&amp;pos=(\d+)")
+        if not pos:
             break
-        for p in view_mission_detail_pos:
+
+        for p in pos:
             # 接受
             D.get(f"cmd=knight_island&op=viewmissiondetail&pos={p}")
-            name = D.find(r"侠客行<br /><br />(.*?)（")
-            D.log(name, "侠客行-任务名称")
+            mission_name = D.find(r"侠客行<br /><br />(.*?)（")
+
+            if mission_name in fail_missions:
+                continue
+
             # 快速委派
             D.get(f"cmd=knight_island&op=autoassign&pos={p}")
-            D.log(D.find(r"）<br />(.*?)<br />"), f"侠客行-{name}")
+            D.log(D.find(r"）<br />(.*?)<br />"), f"侠客岛-{mission_name}")
             if "快速委派成功" in D.html:
-                mission_success = True
                 # 开始任务
                 D.get(f"cmd=knight_island&op=begin&pos={p}")
                 html = D.find(r"斗豆）<br />(.*?)<br />")
-                D.log(html, f"侠客行-{name}")
-                D.append(f"{name}：{html}")
-            elif "符合条件侠士数量不足" in D.html:
-                # 侠客行
-                D.get("cmd=knight_island&op=viewmissionindex")
-                # 免费刷新次数
-                count = D.find(r"剩余：(\d+)次")
-                D.log(count, "侠客行-免费刷新次数")
-                if count != "0":
-                    # 刷新
-                    D.get(f"cmd=knight_island&op=refreshmission&pos={p}")
-                    D.log(D.find(r"斗豆）<br />(.*?)<br />"), f"侠客行-{name}")
-                else:
-                    D.log("没有免费次数，取消刷新", f"侠客行-{name}")
+                D.log(html, f"侠客岛-{mission_name}")
+                D.append(f"{mission_name}：{html}")
+                is_accepted = True
+                continue
 
-        if count == "0":
+            if "符合条件侠士数量不足" in D.html and free_refresh_count > 0:
+                # 刷新
+                D.get(f"cmd=knight_island&op=refreshmission&pos={p}")
+                D.log(D.find(r"斗豆）<br />(.*?)<br />"), f"侠客岛-{mission_name}")
+                free_refresh_count -= 1
+                is_refresh = True
+            else:
+                D.log("没有免费刷新次数了", f"侠客岛-{mission_name}")
+                fail_missions.add(mission_name)
+
+        if free_refresh_count == 0 and not is_refresh:
             break
 
-    if not mission_success:
+    if not is_accepted:
         D.log("没有可接受的任务").append()
 
 
@@ -2745,8 +2755,14 @@ def 五一礼包():
 
 def 浩劫宝箱():
     """周四领取一次"""
-    D.get("cmd=newAct&subtype=152")
-    D.log(D.find(r"浩劫宝箱<br />(.*?)<br />")).append()
+    # 浩劫宝箱
+    D.get("cmd=newAct&subtype=162")
+    t = D.find(r"subtype=(\d+)")
+    if t is None:
+        D.log("没有可领取的礼包").append()
+        return
+    D.get(f"cmd=newAct&subtype={t}")
+    D.log(D.find()).append()
 
 
 def 端午有礼():

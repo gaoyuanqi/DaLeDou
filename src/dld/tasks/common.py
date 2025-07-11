@@ -97,7 +97,7 @@ def c_任务派遣中心(D: DaLeDou):
 
     fail_ids = []
     is_maximums = False
-    is_no_free_refresh = False
+    is_has_free_refresh_count = True
     for _ in range(5):
         # 任务派遣中心
         D.get("cmd=missionassign&subtype=0")
@@ -107,7 +107,7 @@ def c_任务派遣中心(D: DaLeDou):
 
         _ids = S_ids + A_ids
 
-        if is_no_free_refresh:
+        if not is_has_free_refresh_count:
             _ids = B_ids
             if set(_ids).issubset(fail_ids):
                 break
@@ -140,7 +140,7 @@ def c_任务派遣中心(D: DaLeDou):
         if is_maximums:
             break
 
-        if is_no_free_refresh:
+        if not is_has_free_refresh_count:
             continue
 
         # 任务派遣中心
@@ -151,7 +151,7 @@ def c_任务派遣中心(D: DaLeDou):
             D.log("免费刷新成功", "任务派遣中心-刷新任务")
         else:
             D.log("没有免费刷新次数了", "任务派遣中心-刷新任务")
-            is_no_free_refresh = True
+            is_has_free_refresh_count = False
 
     # 任务派遣中心
     D.get("cmd=missionassign&subtype=0")

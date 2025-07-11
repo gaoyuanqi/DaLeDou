@@ -264,6 +264,8 @@ class ShenZhuang:
         consume_name = D.find(r"进阶消耗：(.*?)\*")
         # 材料消耗数量
         consume_num = int(D.find(r"\*(\d+)"))
+        # 材料拥有数量
+        possess_num = int(D.find(r"剩余数量.*?(\d+)"))
         # 当前祝福值
         now_value = int(D.find(r"祝福值：(\d+)"))
         # 满祝福值
@@ -273,8 +275,6 @@ class ShenZhuang:
         full_value_consume_num = compute(
             self.fail_value, consume_num, now_value, total_value
         )
-        # 材料拥有数量
-        possess_num = get_backpack_number(backpack_id)
         # 商店积分
         store_points = get_store_points(store_url)
         # 商店积分可兑换数量
@@ -1364,8 +1364,6 @@ class XianWuXiuZhen:
     """仙武修真宝物自动强化"""
 
     def __init__(self):
-        # 获取残片数量
-        self.backpack_num = self.get_backpack_num()
         self.data = self.get_data()
 
     def get_fail_value(self, consume_name: str, now_level: int) -> int:
@@ -1383,14 +1381,6 @@ class XianWuXiuZhen:
         if now_level <= int(level):
             return int(fail_value)
         return 2
-
-    def get_backpack_num(self) -> dict:
-        """返回史诗、传说、神话残片拥有数量"""
-        return {
-            "史诗残片": get_backpack_number(6681),
-            "传说残片": get_backpack_number(6682),
-            "神话残片": get_backpack_number(6683),
-        }
 
     def get_data(self) -> dict:
         """获取仙武修真宝物数据"""
@@ -1418,13 +1408,13 @@ class XianWuXiuZhen:
             consume_name = D.find(r"消耗：(.*?)\*")
             # 材料消耗数量
             consume_num = int(D.find(r"消耗：.*?(\d+)"))
+            # 材料拥有数量
+            possess_num = int(D.find(r"剩余数量.*?(\d+)"))
             # 当前祝福值
             now_value = int(D.find(r"祝福值：(\d+)"))
             # 总祝福值
             total_value = int(D.find(r"祝福值：\d+/(\d+)"))
 
-            # 残片拥有数量
-            possess_num = self.backpack_num[consume_name]
             # 失败祝福值
             fail_value = self.get_fail_value(consume_name, level)
             # 满祝福消耗数量
@@ -1673,16 +1663,6 @@ class ZhuanJing:
             return int(D.find(r"专精.*?五阶5星.*?(\d+)"))
         return int(D.find(r"专精.*?四阶5星.*?(\d+)"))
 
-    def _get_backpack_number(self, consume_name: str) -> int:
-        """获取消耗材料拥有数量"""
-        data_id = {
-            "投掷武器符文石": 3658,
-            "小型武器符文石": 3657,
-            "中型武器符文石": 3656,
-            "大型武器符文石": 3655,
-        }
-        return get_backpack_number(data_id[consume_name])
-
     def get_data(self) -> dict:
         """获取专精数据"""
         data = {}
@@ -1699,6 +1679,8 @@ class ZhuanJing:
             consume_name = D.find(r"消耗：(.*?)\*")
             # 材料消耗数量
             consume_num = int(D.find(r"消耗：.*?(\d+)"))
+            # 材料拥有数量
+            possess_num = int(D.find(r"剩余数量.*?(\d+)"))
             # 当前祝福值
             now_value = int(D.find(r"祝福值：(\d+)"))
             # 总祝福值
@@ -1706,8 +1688,6 @@ class ZhuanJing:
 
             name = consume_name[:4]
             fail_value = self.get_fail_value(level)
-            # 材料拥有数量
-            possess_num = self._get_backpack_number(consume_name)
             # 商店积分可兑换数量
             store_num = self.points // 40
             # 满祝福消耗数量
