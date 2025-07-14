@@ -21,8 +21,8 @@ Python 3.12
 
 ### 1.下载脚本
 ```sh
-git clone https://github.com/gaoyuanqi/DaLeDou.git
-cd DaLeDou
+git clone https://github.com/gaoyuanqi/daledou.git
+cd daledou
 ```
 
 ### 2.安装依赖（三选一）
@@ -168,7 +168,7 @@ pkg install vim
 
 ### 使用油猴脚本自动复制
 
-感谢 `chansanya` 提供的代码：https://github.com/gaoyuanqi/DaLeDou/issues/23
+感谢 `chansanya` 提供的代码：https://github.com/gaoyuanqi/daledou/issues/23
 
 > Via也可以运行此脚本
 

@@ -21,7 +21,7 @@
 如果使用 uv 包管理器，则将上面 python 替换为 uv run
 """
 
-from src.dld.core.cli import run_serve
+from src.daledou.core.cli import run_serve
 
 
 if __name__ == "__main__":
