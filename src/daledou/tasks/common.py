@@ -133,7 +133,7 @@ def c_任务派遣中心(D: DaLeDou):
                 break
             D.log(D.find(r"】</p>(.*?)<"), mission_name)
 
-            if D.html.count("查看") == 3 or "今天已领取了全部任务" in D.html:
+            if D.html.count("查看") == 3 or "今日已领取了全部任务" in D.html:
                 is_maximums = True
                 break
 

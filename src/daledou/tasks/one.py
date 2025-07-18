@@ -1182,13 +1182,14 @@ def 帮派黄金联赛_参战():
     for _, u in sorted(data, key=lambda x: int(x[0])):
         # 攻击
         D.get(f"cmd=factionleague&op=4&opp_uin={u}")
-        if "不幸战败" in D.html:
-            D.log(D.find()).append()
-            break
+        if "勇士，" in D.html:
+            D.log(D.find())
+            if "不幸战败" in D.html:
+                D.append()
+                break
         elif "您已阵亡" in D.html:
             D.log(D.find(r"<br /><br />(.*?)</p>")).append()
             break
-        D.log(D.find())
 
 
 def 帮派黄金联赛():
@@ -1350,58 +1351,56 @@ def 深渊之潮():
 
 
 def 侠客岛():
-    """侠客行每天最多接受3次，免费次数最多刷新4次"""
-    is_accepted = False
-    fail_missions = set()
-
-    # 侠客行
+    """侠客行每天最多接受3次，免费次数最多刷新4次，刷新任务详见配置文件"""
     D.get("cmd=knight_island&op=viewmissionindex")
+    pos = D.findall(r"viewmissiondetail&amp;pos=(\d+)")
+    if not pos:
+        for name, duration in D.findall(r"([^<>]+?)（需要.*?任务时长：([^<]+)"):
+            D.log(f"{name}：{duration}").append()
+        return
+
+    config: set[str] = set(D.config["侠客岛"]["侠客行"])
     free_refresh_count = int(D.find(r"免费刷新剩余：(\d+)"))
+    for p in pos:
+        for _ in range(5):
+            # 侠客行
+            D.get("cmd=knight_island&op=viewmissionindex")
+            reward = D.find(rf'pos={p}">接受.*?任务奖励：([^<]+)')
 
-    for _ in range(5):
-        is_refresh = False
-
-        # 侠客行
-        D.get("cmd=knight_island&op=viewmissionindex")
-        pos = D.findall(r"viewmissiondetail&amp;pos=(\d+)")
-        if not pos:
-            break
-
-        for p in pos:
             # 接受
             D.get(f"cmd=knight_island&op=viewmissiondetail&pos={p}")
-            mission_name = D.find(r"侠客行<br /><br />(.*?)（")
+            name = D.find(r"([^>]+?)（")
+            D.log(f"任务奖励：{reward}", f"侠客岛-{name}")
 
-            if mission_name in fail_missions:
+            if reward in config and free_refresh_count > 0:
+                # 刷新
+                D.get(f"cmd=knight_island&op=refreshmission&pos={p}")
+                D.log(D.find(r"斗豆）<br />(.*?)<br />"), f"侠客岛-{name}")
+                free_refresh_count -= 1
                 continue
 
             # 快速委派
             D.get(f"cmd=knight_island&op=autoassign&pos={p}")
-            D.log(D.find(r"）<br />(.*?)<br />"), f"侠客岛-{mission_name}")
+            D.log(D.find(r"）<br />(.*?)<br />"), f"侠客岛-{name}")
+
             if "快速委派成功" in D.html:
                 # 开始任务
                 D.get(f"cmd=knight_island&op=begin&pos={p}")
                 html = D.find(r"斗豆）<br />(.*?)<br />")
-                D.log(html, f"侠客岛-{mission_name}")
-                D.append(f"{mission_name}：{html}")
-                is_accepted = True
-                continue
+                D.log(html, f"侠客岛-{name}")
+                D.append(f"{name}：{html}")
+                break
 
             if "符合条件侠士数量不足" in D.html and free_refresh_count > 0:
                 # 刷新
                 D.get(f"cmd=knight_island&op=refreshmission&pos={p}")
-                D.log(D.find(r"斗豆）<br />(.*?)<br />"), f"侠客岛-{mission_name}")
+                D.log(D.find(r"斗豆）<br />(.*?)<br />"), f"侠客岛-{name}")
                 free_refresh_count -= 1
-                is_refresh = True
+                continue
             else:
-                D.log("没有免费刷新次数了", f"侠客岛-{mission_name}")
-                fail_missions.add(mission_name)
-
-        if free_refresh_count == 0 and not is_refresh:
-            break
-
-    if not is_accepted:
-        D.log("没有可接受的任务").append()
+                D.log("没有免费刷新次数了", f"侠客岛-{name}")
+                D.append(f"{name}：符合条件侠士数量不足")
+                break
 
 
 def 八卦迷阵():
