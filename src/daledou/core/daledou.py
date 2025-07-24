@@ -88,7 +88,7 @@ class DaLeDou:
                 time.sleep(0.2)
                 continue
             elif "操作频繁" in self.html:
-                time.sleep(0.8)
+                time.sleep(1)
                 continue
             return self.html
 

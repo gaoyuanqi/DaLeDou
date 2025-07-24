@@ -756,6 +756,8 @@ class XinYuanYingShenQi:
         data = {}
         params = url_params[name]
         D.get(f"cmd=newAct&subtype=104&{params}")
+        # 材料拥有数量
+        possess_num = int(D.find(r"我的真黄金卷轴：(\d+)"))
         D.html = D.html.split("|")[-1]
 
         # 获取神器名称
@@ -770,8 +772,6 @@ class XinYuanYingShenQi:
         now_value_list = D.findall(r"(\d+)/")
         # 满祝福值
         total_value_list = D.findall(r"/(\d+)")
-        # 材料拥有数量
-        possess_num = get_backpack_number(5089)
 
         # 过滤5星
         result = [(k, v) for k, v in zip(name_list, level_list) if v != "5"]

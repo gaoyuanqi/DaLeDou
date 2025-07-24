@@ -300,8 +300,7 @@ def 分享():
         D.get(f"cmd=sharegame&subtype=4&sharenums={s}")
         D.log(D.find(r"】</p>(.*?)<p>")).append()
 
-    number = D.html.count("已领取")
-    if number == 14:
+    if D.html.count("已领取") == 14:
         # 重置分享
         D.get("cmd=sharegame&subtype=7")
         D.log(D.find(r"】</p>(.*?)<p>")).append()
@@ -1328,13 +1327,13 @@ def 许愿帮铺():
             quotient = 0
         for _ in range(quotient):
             D.get(f"cmd=abysstide&op=wishexchangetimes&id={_id}&times=25")
-            D.log(D.find(), name)
+            D.log(D.find(), f"{name}*25")
             if "成功" not in D.html:
                 break
             count += 25
         for _ in range(exchange_quantity - count):
             D.get(f"cmd=abysstide&op=wishexchange&id={_id}")
-            D.log(D.find(), name)
+            D.log(D.find(), f"{name}*1")
             if "成功" not in D.html:
                 break
             count += 1
@@ -1454,7 +1453,7 @@ def 遗迹商店():
                 D.get(f"cmd=spacerelic&op=buy&type={t}&id={_id}&num=10")
                 D.log(
                     D.find(r"售卖区.*?<br /><br /><br />(.*?)<"),
-                    name,
+                    f"{name}*10",
                 )
                 if "兑换成功" not in D.html:
                     break
@@ -1464,7 +1463,7 @@ def 遗迹商店():
                 D.get(f"cmd=spacerelic&op=buy&type={t}&id={_id}&num=1")
                 D.log(
                     D.find(r"售卖区.*?<br /><br /><br />(.*?)<"),
-                    name,
+                    f"{name}*1",
                 )
                 if "兑换成功" not in D.html:
                     break
@@ -1637,13 +1636,13 @@ def 龙凰云集():
         count = 0
         for _ in range(exchange_quantity // 10):
             D.get(f"cmd=dragonphoenix&op=buy&id={_id}&num=10")
-            D.log(D.find(r"<br /><br /><br />(.*?)<"), name)
+            D.log(D.find(r"<br /><br /><br />(.*?)<"), f"{name}*10")
             if "成功" not in D.html:
                 break
             count += 10
         for _ in range(exchange_quantity - count):
             D.get(f"cmd=dragonphoenix&op=buy&id={_id}&num=1")
-            D.log(D.find(r"<br /><br /><br />(.*?)<"), name)
+            D.log(D.find(r"<br /><br /><br />(.*?)<"), f"{name}*1")
             if "成功" not in D.html:
                 break
             count += 1
